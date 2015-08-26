@@ -309,8 +309,6 @@ function get_authoriser($author_id, $role, $fields) {
 			foreach ($module_leaders as $module_leader) {
 				$authoriser_id = $module_leader->id;
 			}
-			$authoriser = get_complete_user_data('username', 'atutor');
-			$authoriser_id = $authoriser->id;
 		}
 	} else if ($role == 3) { // Subject Coordinator
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
@@ -327,8 +325,6 @@ function get_authoriser($author_id, $role, $fields) {
 			foreach ($subject_coordinators as $subject_coordinator) {
 				$authoriser_id = $subject_coordinator->id;
 			}
-			$authoriser = get_complete_user_data('username', 'atutor');
-			$authoriser_id = $authoriser->id;
 		}
 	}
 	
@@ -366,10 +362,25 @@ function get_current_courses($type = null, $user_id = 0, $enrolled = true) {
 	// Create an array of the current courses (programmes) with the required type (if given)
 	$courses = array();
 	foreach ($db_ret as $row) {
-		$prefix = substr($row->idnumber, 0, 2);
-		if (($type != 'P') || ($prefix == 'P~')) {
+		$pos = strpos($row->idnumber, '~');
+		if ($pos === false) {
+			$course_type = '';
+			$course_subtype = '';
+			$course_code = $row->idnumber;
+		} else {
+			$course_type = substr($row->idnumber, 0, $pos);
+			$course_code = substr($row->idnumber, ($pos + 1));
+			$pos = strpos($course_code, '~');
+			if ($pos === false) {
+				$course_subtype = '';
+			} else {
+				$course_subtype = substr($course_code, 0, $pos);
+				$course_code = substr($course_code, ($pos + 1));
+			}
+		}
+		if (!$type || ($course_type == $type)) {
 			if ($user_id == 0) { // Just need the course code for validation purposes
-				$courses[$row->id] = $row->idnumber;
+				$courses[$row->id] = $course_code;
 			} else { // Need the full name
 				$courses[$row->id] = $row->fullname;
 			}

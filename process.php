@@ -29,6 +29,8 @@ require_once('./form_view.php');
 require_once($CFG->libdir . '/moodlelib.php');
 
 require_login();
+$context = context_system::instance();
+$manager = has_capability('local/obu_forms:manage', $context);
 
 // We only handle an existing form (id given)
 if (!isset($_REQUEST['id'])) {
@@ -42,7 +44,6 @@ if (!load_form_data($data_id, $record, $fields)) {
 	die;
 }
 
-$context = context_system::instance();
 $home = new moodle_url('/');
 $dir = $home . 'local/obu_forms/';
 $program = $dir . 'process.php?id=' . $data_id;
@@ -84,8 +85,13 @@ if ($status_text) {
 get_form_status($USER->id, $record, $text, $button_text); // get the authorisation trail and the next action (from the user's perspective)
 $status_text .= $text;
 
-// Display any notes prepared for the authoriser
-if ($button_text == 'authorise') {
+$message = '';
+
+if ($button_text != 'authorise') { // If not the next authoriser, check that this user can view the form
+	if (!$manager && ($USER->id != $record->author)) {
+		$message = get_string('invalid_data', 'local_obu_forms');
+	}
+} else { // Display any notes prepared for the authoriser
 	$text = '';
 	if ($record->authorisation_level == 1) {
 		$text = $settings->auth_1_notes;
@@ -108,8 +114,6 @@ $parameters = [
 	'button_text' => $button_text
 ];
 	
-$message = '';
-
 $mform = new form_view(null, $parameters);
 
 if ($mform->is_cancelled()) {
@@ -129,7 +133,7 @@ else if ($mform_data = $mform->get_data()) {
 echo $OUTPUT->header();
 
 if ($message) {
-    notice($message, $url);    
+    notice($message, $home);    
 }
 else {
     $mform->display();

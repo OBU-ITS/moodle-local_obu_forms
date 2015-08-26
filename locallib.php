@@ -379,10 +379,12 @@ function update_authoriser($form_ref, $form_name, $data, $authoriser_id) {
 		write_form_auths($auth);
 	}
 	
-	// Email the new status to the author and to the CSA Team (if not the next authoriser)
+	// Determine the URL to use to link to the form
 	$program = new moodle_url('/local/obu_forms/process.php') . '?id=' . $data->id;
-	$author = get_complete_user_data('id', $data->author);
+
+	// Email the new status to the author and to the CSA Team (if not the next authoriser)
 	$csa = get_complete_user_data('username', 'csa');
+	$author = get_complete_user_data('id', $data->author);
 	get_form_status($author->id, $data, $text, $button_text); // get the status from the author's perspective
 	$html = '<h4><a href="' . $program . '">' . $form_ref . ': ' . $form_name . '</a></h4>' . $text;
 	email_to_user($author, $csa, 'The Status of Your Form', html_to_text($html), $html, ", ", true);
@@ -391,9 +393,12 @@ function update_authoriser($form_ref, $form_name, $data, $authoriser_id) {
 		$html = '<h4><a href="' . $program . '">' . $form_ref . ': ' . $form_name . '</a></h4>' . $text;
 		email_to_user($csa, $author, 'Form Status Update', html_to_text($html), $html, ", ", true);
 	}
-
+	
 	// Notify the next authoriser (if there is one)
 	if ($authoriser_id) {
+		if (strpos($program, 'moodle.brookes') === false) {
+			$authoriser_id = $csa->id; // Send all authorisation emails to the CSA Team if we aren't 'live'
+		}
 		$authoriser = get_complete_user_data('id', $authoriser_id);
 		$link = '<a href="' . $program . '">' . $form_ref . ' Form</a>';
 		$html = get_string('request_authorisation', 'local_obu_forms', $link);

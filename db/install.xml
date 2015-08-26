@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/obu_forms/db" VERSION="20150424" COMMENT="XMLDB file for Moodle local/obu_forms"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_obu_forms" COMMENT="OBU forms">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="formref" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The form's reference"/>
+        <FIELD NAME="author" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The author's Moodle user ID"/>
+        <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of creation/amendment"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="60" NOTNULL="false" SEQUENCE="false" COMMENT="The form's name"/>
+        <FIELD NAME="description" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The form's description"/>
+        <FIELD NAME="student" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Student Form?"/>
+        <FIELD NAME="visible" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Form Visible?"/>
+        <FIELD NAME="auth_1_role" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation Step 1"/>
+        <FIELD NAME="auth_1_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 1"/>
+        <FIELD NAME="auth_2_role" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation Step 2"/>
+        <FIELD NAME="auth_2_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 2"/>
+        <FIELD NAME="auth_3_role" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation Step 3"/>
+        <FIELD NAME="auth_3_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 3"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="formref" UNIQUE="true" FIELDS="formref" COMMENT="The form's reference"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_obu_forms_templates" COMMENT="OBU forms templates">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="form_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The form's ID"/>
+        <FIELD NAME="version" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The form's version"/>
+        <FIELD NAME="author" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The authors's Moodle user ID"/>
+        <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of template update"/>
+        <FIELD NAME="published" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Draft or Published"/>
+        <FIELD NAME="data" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The form's template"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="template" UNIQUE="true" FIELDS="form_id, version" COMMENT="The form's ID/version"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_obu_forms_data" COMMENT="OBU forms input data">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="author" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The authors's Moodle user ID"/>
+        <FIELD NAME="template_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The form's template ID"/>
+        <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form creation/amendment/submission"/>
+        <FIELD NAME="authorisation_state" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation status"/>
+        <FIELD NAME="authorisation_level" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation status"/>
+        <FIELD NAME="auth_1_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
+        <FIELD NAME="auth_1_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
+        <FIELD NAME="auth_1_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
+        <FIELD NAME="auth_2_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
+        <FIELD NAME="auth_2_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
+        <FIELD NAME="auth_2_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
+        <FIELD NAME="auth_3_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
+        <FIELD NAME="auth_3_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
+        <FIELD NAME="auth_3_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
+        <FIELD NAME="data" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Form data"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="author" UNIQUE="false" FIELDS="author" COMMENT="The authors's Moodle user ID"/>
+      </INDEXES>
+    </TABLE>
+    <TABLE NAME="local_obu_forms_auths" COMMENT="OBU forms - authorisations requested">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="data_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The form input data that requires authorisation"/>
+        <FIELD NAME="authoriser" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The required authoriser's Moodle user ID"/>
+        <FIELD NAME="request_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of authorisation request"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="data_id" UNIQUE="true" FIELDS="data_id" COMMENT="The form input data that requires authorisation"/>
+        <INDEX NAME="authoriser" UNIQUE="false" FIELDS="authoriser" COMMENT="The required authoriser's Moodle user ID"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>

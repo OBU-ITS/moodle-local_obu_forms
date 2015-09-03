@@ -302,14 +302,7 @@ function get_authoriser($author_id, $role, $fields) {
 	} else if ($role == 2) { // Module Leader
 		$modules = get_current_modules();
 		$module_id = array_search(strtoupper($fields['module']), $modules, true);
-		if ($module_id) {
-			$context = context_course::instance($module_id);
-			$ml_role = $DB->get_record('role', array('shortname' => 'course_leader'), 'id', MUST_EXIST);
-			$module_leaders = get_role_users($ml_role->id, $context, false, 'u.id');
-			foreach ($module_leaders as $module_leader) {
-				$authoriser_id = $module_leader->id;
-			}
-		}
+		$authoriser_id = get_module_leader($module_id);
 	} else if ($role == 3) { // Subject Coordinator
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
 			$courses = get_current_courses();
@@ -336,54 +329,57 @@ function get_authoriser($author_id, $role, $fields) {
 	return $authoriser_id;
 }
 
-function get_current_courses($type = null, $user_id = 0, $enrolled = true) {
+function get_current_courses($type = null, $user_id = 0) {
 	global $DB;
 	
 	// Establish the initial selection criteria to apply
-	$criteria = 'c.visible = 1';
-	if ($user_id > 0) {
-		// Restrict courses to ones in which this user is either enrolled or not enrolled
-		if ($enrolled) {
-			$criteria = $criteria . ' AND ue.userid = ' . $user_id;
-		} else {
-			$criteria = $criteria . ' AND ue.userid != ' . $user_id;
-		}
+	$course_criteria = 'c.visible = 1';
+	if ($type) { // Restrict the courses to a given type
+		$course_criteria = $course_criteria . ' AND c.idnumber LIKE "' . $type . '~%"';
 	}
 	
-	// Read the course records that match our chosen criteria
-	$sql = 'SELECT c.id, c.idnumber, c.fullname '
-		. 'FROM {course} c '
-		. 'JOIN {enrol} e ON e.courseid = c.id '
-		. 'JOIN {user_enrolments} ue ON ue.enrolid = e.id '
-		. 'WHERE ' . $criteria . ' '
-		. 'ORDER BY c.fullname';
-	$db_ret = $DB->get_records_sql($sql, array());
-	
-	// Create an array of the current courses (programmes) with the required type (if given)
 	$courses = array();
-	foreach ($db_ret as $row) {
-		$pos = strpos($row->idnumber, '~');
-		if ($pos === false) {
-			$course_type = '';
-			$course_subtype = '';
-			$course_code = $row->idnumber;
-		} else {
-			$course_type = substr($row->idnumber, 0, $pos);
-			$course_code = substr($row->idnumber, ($pos + 1));
-			$pos = strpos($course_code, '~');
+	if ($user_id == 0) { // Just need all the course codes (for validation purposes)
+		$sql = 'SELECT c.id, c.idnumber'
+			. ' FROM {course} c'
+			. ' WHERE ' . $course_criteria;
+		$db_ret = $DB->get_records_sql($sql, array());
+		foreach ($db_ret as $row) {
+			$pos = strpos($row->idnumber, '~');
 			if ($pos === false) {
+				$course_type = '';
 				$course_subtype = '';
+				$course_code = $row->idnumber;
 			} else {
-				$course_subtype = substr($course_code, 0, $pos);
-				$course_code = substr($course_code, ($pos + 1));
+				$course_type = substr($row->idnumber, 0, $pos);
+				$course_code = substr($row->idnumber, ($pos + 1));
+				$pos = strpos($course_code, '~');
+				if ($pos === false) {
+					$course_subtype = '';
+				} else {
+					$course_subtype = substr($course_code, 0, $pos);
+					$course_code = substr($course_code, ($pos + 1));
+				}
 			}
+			$courses[$row->id] = $course_code;
 		}
-		if (!$type || ($course_type == $type)) {
-			if ($user_id == 0) { // Just need the course code for validation purposes
-				$courses[$row->id] = $course_code;
-			} else { // Need the full name
-				$courses[$row->id] = $row->fullname;
-			}
+	} else { // Need the full names of the course(s) on which this user is enrolled as a student
+		$role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
+		$sql = 'SELECT c.id, c.fullname'
+			. ' FROM {user_enrolments} ue'
+			. ' JOIN {enrol} e ON e.id = ue.enrolid'
+			. ' JOIN {context} ct ON ct.instanceid = e.courseid'
+			. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
+			. ' JOIN {course} c ON c.id = e.courseid'
+			. ' WHERE ue.userid = ?'
+				. ' AND ct.contextlevel = 50'
+				. ' AND ra.userid = ue.userid'
+				. ' AND ra.roleid = ?'
+				. ' AND ' . $course_criteria
+			. ' ORDER BY c.fullname';
+		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
+		foreach ($db_ret as $row) {
+			$courses[$row->id] = $row->fullname;
 		}
 	}
 
@@ -446,21 +442,39 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	return $modules;
 }
 
-function get_module_leader($course_id) {
+function get_module_leader($module_id = 0) {
 	global $DB;
 	
-	// NOT USED
-	$sql = 'SELECT u.id
-		FROM {role_assignments} ra
-		JOIN {user} u ON u.id = ra.userid
-		JOIN {context} ctx ON ra.contextid = ctx.id
-		LEFT JOIN (
-			SELECT ue.id, ue.userid
-			FROM {user_enrolments} ue
-			LEFT JOIN {enrol} e ON e.id=ue.enrolid
-			WHERE e.courseid = $course_id
-		) ue ON ue.userid=u.id
-		WHERE ctx.id $ctxcondition AND ue.id IS NULL';
+	// Validate the module ID
+	if ($module_id == 0) {
+		return 0;
+	}
+	$context = context_course::instance($module_id);
+	if ($context == null) {
+		return 0;
+	}
+	
+	// Get all the users enrolled on the module (with their enrollment methods) that have the Module Leader role
+	$sql = 'SELECT ue.userid, e.enrol'
+		. ' FROM {enrol} e'
+		. ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
+		. ' JOIN {role_assignments} ra ON ra.userid = ue.userid'
+		. ' JOIN {role} r ON r.id = ra.roleid'
+		. ' WHERE e.courseid = ? AND ra.contextid = ? AND r.shortname = "course_leader"'
+		. ' ORDER BY ue.timecreated';
+	$db_ret = $DB->get_records_sql($sql, array($module_id, $context->id));
 		
-	$db_ret = $DB->get_records_sql($sql, array());
+	// Find the latest ML enrollment (giving precedence to external ones)
+	$module_leader = 0;
+	$external = false;
+	foreach ($db_ret as $row) {
+		if ($row->enrol == 'databaseextended') {
+			$module_leader = $row->userid;
+			$external = true;
+		} else if (!$external) {
+			$module_leader = $row->userid;
+		}
+	}
+	
+	return $module_leader;
 }

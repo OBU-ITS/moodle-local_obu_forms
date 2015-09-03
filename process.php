@@ -127,7 +127,11 @@ else if ($mform_data = $mform->get_data()) {
 			update_workflow(false, $mform_data->comment);
 		}
 	}
-	redirect($dir);
+	if ($USER->id == $record->author) { // Looking at their own form
+		redirect($dir);
+	} else {
+		redirect($home);
+	}
 }
 
 echo $OUTPUT->header();

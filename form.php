@@ -30,6 +30,7 @@ require_once('./form_view.php');
 require_login();
 $context = context_system::instance();
 $manager = has_capability('local/obu_forms:manage', $context);
+$staff = (substr($USER->idnumber, 0, 1) == 'p');
 
 $home = new moodle_url('/');
 $dir = '/local/obu_forms/';
@@ -53,7 +54,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		echo(get_string('invalid_data', 'local_obu_forms'));
 		die;
 	}
-	if (!$manager && ((!$settings->student && (substr($USER->idnumber, 0, 1) != 'p')) || !$settings->visible)) {
+	if (!$manager && ((!$settings->student && !$staff) || !$settings->visible)) { // User hasn't the capability to view a non-student or hidden form
 		echo(get_string('invalid_data', 'local_obu_forms'));
 		die;
 	}
@@ -95,12 +96,17 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 }
 
 $current_course = '';
-if ($settings->student) { // a student form - the user must be enrolled in a current PG course (programme) in order to use it
+$button_text = 'submit';
+if ($settings->student) { // A student form - the user must be enrolled in a current PG course (programme) in order to submit it
 	$course = get_current_courses('P', $USER->id);
 	$current_course = current($course);
 	if ($current_course === false) {
-		echo(get_string('invalid_data', 'local_obu_forms'));
-		die;
+		if ($manager || $staff) { // Let them view, but not submit, the form
+			$button_text = 'cancel';
+		} else {
+			echo(get_string('invalid_data', 'local_obu_forms'));
+			die;
+		}
 	}
 }
 
@@ -175,7 +181,7 @@ $parameters = [
 	'study_mode' => $study_mode,
 	'reason' => $reason,
 	'fields' => $fields,
-	'button_text' => 'submit'
+	'button_text' => $button_text
 ];
 	
 $message = '';

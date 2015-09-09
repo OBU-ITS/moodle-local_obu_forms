@@ -73,9 +73,7 @@ function local_obu_forms_extends_navigation($navigation) {
 			if ($staff) {
 				$node = $nodeParent->add(get_string('staff_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=staff');
 			}
-			if ($student) {
-				$node = $nodeParent->add(get_string('student_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=student');
-			}
+			$node = $nodeParent->add(get_string('student_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=student'); // Staff can also view student forms
 		}
 	}
 }

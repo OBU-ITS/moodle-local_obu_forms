@@ -43,16 +43,16 @@ if ($type == 'staff') {
 $PAGE->set_title($heading);
 $PAGE->set_heading($heading);
 
-$manager = has_capability('local/obu_forms:manage', $context);
-if ($type == 'student') {
+$manager = has_capability('local/obu_forms:manage', $context); // Can view all forms
+$staff = (substr($USER->idnumber, 0, 1) == 'p'); // Can view staff forms
+$student = $staff || !empty(get_current_courses('P', $USER->id)); // Can view student forms
+
+if ($type == 'student') { // Exclude staff forms
 	$staff = false;
-} else {
-	$staff = (substr($USER->idnumber, 0, 1) == 'p');
 }
-if ($type == 'staff') {
+
+if ($type == 'staff') { // Exclude student forms
 	$student = false;
-} else {
-	$student = !empty(get_current_courses('P', $USER->id));
 }
 
 // The page contents

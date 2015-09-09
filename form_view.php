@@ -169,11 +169,19 @@ class form_view extends moodleform {
 							default:
 								$text = '';
 						}
-						$mform->addElement('static', '', $element['value'], $text); // display the field...
+						$mform->addElement('static', '', $element['value'], $text); // Display the field...
 						$mform->addElement('hidden', $element['id'], $text); // ...and also return it
 						break;
 					case 'text':
 						$mform->addElement('text', $element['id'], $element['value'], $element['options']);
+						break;
+					case 'alphabetic':
+						$mform->addElement('text', $element['id'], $element['value'], $element['options']);
+						$mform->addRule($element['id'], null, 'lettersonly', null, 'server'); // Let Moodle handle the rule
+						break;
+					case 'numeric':
+						$mform->addElement('text', $element['id'], $element['value'], $element['options']);
+						$mform->addRule($element['id'], null, 'numeric', null, 'server'); // Let Moodle handle the rule
 						break;
 					default:
 				}
@@ -198,7 +206,9 @@ class form_view extends moodleform {
 		}
 		
 		$buttonarray = array();
-		$buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string($data->button_text, 'local_obu_forms'));
+		if ($data->button_text != 'cancel') {
+			$buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string($data->button_text, 'local_obu_forms'));
+		}
 		if ($data->button_text != 'continue') {
 			if ($data->button_text == 'authorise') {
 				$mform->addElement('text', 'comment', get_string('comment', 'local_obu_forms'));

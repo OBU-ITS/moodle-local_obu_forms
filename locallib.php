@@ -387,11 +387,11 @@ function update_authoriser($form_ref, $form_name, $data, $authoriser_id) {
 	$author = get_complete_user_data('id', $data->author);
 	get_form_status($author->id, $data, $text, $button_text); // get the status from the author's perspective
 	$html = '<h4><a href="' . $program . '">' . $form_ref . ': ' . $form_name . '</a></h4>' . $text;
-	email_to_user($author, $csa, 'The Status of Your Form', html_to_text($html), $html, ", ", true);
+	email_to_user($author, $csa, 'The Status of Your Form ' . $form_ref, html_to_text($html), $html, ", ", true);
 	if ($authoriser_id != $csa->id) {
 		get_form_status($csa->id, $data, $text, $button_text); // get the status from the CSA's perspective
 		$html = '<h4><a href="' . $program . '">' . $form_ref . ': ' . $form_name . '</a></h4>' . $text;
-		email_to_user($csa, $author, 'Form Status Update', html_to_text($html), $html, ", ", true);
+		email_to_user($csa, $author, 'Form ' . $form_ref . ' Status Update (' . $author->username . ')', html_to_text($html), $html, ", ", true);
 	}
 	
 	// Notify the next authoriser (if there is one)
@@ -402,7 +402,7 @@ function update_authoriser($form_ref, $form_name, $data, $authoriser_id) {
 		$authoriser = get_complete_user_data('id', $authoriser_id);
 		$link = '<a href="' . $program . '">' . $form_ref . ' Form</a>';
 		$html = get_string('request_authorisation', 'local_obu_forms', $link);
-		email_to_user($authoriser, $author, 'Request for Form Authorisation', html_to_text($html), $html, ", ", true);
+		email_to_user($authoriser, $author, 'Request for Form ' . $form_ref . ' Authorisation (' . $author->username . ')', html_to_text($html), $html, ", ", true);
 	}
 }
 

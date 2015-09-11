@@ -97,8 +97,8 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 
 $current_course = '';
 $button_text = 'submit';
-if ($settings->student) { // A student form - the user must be enrolled in a current PG course (programme) in order to submit it
-	$course = get_current_courses('P', $USER->id);
+if ($settings->student) { // A student form - the user must be enrolled in a current non-modular course (programme) in order to submit it
+	$course = get_current_courses($USER->id);
 	$current_course = current($course);
 	if ($current_course === false) {
 		if ($manager || $staff) { // Let them view, but not submit, the form
@@ -138,7 +138,7 @@ foreach ($selects as $select) {
 			break;
 		case 'course':
 			if (empty($course)) {
-				$course = get_current_courses('P', $USER->id);
+				$course = get_current_courses();
 			}
 			break;
 		case 'not_enroled':

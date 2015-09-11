@@ -245,9 +245,9 @@ class form_view extends moodleform {
 				$required_value = true; // Leave the field error display to Moodle
 			} else if (!$group_entry && in_array($key, $this->required_group, true)) { // One of a required group with no entries
 				$errors[$key] = get_string('group_required', 'local_obu_forms');
-			} else if ($key == 'course') { // Exact match - should be a current PG course (programme) code
+			} else if ($key == 'course') { // Exact match - should be a current non-modular course (programme) code
 				if ($value) { // Might not be mandatory
-					$current_courses = get_current_courses('P');
+					$current_courses = get_current_courses();
 					if (!in_array(strtoupper($value), $current_courses, true)) {
 						$errors[$key] = get_string('course_not_found', 'local_obu_forms');
 					}

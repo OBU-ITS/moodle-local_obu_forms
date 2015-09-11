@@ -329,14 +329,16 @@ function get_authoriser($author_id, $role, $fields) {
 	return $authoriser_id;
 }
 
-function get_current_courses($type = null, $user_id = 0) {
+function get_current_courses($user_id = 0, $modular = false) {
 	global $DB;
 	
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes (for validation purposes)
-		$sql = 'SELECT c.id, c.idnumber FROM {course} c';
-		if ($type) { // Restrict the courses to a given type
-			$sql = $sql . ' WHERE c.idnumber LIKE "' . $type . '~%"';
+		$sql = 'SELECT c.id, c.idnumber FROM {course} c WHERE c.idnumber LIKE "_~%"';
+		if ($modular) { // Restrict the courses to a given type
+			$sql .= ' AND c.idnumber LIKE "%~MC%"';
+		} else {
+			$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
 		}
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
@@ -369,9 +371,12 @@ function get_current_courses($type = null, $user_id = 0) {
 			. ' WHERE ue.userid = ?'
 				. ' AND ct.contextlevel = 50'
 				. ' AND ra.userid = ue.userid'
-				. ' AND ra.roleid = ?';
-		if ($type) { // Restrict the courses to a given type
-			$sql = $sql . ' AND c.idnumber LIKE "' . $type . '~%"';
+				. ' AND ra.roleid = ?'
+				. ' AND c.idnumber LIKE "_~%"';
+		if ($modular) { // Restrict the courses to a given type
+			$sql .= ' AND c.idnumber LIKE "%~MC%"';
+		} else {
+			$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
 		}
 		$sql .= ' ORDER BY c.fullname';
 		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));

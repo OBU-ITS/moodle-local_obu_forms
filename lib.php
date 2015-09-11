@@ -31,7 +31,7 @@ function local_obu_forms_extends_navigation($navigation) {
 	
 	$manager = has_capability('local/obu_forms:manage', context_system::instance());
 	$staff = (substr($USER->idnumber, 0, 1) == 'p');
-	$student = !empty(get_current_courses('P', $USER->id)); // Enrolled on a PG course (programme)?
+	$student = !empty(get_current_courses($USER->id)); // Enrolled on a non-modular course (programme)?
 	
 	// Add the 'My Forms' option
 	if ($manager || $staff || $student || !empty(get_form_data($USER->id))) {

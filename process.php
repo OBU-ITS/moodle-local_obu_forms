@@ -59,15 +59,16 @@ $settings = read_form_settings($template->form_id);
 
 $PAGE->navbar->add(get_string('form', 'local_obu_forms') . ' ' . $settings->formref);
 
+$message = '';
+
 // If not awaiting authorisation by someone, display the current status (prominently)
 if (($record->authorisation_state == 0) && ($record->authorisation_level == 0)) { // Form not yet submitted
 	if ($USER->id != $record->author) { // no-one else can look at your unsubmitted forms
-		echo(get_string('invalid_data', 'local_obu_forms'));
-		die;
+		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	$status_text = get_string('status_not_submitted', 'local_obu_forms');
 	
-	// For the time being, we auto-submit the form to avoid a two-stage process for a student (might change?)
+	// For the time being, we auto-submit the form to avoid a two-stage process for the author (might change?)
 	update_workflow(true);
 	$status_text = '';
 	
@@ -85,11 +86,9 @@ if ($status_text) {
 get_form_status($USER->id, $record, $text, $button_text); // get the authorisation trail and the next action (from the user's perspective)
 $status_text .= $text;
 
-$message = '';
-
 if ($button_text != 'authorise') { // If not the next authoriser, check that this user can view the form
 	if (!$manager && ($USER->id != $record->author)) {
-		$message = get_string('invalid_data', 'local_obu_forms');
+		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 } else { // Display any notes prepared for the authoriser
 	$text = '';

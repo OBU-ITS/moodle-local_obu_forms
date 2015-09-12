@@ -35,7 +35,6 @@ $staff = (substr($USER->idnumber, 0, 1) == 'p');
 $home = new moodle_url('/');
 $dir = '/local/obu_forms/';
 $program = $dir . 'form.php';
-$url = $home . $program;
 $process_url = $home . $dir . 'process.php';
 
 $PAGE->set_pagelayout('standard');
@@ -45,6 +44,7 @@ $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('form_title', 'local_obu_forms'));
 
 // Initialise values
+$message = '';
 $data_id = 0;
 $fields = array();
 
@@ -55,8 +55,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		die;
 	}
 	if (!$manager && ((!$settings->student && !$staff) || !$settings->visible)) { // User hasn't the capability to view a non-student or hidden form
-		echo(get_string('invalid_data', 'local_obu_forms'));
-		die;
+		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	if (isset($_REQUEST['version'])) {
 		$template = read_form_template($settings->id, $_REQUEST['version']);
@@ -78,8 +77,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		die;
 	}
 	if ($USER->id != $record->author) { // no-one else can amend your forms
-		echo(get_string('invalid_data', 'local_obu_forms'));
-		die;
+		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	$template = read_form_template_by_id($record->template_id);
 	$settings = read_form_settings($template->form_id);
@@ -104,8 +102,7 @@ if ($settings->student) { // A student form - the user must be enrolled in a cur
 		if ($manager || $staff) { // Let them view, but not submit, the form
 			$button_text = 'cancel';
 		} else {
-			echo(get_string('invalid_data', 'local_obu_forms'));
-			die;
+			$message = get_string('form_unavailable', 'local_obu_forms');
 		}
 	}
 }
@@ -184,8 +181,6 @@ $parameters = [
 	'button_text' => $button_text
 ];
 	
-$message = '';
-
 $mform = new form_view(null, $parameters);
 
 if ($mform->is_cancelled()) {
@@ -242,7 +237,7 @@ else if ($mform_data = (array)$mform->get_data()) {
 echo $OUTPUT->header();
 
 if ($message) {
-    notice($message, $url);    
+    notice($message, $home);    
 }
 else {
     $mform->display();

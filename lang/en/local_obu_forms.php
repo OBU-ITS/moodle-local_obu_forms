@@ -111,6 +111,7 @@ $string['amendment'] = 'amendment/resubmission';
 $string['submission'] = 'submission';
 $string['authorisation'] = 'authorisation';
 
+$string['form_unavailable'] = 'Sorry, this form is unavailable to you.';
 $string['form_error'] = 'Your form can\'t be submitted (please see problems below).';
 $string['value_required'] = 'You must supply a value here.';
 $string['group_required'] = 'You must supply at least one value.';

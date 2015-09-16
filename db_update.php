@@ -262,33 +262,30 @@ function get_form_auths($authoriser) {
 function get_advisers($user_id) {
 	global $DB;
 	   
+	$adviser = array();
+	
+	// Get any Academic Advisers for the user
 	$context = context_user::instance($user_id);
 	$role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
-	$advisers = get_role_users($role->id, $context, false, 'u.id');
-	$adviser = array();
+	$advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
 	foreach ($advisers as $a) {
 		$user = get_complete_user_data('id', $a->id);
 		$adviser[] = $user->firstname . ' ' . $user->lastname;
 	}
 	
-	$adviser[] = 'Mandy Archer';
-	$adviser[] = 'Robert Drake';
-	$adviser[] = 'Emma Fisher';
-	$adviser[] = 'Catherine Foley';
-	$adviser[] = 'Laura Hart';
-	$adviser[] = 'Linda Heap';
-	$adviser[] = 'Michelle Hicks';
-	$adviser[] = 'David Howell';
-	$adviser[] = 'Michelle Jacobs';
-	$adviser[] = 'Martina Kaupp-Roberts';
-	$adviser[] = 'Lucinda Lyon';
-	$adviser[] = 'Catherine Ridley-Hughes';
-	$adviser[] = 'Fareena Salih';
-	$adviser[] = 'Marta Solsona';
-	$adviser[] = 'Chris Taylor';
-	$adviser[] = 'Sam Varney';
-	$adviser[] = 'Mel Williamson';
-		
+	// Get any Student Support Coordinators for the user's course
+	$courses = get_current_courses($user_id); // Should only be one
+	$course_id = key($courses);
+	if ($course_id) {
+		$context = context_course::instance($course_id);
+		$role = $DB->get_record('role', array('shortname' => 'ssc'), 'id', MUST_EXIST);
+		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
+		foreach ($advisers as $a) {
+			$user = get_complete_user_data('id', $a->id);
+			$adviser[] = $user->firstname . ' ' . $user->lastname;
+		}
+	}
+
 	return $adviser;
 }
 	
@@ -369,6 +366,7 @@ function get_current_courses($user_id = 0, $modular = false) {
 			. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
 			. ' JOIN {course} c ON c.id = e.courseid'
 			. ' WHERE ue.userid = ?'
+				. ' AND e.enrol = "databaseextended"'
 				. ' AND ct.contextlevel = 50'
 				. ' AND ra.userid = ue.userid'
 				. ' AND ra.roleid = ?'

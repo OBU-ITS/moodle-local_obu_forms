@@ -305,7 +305,7 @@ function get_authoriser($author_id, $role, $fields) {
 			$courses = get_current_courses();
 			$course_id = array_search(strtoupper($fields['course']), $courses, true);
 		} else { // Get the author's current course (programme)
-			$courses = get_current_courses('P', $author_id);
+			$courses = get_current_courses($author_id);
 			$course_id = key($courses);
 		}
 		if ($course_id) {

@@ -232,7 +232,7 @@ class form_view extends moodleform {
 		} else {
 			$group_entry = false;
 			foreach($this->required_group as $key) {
-				if ($data[$key]) {
+				if ($data[$key] != '') {
 					$group_entry = true;
 				}
 			}
@@ -256,7 +256,7 @@ class form_view extends moodleform {
 				if ($value) { // Only validate if the field was completed
 					$prefix = strtoupper(substr($value, 0, 1));
 					$suffix = substr($value, 1);
-					if ((strlen($value) != 6) || (($prefix != 'U') && ($prefix != 'P')) || !is_numeric($suffix)) {
+					if ((strlen($value) != 6) || (($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 					} else if ($key == 'module') { // Exact match - should be a current module
 						$current_modules = get_current_modules();
@@ -270,19 +270,19 @@ class form_view extends moodleform {
 					$prefix = substr($key, 0, $pos);
 					$suffix = substr($key, ($pos + 6));
 					$key = $prefix . 'title' . $suffix;
-					if (array_key_exists($key, $data) && !$data[$key]) {
+					if (array_key_exists($key, $data) && ($data[$key] == '')) {
 						$errors[$key] = get_string('value_required', 'local_obu_forms');
 					}
 					$key = $prefix . 'start' . $suffix;
-					if (array_key_exists($key, $data) && !$data[$key]) {
+					if (array_key_exists($key, $data) && ($data[$key] == '')) {
 						$errors[$key] = get_string('value_required', 'local_obu_forms');
 					}
 					$key = $prefix . 'mark' . $suffix;
-					if (array_key_exists($key, $data) && !$data[$key]) {
+					if (array_key_exists($key, $data) && ($data[$key] == '')) {
 						$errors[$key] = get_string('value_required', 'local_obu_forms');
 					}
 					$key = $prefix . 'credit' . $suffix;
-					if (array_key_exists($key, $data) && !$data[$key]) {
+					if (array_key_exists($key, $data) && ($data[$key] == '')) {
 						$errors[$key] = get_string('value_required', 'local_obu_forms');
 					}
 				}

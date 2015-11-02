@@ -29,14 +29,18 @@ require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 function local_obu_forms_extends_navigation($navigation) {
     global $CFG, $USER, $PAGE;
 	
+	if (!isloggedin()) {
+		return;
+	}
+	
 	$manager = has_capability('local/obu_forms:manage', context_system::instance());
-	$staff = (substr($USER->idnumber, 0, 1) == 'p');
+	$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
 	$student = !empty(get_current_courses($USER->id)); // Enrolled on a non-modular course (programme)?
 	
 	// Add the 'My Forms' option
 	if ($manager || $staff || $student || !empty(get_form_data($USER->id))) {
 		// Find the 'myprofile' node
-		$nodeParent = $navigation->find('myprofile');
+		$nodeParent = $navigation->find('myprofile', navigation_node::TYPE_UNKNOWN);
 
 		// Add the option to list their completed forms
 		if ($nodeParent) {

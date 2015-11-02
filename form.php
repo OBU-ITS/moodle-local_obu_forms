@@ -30,7 +30,7 @@ require_once('./form_view.php');
 require_login();
 $context = context_system::instance();
 $manager = has_capability('local/obu_forms:manage', $context);
-$staff = (substr($USER->idnumber, 0, 1) == 'p');
+$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
 
 $home = new moodle_url('/');
 $dir = '/local/obu_forms/';

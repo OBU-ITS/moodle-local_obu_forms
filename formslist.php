@@ -44,7 +44,7 @@ $PAGE->set_title($heading);
 $PAGE->set_heading($heading);
 
 $manager = has_capability('local/obu_forms:manage', $context); // Can view all forms
-$staff = (substr($USER->idnumber, 0, 1) == 'p'); // Can view staff forms
+$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1))); // Can view staff forms
 $student = $staff || !empty(get_current_courses('P', $USER->id)); // Can view student forms
 
 if ($type == 'student') { // Exclude staff forms

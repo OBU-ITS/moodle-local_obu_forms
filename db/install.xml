@@ -52,7 +52,7 @@
         <FIELD NAME="template_id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="The form's template ID"/>
         <FIELD NAME="date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form creation/amendment/submission"/>
         <FIELD NAME="authorisation_state" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation status"/>
-        <FIELD NAME="authorisation_level" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation status"/>
+        <FIELD NAME="authorisation_level" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation level"/>
         <FIELD NAME="auth_1_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
         <FIELD NAME="auth_1_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
         <FIELD NAME="auth_1_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>

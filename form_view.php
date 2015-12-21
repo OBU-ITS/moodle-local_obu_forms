@@ -51,15 +51,19 @@ class form_view extends moodleform {
         $data->study_mode = $this->_customdata['study_mode'];
         $data->reason = $this->_customdata['reason'];
         $data->fields = $this->_customdata['fields'];
+        $data->auth_state = $this->_customdata['auth_state'];
+        $data->auth_level = $this->_customdata['auth_level'];
 		$data->status_text = $this->_customdata['status_text'];
 		$data->button_text = $this->_customdata['button_text'];
 		
-		// Start with the required hidden field
+		// Start with the required hidden fields
 		if ($data->data_id > 0) { // Using form to amend or view
 			$mform->addElement('hidden', 'id', $data->data_id);
 		} else { // Using form for initial input
 			$mform->addElement('hidden', 'template', $data->template->id);
 		}
+		$mform->addElement('hidden', 'auth_state', $data->auth_state);
+		$mform->addElement('hidden', 'auth_level', $data->auth_level);
 		
         // Process the template
 		$fld_start = '<input ';
@@ -241,19 +245,19 @@ class form_view extends moodleform {
 		// Do our own validation and add errors to array
 		$required_value = false;
 		foreach ($data as $key => $value) {
-			if (in_array($key, $this->required_field, true) &&  !$value) {
+			if (in_array($key, $this->required_field, true) && ($value == '')) {
 				$required_value = true; // Leave the field error display to Moodle
 			} else if (!$group_entry && in_array($key, $this->required_group, true)) { // One of a required group with no entries
 				$errors[$key] = get_string('group_required', 'local_obu_forms');
 			} else if ($key == 'course') { // Exact match - should be a current non-modular course (programme) code
-				if ($value) { // Might not be mandatory
+				if ($value != '') { // Might not be mandatory
 					$current_courses = get_current_courses();
 					if (!in_array(strtoupper($value), $current_courses, true)) {
 						$errors[$key] = get_string('course_not_found', 'local_obu_forms');
 					}
 				}
 			} else if (strpos($key, 'module') !== false) { // Validate module code format etcetera
-				if ($value) { // Only validate if the field was completed
+				if ($value != '') { // Only validate if the field was completed
 					$prefix = strtoupper(substr($value, 0, 1));
 					$suffix = substr($value, 1);
 					if ((strlen($value) != 6) || (($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
@@ -287,7 +291,7 @@ class form_view extends moodleform {
 					}
 				}
 			} else if (strpos($key, 'start') !== false) { // Validate start date format
-				if ($value) { // Only validate if the field was completed
+				if ($value != '') { // Only validate if the field was completed
 					$month = strtoupper(substr($value, 0, 3));
 					$year = substr($value, 3);
 					if ((strlen($value) != 5) || is_numeric($month) || !is_numeric($year)) {

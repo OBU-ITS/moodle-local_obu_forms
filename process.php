@@ -109,6 +109,8 @@ $parameters = [
 	'data_id' => $data_id,
 	'template' => $template,
 	'fields' => $fields,
+	'auth_state' => $record->authorisation_state,
+	'auth_level' => $record->authorisation_level,
 	'status_text' => $status_text,
 	'button_text' => $button_text
 ];
@@ -119,7 +121,8 @@ if ($mform->is_cancelled()) {
     redirect($home);
 } 
 else if ($mform_data = $mform->get_data()) {
-	if ($mform_data->submitbutton != get_string('continue', 'local_obu_forms')) {
+	if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms')) // They can do something (and they want to)
+		&& ($mform_data->auth_state == $record->authorisation_state) && ($mform_data->auth_level == $record->authorisation_level)) { // Check nothing happened while we were away (or they clicked twice)
 		if ($mform_data->rejectbutton != get_string('reject', 'local_obu_forms')) {
 			update_workflow(true, $mform_data->comment);
 		} else {

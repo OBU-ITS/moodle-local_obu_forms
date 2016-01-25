@@ -390,7 +390,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	global $DB;
 	
 	// Establish the initial selection criteria to apply
-	$criteria = 'c.visible = 1 AND substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-" AND length(c.shortname) >= 18';
+	$criteria = 'substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-" AND length(c.shortname) >= 18';
 	if ($category_id > 0) {
 		// Restrict modules to ones in the given category
 		$criteria = $criteria . ' AND c.category = ' . $params['category_id'];
@@ -422,7 +422,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 		$module_type = substr($row->fullname, 0, 1);
 		$module_start = strtotime('01 ' . substr($row->shortname, 7, 3) . ' ' . substr($row->shortname, 10, 2));
 		$module_end = strtotime('31 ' .	substr($row->shortname, 13, 3) . ' ' . substr($row->shortname, 16, 2));
-		if ((!$type || ($module_type == $type)) && ($module_start <= $now) && ($module_end >= $now)) {
+		if ((!$type || ($module_type == $type)) && ($module_end >= $now)) { // Must be the required type and not already ended
 			if ($user_id == 0) { // Just need the module code for validation purposes
 				$split_pos = strpos($row->fullname, ': ');
 				if ($split_pos !== false) {

@@ -29,7 +29,7 @@ require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 function local_obu_forms_extends_navigation($navigation) {
     global $CFG, $USER, $PAGE;
 	
-	if (!isloggedin()) {
+	if (!isloggedin() || isguestuser()) {
 		return;
 	}
 	

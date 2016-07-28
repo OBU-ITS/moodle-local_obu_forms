@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -28,8 +28,10 @@ require_once('./locallib.php');
 require_once('./redirect_input.php');
 
 require_login();
-$context = context_system::instance();
-require_capability('local/obu_forms:manage', $context);
+$home = new moodle_url('/');
+if (!is_manager()) {
+	redirect($home);
+}
 
 // We only handle an existing form (id given)
 if (isset($_REQUEST['id'])) {
@@ -51,22 +53,31 @@ if (isset($_REQUEST['authoriser'])) {
 	$authoriser_name = null;
 }
 
-$home = new moodle_url('/');
 $dir = $home . '/local/obu_forms/';
 $program = $dir . 'redirect.php?id=' . $data_id;
 $heading = get_string('redirect_form', 'local_obu_forms');
 
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($program);
-$PAGE->set_context($context);
+$PAGE->set_context(context_system::instance());
 $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title($heading);
 
 read_form_data($data_id, $data);
 $template = read_form_template_by_id($data->template_id);
 $form = read_form_settings($template->form_id);
+
+// If a staff form, extract any given student number
+$student_number = '';
+if (!$form->student) {
+	load_form_fields($data, $fields);
+	if (array_key_exists('student_number', $fields)) {
+		$student_number = ' [' . $fields['student_number'] . ']';
+	}
+}
+
 get_form_status($USER->id, $data, $text, $button); // get the authorisation trail and the next action (from the user's perspective)
-$form_status = '<h4>' . $form->formref . ': ' . $form->name . '</h4>' . $text;
+$form_status = '<h4>' . $form->formref . ': ' . $form->name . $student_number . '</h4>' . $text;
 
 $parameters = [
 	'data_id' => $data_id,
@@ -75,7 +86,12 @@ $parameters = [
 	'authoriser_name' => $authoriser_name
 ];
 
-$message = '';
+// Check that they have both the authority and the ability to redirect this form
+if (!is_manager($form) || ($data->authorisation_state > 0)) { // Already finally approved or rejected?
+	$message = get_string('form_unavailable', 'local_obu_forms');
+} else {
+	$message = '';
+}
 
 $mform = new redirect_input(null, $parameters);
 
@@ -97,7 +113,7 @@ else if ($mform_data = $mform->get_data()) {
 			die;
 		}
 		write_form_data($data); // Update the form data record
-		update_authoriser($form->formref, $form->name, $data, $authoriser_id); // Update the authorisations and send notification emails
+		update_authoriser($form, $data, $authoriser_id); // Update the authorisations and send notification emails
 		
 		redirect($home);
 	}
@@ -107,7 +123,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
 if ($message) {
-    notice($message, $url);    
+    notice($message, $home);    
 }
 else {
     $mform->display();

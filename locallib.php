@@ -18,13 +18,29 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
  
 require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
- 
+
+// Check if the user is a forms manager (or a manager of a given form)
+function is_manager($form = null) {
+	$context = context_system::instance();
+	if ($form == null) {
+		$is_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_staff', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
+	} else if ($form->modular == '0') { // PG form
+		$is_manager = has_capability('local/obu_forms:manage_pg', $context);
+	} else if ($form->student == '0') { // UMP staff form
+		$is_manager = has_capability('local/obu_forms:manage_ump_staff', $context);
+	} else { // UMP student form
+		$is_manager = has_capability('local/obu_forms:manage_ump_students', $context);
+	}
+	
+	return $is_manager;
+}
+
 function get_dates($month, $year, $back, $forward) {
 	$months = [ 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC' ];
 
@@ -57,7 +73,10 @@ function get_authorisers() {
 		'None',
 		'CSA',
 		'Module Leader',
-		'Subject Coordinator'
+		'Subject Coordinator',
+		'Supervisor',
+		'Academic Adviser',
+		'Programme Lead'
 	);
 	
 	return $authoriser;
@@ -136,7 +155,7 @@ function split_input_field($input_field) {
 		$key = substr($part, 0, $pos);
 		
 		// We were forced to use 'maxlength' so map it
-		if (($params['type'] == 'select') && ($key == 'maxlength')) {
+		if (array_key_exists('type', $params) && ($params['type'] == 'select') && ($key == 'maxlength')) {
 			$key = 'selected';
 		}
 		
@@ -225,14 +244,17 @@ function load_form_data($data_id, &$record, &$fields) {
 	if (!read_form_data($data_id, $record)) {
 		return false;
 	}
+	load_form_fields($record, $fields);
 	
+	return true;
+}
+
+function load_form_fields($record, &$fields) {
 	$xml = new SimpleXMLElement($record->data);
 	$fields = array();
 	foreach ($xml as $key => $value) {
 		$fields[$key] = (string)$value;
 	}
-	
-	return true;
 }
 
 function get_form_status($user_id, $data, &$text, &$button) {
@@ -240,7 +262,7 @@ function get_form_status($user_id, $data, &$text, &$button) {
 	$text = '';
 	$button = '';
 	$context = context_system::instance();
-	$manager = has_capability('local/obu_forms:manage', $context);
+	$manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_staff', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
 	
 	// Prepare the submission/authorisation trail
 	$date = date_create();
@@ -367,7 +389,7 @@ function get_form_status($user_id, $data, &$text, &$button) {
 	}
 }
 
-function update_authoriser($form_ref, $form_name, $data, $authoriser_id) {
+function update_authoriser($form, $data, $authoriser_id) {
 
 	// Update the stored authorisation requests
 	read_form_auths($data->id, $auth);
@@ -384,25 +406,41 @@ function update_authoriser($form_ref, $form_name, $data, $authoriser_id) {
 
 	// Email the new status to the author and to the CSA Team (if not the next authoriser)
 	$csa = get_complete_user_data('username', 'csa');
+	$csa_id = $csa->id; // The ID used for CSA authorisation
+	if ($form->modular) { // Get the alternative contact details
+		$csa = get_complete_user_data('username', 'csa_ump');
+	}
 	$author = get_complete_user_data('id', $data->author);
 	get_form_status($author->id, $data, $text, $button_text); // get the status from the author's perspective
-	$html = '<h4><a href="' . $program . '">' . $form_ref . ': ' . $form_name . '</a></h4>' . $text;
-	email_to_user($author, $csa, 'The Status of Your Form ' . $form_ref, html_to_text($html), $html);
-	if ($authoriser_id != $csa->id) {
-		get_form_status($csa->id, $data, $text, $button_text); // get the status from the CSA's perspective
-		$html = '<h4><a href="' . $program . '">' . $form_ref . ': ' . $form_name . '</a></h4>' . $text;
-		email_to_user($csa, $author, 'Form ' . $form_ref . ' Status Update (' . $author->username . ')', html_to_text($html), $html);
+	
+	// If a staff form, extract any given student number
+	$student_number = '';
+	if (!$form->student) {
+		load_form_fields($data, $fields);
+		if (array_key_exists('student_number', $fields)) {
+			$student_number = ' [' . $fields['student_number'] . ']';
+		}
+	}
+	
+	$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
+	email_to_user($author, $csa, 'The Status of Your Form ' . $form->formref . $student_number, html_to_text($html), $html);
+	if ($authoriser_id != $csa_id) {
+		get_form_status($csa_id, $data, $text, $button_text); // get the status from the CSA's perspective
+		$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
+		email_to_user($csa, $author, 'Form ' . $form->formref . $student_number . ' Status Update (' . $author->username . ')', html_to_text($html), $html);
 	}
 	
 	// Notify the next authoriser (if there is one)
 	if ($authoriser_id) {
-		if (strpos($program, 'moodle.brookes') === false) {
-			$authoriser_id = $csa->id; // Send all authorisation emails to the CSA Team if we aren't 'live'
+		if ($authoriser_id == $csa_id) {
+			$authoriser = $csa;
+		} else {
+			$authoriser = get_complete_user_data('id', $authoriser_id);
 		}
-		$authoriser = get_complete_user_data('id', $authoriser_id);
-		$link = '<a href="' . $program . '">' . $form_ref . ' Form</a>';
-		$html = get_string('request_authorisation', 'local_obu_forms', $link);
-		email_to_user($authoriser, $author, 'Request for Form ' . $form_ref . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
+		$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
+		$email_link = '<a href="mailto:' . $csa->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $csa->email . '</a>';
+		$html = get_string('request_authorisation', 'local_obu_forms', array('form' => $form_link, 'phone' => $csa->phone1, 'email' => $email_link));
+		email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
 	}
 }
 

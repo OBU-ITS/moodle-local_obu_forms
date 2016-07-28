@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -29,15 +29,16 @@ require_once('./db_update.php');
 require_once('./template_input.php');
 
 require_login();
-$context = context_system::instance();
-require_capability('local/obu_forms:manage', $context);
+$home = new moodle_url('/');
+if (!is_manager()) {
+	redirect($home);
+}
 
-$program = '/local/obu_forms/template.php';
-$url = new moodle_url($program);
+$url = $home . 'local/obu_forms/template.php';
 
 $PAGE->set_pagelayout('standard');
-$PAGE->set_url($program);
-$PAGE->set_context($context);
+$PAGE->set_url($url);
+$PAGE->set_context(context_system::instance());
 $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('template_title', 'local_obu_forms'));
 
@@ -56,6 +57,8 @@ if (isset($_REQUEST['formref'])) {
 	$settings = read_form_settings_by_ref($formref);
 	if ($settings === false) {
 		$message = get_string('invalid_data', 'local_obu_forms');
+	} else if (!is_manager($settings)) { // Not a manager of this type of form
+		$message = get_string('form_unavailable', 'local_obu_forms');
 	} else {
 		$form_id = $settings->id;
 		$formname = $settings->name;

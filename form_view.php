@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -46,8 +46,10 @@ class form_view extends moodleform {
 		$data->start_dates = $this->_customdata['start_dates'];
 		$data->start_selected = $this->_customdata['start_selected'];
         $data->adviser = $this->_customdata['adviser'];
+        $data->supervisor = $this->_customdata['supervisor'];
         $data->course = $this->_customdata['course'];
         $data->not_enroled = $this->_customdata['not_enroled'];
+        $data->enroled = $this->_customdata['enroled'];
         $data->study_mode = $this->_customdata['study_mode'];
         $data->reason = $this->_customdata['reason'];
         $data->fields = $this->_customdata['fields'];
@@ -59,11 +61,15 @@ class form_view extends moodleform {
 		// Start with the required hidden fields
 		if ($data->data_id > 0) { // Using form to amend or view
 			$mform->addElement('hidden', 'id', $data->data_id);
+			$mform->setType('id', PARAM_RAW);
 		} else { // Using form for initial input
 			$mform->addElement('hidden', 'template', $data->template->id);
+			$mform->setType('template', PARAM_RAW);
 		}
 		$mform->addElement('hidden', 'auth_state', $data->auth_state);
+		$mform->setType('auth_state', PARAM_RAW);
 		$mform->addElement('hidden', 'auth_level', $data->auth_level);
+		$mform->setType('auth_level', PARAM_RAW);
 		
         // Process the template
 		$fld_start = '<input ';
@@ -114,14 +120,20 @@ class form_view extends moodleform {
 						$mform->addElement('textarea', $element['id'], $element['value'], $element['options']);
 						break;
 					case 'checkbox':
-						if ($element['rule'] == 'required') { // mustn't return a zero value
+						if (array_key_exists('rule', $element) && ($element['rule'] == 'required')) { // mustn't return a zero value
 							$mform->addElement('checkbox', $element['id'], $element['value']);
-						} else {
+						} else if (array_key_exists('name', $element)) {
 							$mform->addElement('advcheckbox', $element['id'], $element['value'], $element['name'], null, array(0, 1));
+						} else {
+							$mform->addElement('advcheckbox', $element['id'], $element['value'], null, null, array(0, 1));
 						}
 						break;
 					case 'date':
-						$mform->addElement('date_selector', $element['id'], $element['value'], $element['options']);
+						if (array_key_exists('options', $element)) {
+							$mform->addElement('date_selector', $element['id'], $element['value'], $element['options']);
+						} else {
+							$mform->addElement('date_selector', $element['id'], $element['value']);
+						}
 						break;
 					case 'select':
 						switch ($element['name']) {
@@ -130,6 +142,9 @@ class form_view extends moodleform {
 								break;
 							case 'adviser':
 								$options = $data->adviser;
+								break;
+							case 'supervisor':
+								$options = $data->supervisor;
 								break;
 							case 'course':
 								$options = $data->course;
@@ -149,11 +164,13 @@ class form_view extends moodleform {
 							default:
 						}
 						$select = $mform->addElement('select', $element['id'], $element['value'], $options, null);
-						switch ($element['selected']) {
-							case 'start_selected':
-								$select->setSelected($data->start_selected);
-								break;
-							default:
+						if (array_key_exists('selected', $element)) {
+							switch ($element['selected']) {
+								case 'start_selected':
+									$select->setSelected($data->start_selected);
+									break;
+								default:
+							}
 						}
 						break;
 					case 'static':
@@ -175,22 +192,26 @@ class form_view extends moodleform {
 						}
 						$mform->addElement('static', '', $element['value'], $text); // Display the field...
 						$mform->addElement('hidden', $element['id'], $text); // ...and also return it
+						$mform->setType($element['id'], PARAM_RAW);
 						break;
 					case 'text':
 						$mform->addElement('text', $element['id'], $element['value'], $element['options']);
+						$mform->setType($element['id'], PARAM_RAW);
 						break;
 					case 'alphabetic':
 						$mform->addElement('text', $element['id'], $element['value'], $element['options']);
+						$mform->setType($element['id'], PARAM_RAW);
 						$mform->addRule($element['id'], null, 'lettersonly', null, 'server'); // Let Moodle handle the rule
 						break;
 					case 'numeric':
 						$mform->addElement('text', $element['id'], $element['value'], $element['options']);
+						$mform->setType($element['id'], PARAM_RAW);
 						$mform->addRule($element['id'], null, 'numeric', null, 'server'); // Let Moodle handle the rule
 						break;
 					default:
 				}
 				
-				if ($element['rule']) { // An extra validation rule applies to this field
+				if (array_key_exists('rule', $element)) { // An extra validation rule applies to this field
 					if ($element['rule'] == 'group') { // At least one of this group of fields is required
 						$this->required_group[] = $element['id']; // For our own validation
 					} else {
@@ -216,9 +237,15 @@ class form_view extends moodleform {
 		if ($data->button_text != 'continue') {
 			if ($data->button_text == 'authorise') {
 				$mform->addElement('text', 'comment', get_string('comment', 'local_obu_forms'));
+				$mform->setType('comment', PARAM_RAW);
 				$buttonarray[] = &$mform->createElement('submit', 'rejectbutton', get_string('reject', 'local_obu_forms'));
+				if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
+					$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
+				}
 			}
 			$buttonarray[] = &$mform->createElement('cancel');
+		} else if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
+			$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
 		}
 		$mform->addGroup($buttonarray, 'buttonarray', '', array(' '), false);
 		$mform->closeHeaderBefore('buttonarray');
@@ -249,6 +276,14 @@ class form_view extends moodleform {
 				$required_value = true; // Leave the field error display to Moodle
 			} else if (!$group_entry && in_array($key, $this->required_group, true)) { // One of a required group with no entries
 				$errors[$key] = get_string('group_required', 'local_obu_forms');
+			} else if ($key == 'adviser') { // They must have selected one
+				if ($value == '0') { // Oh No! They haven't!
+					$errors[$key] = get_string('value_required', 'local_obu_forms');
+				}
+			} else if ($key == 'supervisor') { // They must have selected one
+				if ($value == '0') { // Oh No! They haven't!
+					$errors[$key] = get_string('value_required', 'local_obu_forms');
+				}
 			} else if ($key == 'course') { // Exact match - should be a current non-modular course (programme) code
 				if ($value != '') { // Might not be mandatory
 					$current_courses = get_current_courses();
@@ -260,7 +295,7 @@ class form_view extends moodleform {
 				if ($value != '') { // Only validate if the field was completed
 					$prefix = strtoupper(substr($value, 0, 1));
 					$suffix = substr($value, 1);
-					if ((strlen($value) != 6) || (($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
+					if ((strlen($value) != 6) || (($prefix != 'C') && ($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 					} else if ($key == 'module') { // Exact match - should be a current module
 						$current_modules = get_current_modules();

@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -29,8 +29,6 @@ require_once('./form_view.php');
 require_once($CFG->libdir . '/moodlelib.php');
 
 require_login();
-$context = context_system::instance();
-$manager = has_capability('local/obu_forms:manage', $context);
 
 // We only handle an existing form (id given)
 if (!isset($_REQUEST['id'])) {
@@ -47,9 +45,10 @@ if (!load_form_data($data_id, $record, $fields)) {
 $home = new moodle_url('/');
 $dir = $home . 'local/obu_forms/';
 $program = $dir . 'process.php?id=' . $data_id;
+$redirect_form = $dir . 'redirect.php?id=' . $data_id;
 
 $PAGE->set_url($program);
-$PAGE->set_context($context);
+$PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout('standard');
 $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('form_title', 'local_obu_forms'));
@@ -87,7 +86,7 @@ get_form_status($USER->id, $record, $text, $button_text); // get the authorisati
 $status_text .= $text;
 
 if ($button_text != 'authorise') { // If not the next authoriser, check that this user can view the form
-	if (!$manager && ($USER->id != $record->author)) {
+	if (!is_manager($settings) && ($USER->id != $record->author)) {
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 } else { // Display any notes prepared for the authoriser
@@ -108,6 +107,18 @@ if ($button_text != 'authorise') { // If not the next authoriser, check that thi
 $parameters = [
 	'data_id' => $data_id,
 	'template' => $template,
+	'username' => null,
+	'surname' => null,
+	'forenames' => null,
+	'current_course' => null,
+	'start_dates' => null,
+	'start_selected' => null,
+	'adviser' => null,
+	'course' => null,
+	'not_enroled' => null,
+	'enroled' => null,
+	'study_mode' => null,
+	'reason' => null,
 	'fields' => $fields,
 	'auth_state' => $record->authorisation_state,
 	'auth_level' => $record->authorisation_level,
@@ -121,7 +132,9 @@ if ($mform->is_cancelled()) {
     redirect($home);
 } 
 else if ($mform_data = $mform->get_data()) {
-	if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms')) // They can do something (and they want to)
+	if (($mform_data->redirectbutton == get_string('redirect', 'local_obu_forms')) && is_manager($settings) && ($record->authorisation_state == 0)) { // They want to redirect the form
+		redirect($redirect_form);
+	} else if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms')) // They can do something (and they want to)
 		&& ($mform_data->auth_state == $record->authorisation_state) && ($mform_data->auth_level == $record->authorisation_level)) { // Check nothing happened while we were away (or they clicked twice)
 		if ($mform_data->rejectbutton != get_string('reject', 'local_obu_forms')) {
 			update_workflow(true, $mform_data->comment);
@@ -129,6 +142,7 @@ else if ($mform_data = $mform->get_data()) {
 			update_workflow(false, $mform_data->comment);
 		}
 	}
+
 	if ($USER->id == $record->author) { // Looking at their own form
 		redirect($dir);
 	} else {
@@ -192,5 +206,5 @@ function update_workflow($authorised = true, $comment = null) {
 	save_form_data($record, $fields);
 	
 	// Update the stored authorisation requests and send notification emails
-	update_authoriser($settings->formref, $settings->name, $record, $authoriser_id);
+	update_authoriser($settings, $record, $authoriser_id);
 }

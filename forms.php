@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -29,31 +29,50 @@ require_once('./db_update.php');
 require_once('./forms_input.php');
 
 require_login();
-$context = context_system::instance();
-require_capability('local/obu_forms:manage', $context);
+$home = new moodle_url('/');
+if (!is_manager()) {
+	redirect($home);
+}
 
-$program = '/local/obu_forms/forms.php';
-$url = new moodle_url($program);
+$url = $home . 'local/obu_forms/forms.php';
+$context = context_system::instance();
 
 $PAGE->set_pagelayout('standard');
-$PAGE->set_url($program);
+$PAGE->set_url($url);
 $PAGE->set_context($context);
 $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('settings_title', 'local_obu_forms'));
 
 $message = '';
-
 $formref = '';
 $record = null;
+$form_indicator = 0;
+$student_indicator = 0;
 
 if (isset($_REQUEST['formref'])) {
 	$formref = strtoupper($_REQUEST['formref']);
 	$record = read_form_settings_by_ref($formref);
+	if (($record !== false) && !is_manager($record)) {
+		$message = get_string('form_unavailable', 'local_obu_forms');
+	} else {
+		if (!has_capability('local/obu_forms:manage_ump_students', $context) && !has_capability('local/obu_forms:manage_ump_staff', $context)) {
+			$form_indicator = 1; // Can only set UMP flag to false
+		} else if (!has_capability('local/obu_forms:manage_pg', $context)) {
+			$form_indicator = 2; // Can only set UMP flag to true
+		}
+		if (!has_capability('local/obu_forms:manage_ump_students', $context) && has_capability('local/obu_forms:manage_ump_staff', $context)) {
+			$student_indicator = 1; // Can only set student flag to false
+		} else if (has_capability('local/obu_forms:manage_ump_students', $context) && !has_capability('local/obu_forms:manage_ump_staff', $context)) {
+			$student_indicator = 2; // Can only set student flag to true
+		}
+	}
 }
 
 $parameters = [
 	'formref' => $formref,
-	'record' => $record
+	'record' => $record,
+	'form_indicator' => $form_indicator,
+	'student_indicator' => $student_indicator
 ];
 
 $mform = new settings_input(null, $parameters);

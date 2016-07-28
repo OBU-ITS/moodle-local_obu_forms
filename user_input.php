@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -31,6 +31,7 @@ class user_input extends moodleform {
         $mform =& $this->_form;
 		
 		$mform->addElement('text', 'username', get_string('user_number', 'local_obu_forms'), 'size="8" maxlength="8"');
+		$mform->setType('username', PARAM_RAW);
 
         $this->add_action_buttons(true, get_string('continue', 'local_obu_forms'));
     }

@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -32,6 +32,7 @@ function write_form_settings($author, $form_data) {
 	$record->date = time();
     $record->name = $form_data->name;
 	$record->description = $form_data->description['text'];
+	$record->modular = $form_data->modular;
 	$record->student = $form_data->student;
 	$record->visible = $form_data->visible;
 	$record->auth_1_role = $form_data->auth_1_role;
@@ -69,10 +70,10 @@ function read_form_settings_by_ref($formref) {
 	return $settings;	
 }
 
-function get_forms($manager, $staff, $student) {
+function get_forms($manager, $staff, $pg_student, $ump_student) {
     global $DB;
 	
-	if (!$manager && !$staff && !$student) { // Nothing for you here...
+	if (!$manager && !$staff && !$pg_student && !$ump_student) { // Nothing for you here...
 		return array();
 	}
 	
@@ -80,10 +81,17 @@ function get_forms($manager, $staff, $student) {
 	$conditions = array();
 	if (!$manager) {
 		$conditions['visible'] = 1;
-		if (!$student) { // Just staff forms
+		if (!$pg_student && !$ump_student) { // Just staff forms
 			$conditions['student'] = 0;
-		} else if (!$staff) { // Just student forms
-			$conditions['student'] = 1;
+		} else {
+			if ($pg_student && !$ump_student) { // Just PG forms
+				$conditions['modular'] = 0;
+			} else if (!$pg_student && $ump_student) { // Just UMP forms
+				$conditions['modular'] = 1;
+			}
+			if (!$staff) { // Just student forms
+				$conditions['student'] = 1;
+			}
 		}			
 	}
 	$forms = $DB->get_records('local_obu_forms', $conditions);
@@ -92,9 +100,12 @@ function get_forms($manager, $staff, $student) {
 	$valid = array();
 	$index = array();
 	foreach ($forms as $form) {
-		if ($manager || (get_form_template($form->id) !== false)) {
-			$valid[] = $form;
-			$index[] = $form->formref;
+		if ($manager || (get_form_template($form->id) !== false)) { // Only include unpublished forms for managers
+			// If a forms manager, only include forms that they manage
+			if (!$manager || is_manager($form)) {
+				$valid[] = $form;
+				$index[] = $form->formref;
+			}
 		}
 	}
 	
@@ -203,11 +214,13 @@ function read_form_data($data_id, &$record) {
 	return true;
 }
 
-function get_form_data($user_id) {
+function get_form_data($user_id = 0) {
     global $DB;
 	
 	$conditions = array();
-	$conditions['author'] = $user_id;
+	if ($user_id > 0) {
+		$conditions['author'] = $user_id;
+	}
 	$data = $DB->get_records('local_obu_forms_data', $conditions, 'date DESC');
 	
 	return $data;
@@ -259,10 +272,25 @@ function get_form_auths($authoriser) {
 	return $auths;
 }
 
+function get_academic_adviser($user_id) {
+	global $DB;
+	   
+	// Get any Academic Advisers for the user
+	$context = context_user::instance($user_id);
+	$role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
+	$advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
+	if (empty($advisers)) { // Shouldn't happen of couse
+		return 0;
+	}
+	
+	return $advisers[0]->id; // We assume only one (or that the first is most relevant)
+}
+
 function get_advisers($user_id) {
 	global $DB;
 	   
 	$adviser = array();
+	$adviser[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
 	
 	// Get any Academic Advisers for the user
 	$context = context_user::instance($user_id);
@@ -270,23 +298,56 @@ function get_advisers($user_id) {
 	$advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
 	foreach ($advisers as $a) {
 		$user = get_complete_user_data('id', $a->id);
-		$adviser[] = $user->firstname . ' ' . $user->lastname;
+		$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
 	}
 	
-	// Get any Student Support Coordinators for the user's course
+	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads for the user's course
 	$courses = get_current_courses($user_id); // Should only be one
 	$course_id = key($courses);
 	if ($course_id) {
 		$context = context_course::instance($course_id);
-		$role = $DB->get_record('role', array('shortname' => 'ssc'), 'id', MUST_EXIST);
+		$role = $DB->get_record('role', array('shortname' => 'ssc'), 'id', MUST_EXIST); // Student Support Coordinator
 		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
 		foreach ($advisers as $a) {
 			$user = get_complete_user_data('id', $a->id);
-			$adviser[] = $user->firstname . ' ' . $user->lastname;
+			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+		}
+		$role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST); // Subject Co-ordinator
+		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
+		foreach ($advisers as $a) {
+			$user = get_complete_user_data('id', $a->id);
+			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+		}
+		$role = $DB->get_record('role', array('shortname' => 'programme_lead'), 'id', MUST_EXIST); // Programme Lead
+		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
+		foreach ($advisers as $a) {
+			$user = get_complete_user_data('id', $a->id);
+			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
 		}
 	}
+	$adviser[] = get_string('no_one', 'local_obu_forms'); // The 'I spoke to no-one' selection
 
 	return $adviser;
+}
+
+function get_supervisors($user_id) { // In this iterration, at least, a supervisor can be any member of staff!
+	global $DB;
+	   
+	$supervisor = array();
+	$supervisor[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
+	
+	$sql = 'SELECT u.id, u.username, u.firstname, u.lastname'
+		. ' FROM {user} u'
+		. ' WHERE u.username REGEXP "^p[0-9]+$"'
+		. ' AND u.deleted = 0'
+		. ' AND u.suspended = 0'
+		. ' ORDER BY u.lastname, u.firstname';
+	$db_ret = $DB->get_records_sql($sql);
+	foreach ($db_ret as $user) {
+		$supervisor[$user->id] = $user->lastname . ', ' . $user->firstname . ' (' . $user->username . ')';
+	}
+
+	return $supervisor;
 }
 	
 function get_authoriser($author_id, $role, $fields) {
@@ -311,11 +372,24 @@ function get_authoriser($author_id, $role, $fields) {
 		if ($course_id) {
 			$context = context_course::instance($course_id);
 			$sc_role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST);
-			$subject_coordinators = get_role_users($sc_role->id, $context, false, 'u.id');
+			$subject_coordinators = get_role_users($sc_role->id, $context, false, 'u.id'); // Exclude inherited roles
 			foreach ($subject_coordinators as $subject_coordinator) {
 				$authoriser_id = $subject_coordinator->id;
 			}
 		}
+	} else if (($role == 4) && $fields['supervisor']) { // Supervisor (field must be present)
+		$start_pos = strpos($fields['supervisor'], '(') + 1;
+		$end_pos = strpos($fields['supervisor'], ')', $start_pos);
+		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);		
+		$authoriser_id = $supervisor->id;
+	} else if ($role == 5) { // Academic Adviser
+		$context = context_user::instance($author_id);
+		$aa_role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
+		$academic_advisers = get_role_users($aa_role->id, $context, false, 'u.id'); // Exclude inherited roles
+		foreach ($academic_advisers as $academic_adviser) {
+			$authoriser_id = $academic_adviser->id;
+		}
+	} else if ($role == 6) { // Programme Lead
 	}
 	
 	if ($authoriser_id == 0) { // Don't leave them hanging...
@@ -324,6 +398,40 @@ function get_authoriser($author_id, $role, $fields) {
 	}
 	
 	return $authoriser_id;
+}
+
+// Check 'quickly' if the user is officially enrolled as a student on any PIP-based course
+function is_student($user_id = 0, $type = null) {
+	global $DB;
+	
+	if ($user_id == 0) { // Mandatory
+		return false;
+	}
+	
+	$role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
+	$sql = 'SELECT c.id'
+		. ' FROM {user_enrolments} ue'
+		. ' JOIN {enrol} e ON e.id = ue.enrolid'
+		. ' JOIN {context} ct ON ct.instanceid = e.courseid'
+		. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
+		. ' JOIN {course} c ON c.id = e.courseid'
+		. ' WHERE ue.userid = ?'
+		. ' AND e.enrol = "databaseextended"'
+			. ' AND ct.contextlevel = 50'
+			. ' AND ra.userid = ue.userid'
+			. ' AND ra.roleid = ?'
+			. ' AND c.idnumber LIKE "_~%"';
+	if ($type == 'UMP') { // Restrict the courses to a given student type
+		$sql .= ' AND c.idnumber LIKE "%~MC%"';
+	} else if ($type == 'PG') {
+		$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
+	}
+	$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
+	if (empty($db_ret)) {
+		return false;
+	} else {
+		return true;
+	}
 }
 
 function get_current_courses($user_id = 0, $modular = false) {

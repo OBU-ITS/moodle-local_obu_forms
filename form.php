@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -28,8 +28,6 @@ require_once('./locallib.php');
 require_once('./form_view.php');
 
 require_login();
-$context = context_system::instance();
-$manager = has_capability('local/obu_forms:manage', $context);
 $staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
 
 $home = new moodle_url('/');
@@ -54,7 +52,8 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		echo(get_string('invalid_data', 'local_obu_forms'));
 		die;
 	}
-	if (!$manager && ((!$settings->student && !$staff) || !$settings->visible)) { // User hasn't the capability to view a non-student or hidden form
+	
+	if (!is_manager($settings) && ((!$settings->student && !$staff) || !$settings->visible)) { // User hasn't the capability to view a non-student or hidden form
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	if (isset($_REQUEST['version'])) {
@@ -95,11 +94,11 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 
 $current_course = '';
 $button_text = 'submit';
-if ($settings->student) { // A student form - the user must be enrolled in a current non-modular course (programme) in order to submit it
-	$course = get_current_courses($USER->id);
-	$current_course = current($course);
+if ($settings->student) { // A student form - the user must be enrolled in a current course (programme) of the right type in order to submit it
+	$course = get_current_courses($USER->id, $settings->modular);
+	$current_course = current($course); // We're assuming only one
 	if ($current_course === false) {
-		if ($manager || $staff) { // Let them view, but not submit, the form
+		if (is_manager($settings) || $staff) { // Let them view, but not submit, the form
 			$button_text = 'cancel';
 		} else {
 			$message = get_string('form_unavailable', 'local_obu_forms');
@@ -113,6 +112,7 @@ $PAGE->navbar->add(get_string('form', 'local_obu_forms') . ' ' . $settings->form
 $start_dates = array();
 $start_selected = 0;
 $adviser = array();
+$supervisor = array();
 $course = array();
 $not_enroled = array();
 $enroled = array();
@@ -131,6 +131,11 @@ foreach ($selects as $select) {
 		case 'adviser':
 			if (empty($adviser)) {
 				$adviser = get_advisers($USER->id);
+			}
+			break;
+		case 'supervisor':
+			if (empty($supervisor)) {
+				$supervisor = get_supervisors($USER->id);
 			}
 			break;
 		case 'course':
@@ -172,12 +177,16 @@ $parameters = [
 	'start_dates' => $start_dates,
 	'start_selected' => 6,
 	'adviser' => $adviser,
+	'supervisor' => $supervisor,
 	'course' => $course,
 	'not_enroled' => $not_enroled,
 	'enroled' => $enroled,
 	'study_mode' => $study_mode,
 	'reason' => $reason,
 	'fields' => $fields,
+	'auth_state' => null,
+	'auth_level' => null,
+	'status_text' => null,
 	'button_text' => $button_text
 ];
 	
@@ -202,6 +211,9 @@ else if ($mform_data = (array)$mform->get_data()) {
 				break;
 			case 'adviser':
 				$value = $adviser[$value];
+				break;
+			case 'supervisor':
+				$value = $supervisor[$value];
 				break;
 			case 'course':
 				$value = $course[$value];

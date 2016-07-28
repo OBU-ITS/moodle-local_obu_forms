@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -139,6 +139,21 @@ function xmldb_local_obu_forms_upgrade($oldversion = 0) {
 
         // obu_forms savepoint reached
         upgrade_plugin_savepoint(true, 2015072000, 'local', 'obu_forms');
+    }
+
+	if ($oldversion < 2016071100) {
+
+		// Define field modular to be added to local_obu_forms
+		$table = new xmldb_table('local_obu_forms');
+		$field = new xmldb_field('modular', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'description');
+
+		// Conditionally launch add field modular
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+
+		// obu_forms savepoint reached
+		upgrade_plugin_savepoint(true, 2016071100, 'local', 'obu_forms');
     }
     
     return $result;

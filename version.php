@@ -24,8 +24,8 @@
  */
 
 $plugin->component = 'local_obu_forms'; // Full name of the plugin (used for diagnostics): plugintype_pluginname
-$plugin->version  = 2016062300;   // The (date) version of this module + 2 extra digital for daily versions
-$plugin->requires = 2012120300;   // Requires this Moodle version - at least 2.0
+$plugin->version  = 2016071800;   // The (date) version of this module + 2 extra digital for daily versions
+$plugin->requires = 2015111604;   // Requires this Moodle version - at least 3.0.4
 $plugin->cron     = 0;
-$plugin->release = 'v1.1.1';
+$plugin->release = 'v1.2.0';
 $plugin->maturity = MATURITY_STABLE;

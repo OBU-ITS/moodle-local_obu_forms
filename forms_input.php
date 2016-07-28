@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -33,12 +33,15 @@ class settings_input extends moodleform {
         $data = new stdClass();
 		$data->formref = $this->_customdata['formref'];
 		$data->record = $this->_customdata['record'];
+		$data->form_indicator = $this->_customdata['form_indicator'];
+		$data->student_indicator = $this->_customdata['student_indicator'];
 		
 		if ($data->record != null) {
 			$description['text'] = $data->record->description;
 			$fields = [
 				'name' => $data->record->name,
 				'description' => $description,
+				'modular' => $data->record->modular,
 				'student' => $data->record->student,
 				'visible' => $data->record->visible,
 				'auth_1_role' => $data->record->auth_1_role,
@@ -49,34 +52,62 @@ class settings_input extends moodleform {
 				'auth_3_notes' => $data->record->auth_3_notes
 			];
 			$this->set_data($fields);
+		} else if (($data->form_indicator > 0) || ($data->student_indicator > 0)) { // We have presets for the new form
+			$fields = array();
+			if ($data->form_indicator > 0) {
+				$fields['modular'] = ($data->form_indicator - 1);
+			}
+			if ($data->student_indicator > 0) {
+				$fields['student'] = ($data->student_indicator - 1);
+			}
+			$this->set_data($fields);
 		}
 		
 		$mform->addElement('html', '<h2>' . get_string('amend_settings', 'local_obu_forms') . '</h2>');
 
 		if ($data->formref == '') {
 			$mform->addElement('text', 'formref', get_string('form', 'local_obu_forms'), 'size="10" maxlength="10"');
+			$mform->setType('formref', PARAM_RAW);
 			$this->add_action_buttons(false, get_string('continue', 'local_obu_forms'));
 			return;
 		}
 		$mform->addElement('hidden', 'formref', strtoupper($data->formref));
+		$mform->setType('formref', PARAM_RAW);
+		$mform->addElement('hidden', 'form_indicator', $data->form_indicator);
+		$mform->setType('form_indicator', PARAM_RAW);
+		$mform->addElement('hidden', 'student_indicator', $data->student_indicator);
+		$mform->setType('student_indicator', PARAM_RAW);
 		$mform->addElement('static', null, get_string('form', 'local_obu_forms'), strtoupper($data->formref));
 		
 		$mform->addElement('text', 'name', get_string('form_name', 'local_obu_forms'), 'size="60" maxlength="60"');
+		$mform->setType('name', PARAM_RAW);
 		$mform->addElement('editor', 'description', get_string('description', 'local_obu_forms'));
 		$mform->setType('description', PARAM_RAW);
+		$mform->addElement('advcheckbox', 'modular', get_string('modular_form', 'local_obu_forms'), null, null, array(0, 1));
+		$mform->disabledIf('modular', 'form_indicator', 'neq', '0');
 		$mform->addElement('advcheckbox', 'student', get_string('student_form', 'local_obu_forms'), null, null, array(0, 1));
+		$mform->disabledIf('student', 'student_indicator', 'neq', '0');
 		$mform->addElement('advcheckbox', 'visible', get_string('form_visible', 'local_obu_forms'), null, null, array(0, 1));
 		
 		$authorisers = get_authorisers();
 		$select = $mform->addElement('select', 'auth_1_role', get_string('auth_1_role', 'local_obu_forms'), $authorisers, null);
-		$select->setSelected(auth_1_role);
+		if ($data->record != null) {
+			$select->setSelected($data->record->auth_1_role);
+		}
 		$mform->addElement('text', 'auth_1_notes', get_string('auth_1_notes', 'local_obu_forms'), 'size="60" maxlength="200"');
+		$mform->setType('auth_1_notes', PARAM_RAW);
 		$select = $mform->addElement('select', 'auth_2_role', get_string('auth_2_role', 'local_obu_forms'), $authorisers, null);
-		$select->setSelected(auth_2_role);
+		if ($data->record != null) {
+			$select->setSelected($data->record->auth_2_role);
+		}
 		$mform->addElement('text', 'auth_2_notes', get_string('auth_2_notes', 'local_obu_forms'), 'size="60" maxlength="200"');
+		$mform->setType('auth_2_notes', PARAM_RAW);
 		$select = $mform->addElement('select', 'auth_3_role', get_string('auth_3_role', 'local_obu_forms'), $authorisers, null);
-		$select->setSelected(auth_3_role);
+		if ($data->record != null) {
+			$select->setSelected($data->record->auth_3_role);
+		}
 		$mform->addElement('text', 'auth_3_notes', get_string('auth_3_notes', 'local_obu_forms'), 'size="60" maxlength="200"');
+		$mform->setType('auth_3_notes', PARAM_RAW);
 
         $this->add_action_buttons(true, get_string('save', 'local_obu_forms'));
     }

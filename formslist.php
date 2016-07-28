@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -25,14 +25,13 @@ require_once('./locallib.php');
 require_once('./db_update.php');
 
 require_login();
-$context = context_system::instance();
 
 $type = optional_param('type', '', PARAM_TEXT);
 
 $url = new moodle_url('/local/obu_forms/formslist.php?type=' . $type);
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
-$PAGE->set_context($context);
+$PAGE->set_context(context_system::instance());
 if ($type == 'staff') {
 	$heading = get_string('staff_forms', 'local_obu_forms');
 } else if ($type == 'student') {
@@ -43,23 +42,24 @@ if ($type == 'staff') {
 $PAGE->set_title($heading);
 $PAGE->set_heading($heading);
 
-$manager = has_capability('local/obu_forms:manage', $context); // Can view all forms
-$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1))); // Can view staff forms
-$student = $staff || !empty(get_current_courses('P', $USER->id)); // Can view student forms
+$staff_forms = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1))); // Can view staff forms
+$pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student forms
+$ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP student forms
 
 if ($type == 'student') { // Exclude staff forms
-	$staff = false;
+	$staff_forms = false;
 }
 
 if ($type == 'staff') { // Exclude student forms
-	$student = false;
+	$pg_forms = false;
+	$ump_forms = false;
 }
 
 // The page contents
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-$forms = get_forms($manager, $staff, $student);
+$forms = get_forms(is_manager(), $staff_forms, $pg_forms, $ump_forms);
 
 $url = new moodle_url('/local/obu_forms/form.php');
 foreach ($forms as $form) {

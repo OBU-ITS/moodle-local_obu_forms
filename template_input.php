@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2015, Oxford Brookes University
+ * @copyright  2016, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -52,16 +52,19 @@ class template_input extends moodleform {
 
 		if ($data->formref == '') {
 			$mform->addElement('text', 'formref', get_string('form', 'local_obu_forms'), 'size="10" maxlength="10"');
+			$mform->setType('formref', PARAM_RAW);
 			$this->add_action_buttons(false, get_string('continue', 'local_obu_forms'));
 			return;
 		}
 		$mform->addElement('hidden', 'formref', strtoupper($data->formref));
+		$mform->setType('formref', PARAM_RAW);
 		$mform->addElement('static', null, get_string('form', 'local_obu_forms'), strtoupper($data->formref));
 		$mform->addElement('static', null, get_string('form_name', 'local_obu_forms'), $data->formname);
 		
 		if ($data->version == '') {
 			if (!$data->versions) {
 				$mform->addElement('text', 'version', get_string('version', 'local_obu_forms'), 'size="10" maxlength="10"');
+				$mform->setType('version', PARAM_RAW);
 			} else {
 				$select = $mform->addElement('select', 'versions', get_string('version', 'local_obu_forms'), $data->versions, null);
 				$select->setSelected(0);
@@ -70,6 +73,7 @@ class template_input extends moodleform {
 			return;
 		}
 		$mform->addElement('hidden', 'version', strtoupper($data->version));
+		$mform->setType('version', PARAM_RAW);
 		$mform->addElement('static', null, get_string('version', 'local_obu_forms'), strtoupper($data->version));
 		
 		$mform->addElement('editor', 'data', get_string('template', 'local_obu_forms'));

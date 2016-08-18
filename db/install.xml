@@ -21,6 +21,10 @@
         <FIELD NAME="auth_2_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 2"/>
         <FIELD NAME="auth_3_role" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation Step 3"/>
         <FIELD NAME="auth_3_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 3"/>
+        <FIELD NAME="auth_4_role" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation Step 4"/>
+        <FIELD NAME="auth_4_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 4"/>
+        <FIELD NAME="auth_5_role" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Authorisation Step 5"/>
+        <FIELD NAME="auth_5_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Notes for Authoriser 5"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -63,6 +67,12 @@
         <FIELD NAME="auth_3_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
         <FIELD NAME="auth_3_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
         <FIELD NAME="auth_3_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
+        <FIELD NAME="auth_4_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
+        <FIELD NAME="auth_4_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
+        <FIELD NAME="auth_4_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
+        <FIELD NAME="auth_5_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
+        <FIELD NAME="auth_5_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
+        <FIELD NAME="auth_5_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
         <FIELD NAME="data" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Form data"/>
       </FIELDS>
       <KEYS>

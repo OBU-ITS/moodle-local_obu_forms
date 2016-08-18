@@ -41,6 +41,10 @@ function write_form_settings($author, $form_data) {
 	$record->auth_2_notes = $form_data->auth_2_notes;
 	$record->auth_3_role = $form_data->auth_3_role;
 	$record->auth_3_notes = $form_data->auth_3_notes;
+	$record->auth_4_role = $form_data->auth_4_role;
+	$record->auth_4_notes = $form_data->auth_4_notes;
+	$record->auth_5_role = $form_data->auth_5_role;
+	$record->auth_5_notes = $form_data->auth_5_notes;
 
 	$settings = read_form_settings_by_ref($record->formref);
 	if ($settings !== false) {
@@ -350,7 +354,7 @@ function get_supervisors($user_id) { // In this iterration, at least, a supervis
 	return $supervisor;
 }
 	
-function get_authoriser($author_id, $role, $fields) {
+function get_authoriser($author_id, $modular, $role, $fields) {
 	global $DB;
 	
 	$authoriser_id = 0;
@@ -366,7 +370,7 @@ function get_authoriser($author_id, $role, $fields) {
 			$courses = get_current_courses();
 			$course_id = array_search(strtoupper($fields['course']), $courses, true);
 		} else { // Get the author's current course (programme)
-			$courses = get_current_courses($author_id);
+			$courses = get_current_courses($author_id, $modular);
 			$course_id = key($courses);
 		}
 		if ($course_id) {
@@ -390,9 +394,12 @@ function get_authoriser($author_id, $role, $fields) {
 			$authoriser_id = $academic_adviser->id;
 		}
 	} else if ($role == 6) { // Programme Lead
+		$authoriser_id = get_programme_lead($author_id, $modular, 0);
+	} else if ($role == 7) { // Programme Lead (2) - only present for joint honours students (will skip step otherwise)
+		$authoriser_id = get_programme_lead($author_id, $modular, 1);
 	}
 	
-	if ($authoriser_id == 0) { // Don't leave them hanging...
+	if (($authoriser_id == 0) && ($role != 7)) { // Don't leave them hanging...
 		$authoriser = get_complete_user_data('username', 'csa'); // Default
 		$authoriser_id = $authoriser->id;
 	}
@@ -510,14 +517,18 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 		} else {
 			$criteria = $criteria . ' AND ue.userid != ' . $user_id;
 		}
+		$sql = 'SELECT ue.id, c.id AS course_id, c.fullname, c.shortname '
+			. 'FROM {course} c '
+			. 'JOIN {enrol} e ON e.courseid = c.id '
+			. 'JOIN {user_enrolments} ue ON ue.enrolid = e.id '
+			. 'WHERE ' . $criteria;
+	} else {
+		$sql = 'SELECT c.id AS course_id, c.fullname, c.shortname '
+			. 'FROM {course} c '
+			. 'WHERE ' . $criteria;
 	}
 	
 	// Read the course (module) records that match our chosen criteria
-	$sql = 'SELECT c.id, c.fullname, c.shortname '
-		. 'FROM {course} c '
-		. 'JOIN {enrol} e ON e.courseid = c.id '
-		. 'JOIN {user_enrolments} ue ON ue.enrolid = e.id '
-		. 'WHERE ' . $criteria;
 	$db_ret = $DB->get_records_sql($sql, array());
 	
 	// Create an array of the current modules with the required type (if given)
@@ -534,20 +545,71 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 			if ($user_id == 0) { // Just need the module code for validation purposes
 				$split_pos = strpos($row->fullname, ': ');
 				if ($split_pos !== false) {
-					$modules[$row->id] = substr($row->fullname, 0, $split_pos);
+					$modules[$row->course_id] = substr($row->fullname, 0, $split_pos);
 				}
 			} else { // Need the full name
 				$split_pos = strpos($row->fullname, ' (');
 				if ($split_pos !== false) {
-					$modules[$row->id] = substr($row->fullname, 0, $split_pos);
+					$modules[$row->course_id] = substr($row->fullname, 0, $split_pos);
 				} else {
-					$modules[$row->id] = $row->fullname;
+					$modules[$row->course_id] = $row->fullname;
 				}
 			}
 		}
 	}
 
 	return $modules;
+}
+
+function get_programme_lead($student_id = 0, $modular = false, $index = 0) {
+	global $DB;
+	
+	// Get all courses for this student (normally 1 but 2 for joint honours students)
+	$courses = get_current_courses($student_id, $modular);
+	if (empty($courses)) {
+		return 0;
+	}
+
+	$programme_leads = array();
+	foreach ($courses as $course_id => $course_name) {
+		$context = context_course::instance($course_id);
+		if ($context == null) {
+			continue;
+		}
+	
+		// Get all the users enrolled on the course (with their enrollment methods) that have the Programme Lead role
+		$sql = 'SELECT ue.userid, e.enrol'
+			. ' FROM {enrol} e'
+			. ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
+			. ' JOIN {role_assignments} ra ON ra.userid = ue.userid'
+			. ' JOIN {role} r ON r.id = ra.roleid'
+			. ' WHERE e.courseid = ? AND ra.contextid = ? AND r.shortname = "programme_lead"'
+			. ' ORDER BY ue.timecreated';
+		$db_ret = $DB->get_records_sql($sql, array($course_id, $context->id));
+
+		// Find the latest PL enrollment (giving precedence to external ones)
+		$programme_lead = 0;
+		$external = false;
+		foreach ($db_ret as $row) {
+			if ($row->enrol == 'databaseextended') {
+				$programme_lead = $row->userid;
+				$external = true;
+			} else if (!$external) {
+				$programme_lead = $row->userid;
+			}
+		}
+
+		// Store them
+		if (($programme_lead > 0) && !in_array($programme_lead, $programme_leads, true)) {
+			$programme_leads[] = $programme_lead;
+		}
+	}
+
+	if (empty($programme_leads[$index])) {
+		return 0;
+	}
+	
+	return $programme_leads[$index];
 }
 
 function get_module_leader($module_id = 0) {

@@ -34,7 +34,11 @@ if ($authoriser_username) {
 	$authoriser = get_complete_user_data('username', $authoriser_username);
 	$authoriser_id = $authoriser->id;
 	$url = new moodle_url('/local/obu_forms/auths.php', array('authoriser' => $authoriser_username));
-	$heading = get_string('auths', 'local_obu_forms') . ': ' . $authoriser->firstname . ' ' . $authoriser->lastname;
+	if ($authoriser->username == 'csa') {
+		$heading = get_string('sc_auths', 'local_obu_forms');
+	} else {
+		$heading = get_string('auths', 'local_obu_forms') . ': ' . $authoriser->firstname . ' ' . $authoriser->lastname;
+	}
 } else {
 	$authoriser = get_complete_user_data('username', 'csa'); // So that we can exclude them later
 	$authoriser_id = 0;
@@ -64,7 +68,7 @@ foreach ($auths as $auth) {
 		
 		// Check first that the user is a manager of this type of form and that it hasn't already been finally approved or rejected
 		if (is_manager($form) && ($data->authorisation_state == 0)) {
-			get_form_status($USER->id, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+			get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 
 			// If a staff form, extract any given student number
 			$student_number = '';

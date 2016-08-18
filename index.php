@@ -78,7 +78,7 @@ foreach ($forms_data as $data) {
 	
 	if ((($data->author == $user->id) && ($currentuser || is_manager($form))) // We can normally only look at our own forms or forms that we manage...
 		|| (($student == $user->username) && is_manager($form))) { // ...but managers can also look at staff forms that relate to the user (student)
-		get_form_status($user->id, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+		get_form_status($user->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 		
 		if ($button != 'submit') {
 			$url = new moodle_url('/local/obu_forms/process.php');

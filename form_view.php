@@ -27,15 +27,18 @@ require_once("{$CFG->libdir}/formslib.php");
 
 class form_view extends moodleform {
 	
-	// Arrays used in our own validation
+	// Variables used in our own validation
 	private $required_field = array(); // an array of field IDs, all of which must have values
 	private $required_group = array(); // a group of field IDs, at least one of which must have a value
+	private $check_id = 0; // ID of check box controlling groups of potentially mandatory fields
+	private $set_group = array(); // a group of field IDs, all of which must have values if the controlling check box is set
+	private $unset_group = array(); // a group of field IDs, all of which must have values if the controlling check box is unset
 
     function definition() {
 		global $USER;
 		
         $mform =& $this->_form;
-
+		
         $data = new stdClass();
         $data->data_id = $this->_customdata['data_id'];
 		$data->template = $this->_customdata['template'];
@@ -52,6 +55,8 @@ class form_view extends moodleform {
         $data->enroled = $this->_customdata['enroled'];
         $data->study_mode = $this->_customdata['study_mode'];
         $data->reason = $this->_customdata['reason'];
+        $data->addition_reason = $this->_customdata['addition_reason'];
+        $data->deletion_reason = $this->_customdata['deletion_reason'];
         $data->fields = $this->_customdata['fields'];
         $data->auth_state = $this->_customdata['auth_state'];
         $data->auth_level = $this->_customdata['auth_level'];
@@ -161,6 +166,12 @@ class form_view extends moodleform {
 							case 'reason':
 								$options = $data->reason;
 								break;
+							case 'addition_reason':
+								$options = $data->addition_reason;
+								break;
+							case 'deletion_reason':
+								$options = $data->deletion_reason;
+								break;
 							default:
 						}
 						$select = $mform->addElement('select', $element['id'], $element['value'], $options, null);
@@ -214,6 +225,12 @@ class form_view extends moodleform {
 				if (array_key_exists('rule', $element)) { // An extra validation rule applies to this field
 					if ($element['rule'] == 'group') { // At least one of this group of fields is required
 						$this->required_group[] = $element['id']; // For our own validation
+					} else if ($element['rule'] == 'check') { // A (single) check box that controls whether groups of fields are mandatory
+						$this->check_id = $element['id']; // For our own validation
+					} else if ($element['rule'] == 'check_set') { // A field that is mandatory if the controlling check box is set
+						$this->set_group[] = $element['id']; // For our own validation
+					} else if ($element['rule'] == 'check_unset') { // A field that is mandatory if the controlling check box is unset
+						$this->unset_group[] = $element['id']; // For our own validation
 					} else {
 						$mform->addRule($element['id'], null, $element['rule'], null, 'server'); // Let Moodle handle the rule
 						if ($element['rule'] == 'required') {
@@ -272,10 +289,14 @@ class form_view extends moodleform {
 		// Do our own validation and add errors to array
 		$required_value = false;
 		foreach ($data as $key => $value) {
-			if (in_array($key, $this->required_field, true) && ($value == '')) {
+			if (($value == '') && in_array($key, $this->required_field, true)) {
 				$required_value = true; // Leave the field error display to Moodle
 			} else if (!$group_entry && in_array($key, $this->required_group, true)) { // One of a required group with no entries
 				$errors[$key] = get_string('group_required', 'local_obu_forms');
+			} else if (($value == '') && in_array($key, $this->set_group, true) && (array_key_exists($this->check_id, $data) && ($data[$this->check_id] == '1'))) { // Controlled by a check box
+				$errors[$key] = get_string('value_required', 'local_obu_forms');
+			} else if (($value == '') && in_array($key, $this->unset_group, true) && (array_key_exists($this->check_id, $data) && ($data[$this->check_id] == '0'))) { // Controlled by a check box
+				$errors[$key] = get_string('value_required', 'local_obu_forms');
 			} else if ($key == 'adviser') { // They must have selected one
 				if ($value == '0') { // Oh No! They haven't!
 					$errors[$key] = get_string('value_required', 'local_obu_forms');
@@ -284,9 +305,9 @@ class form_view extends moodleform {
 				if ($value == '0') { // Oh No! They haven't!
 					$errors[$key] = get_string('value_required', 'local_obu_forms');
 				}
-			} else if ($key == 'course') { // Exact match - should be a current non-modular course (programme) code
+			} else if ($key == 'course') { // Exact match - should be a current course (programme) code
 				if ($value != '') { // Might not be mandatory
-					$current_courses = get_current_courses();
+					$current_courses = get_current_courses(0, $this->_customdata['modular']);
 					if (!in_array(strtoupper($value), $current_courses, true)) {
 						$errors[$key] = get_string('course_not_found', 'local_obu_forms');
 					}
@@ -296,6 +317,8 @@ class form_view extends moodleform {
 					$prefix = strtoupper(substr($value, 0, 1));
 					$suffix = substr($value, 1);
 					if ((strlen($value) != 6) || (($prefix != 'C') && ($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
+						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
+					} else if ($this->_customdata['modular'] && ($prefix != 'U')) {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 					} else if ($key == 'module') { // Exact match - should be a current module
 						$current_modules = get_current_modules();

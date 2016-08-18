@@ -51,7 +51,7 @@ foreach ($auths as $auth) {
 		
 	// Check first that the user is a manager of this type of form
 	if (is_manager($form)) {
-		get_form_status($USER->id, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+		get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 		echo '<h4><a href="' . $process . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . '</a></h4>';
 		echo $text . '<' . $form->formref . '>';
 		if ($data->authorisation_state == 0) { // Not yet finally approved or rejected

@@ -76,7 +76,7 @@ if (!$form->student) {
 	}
 }
 
-get_form_status($USER->id, $data, $text, $button); // get the authorisation trail and the next action (from the user's perspective)
+get_form_status($USER->id, $form, $data, $text, $button); // get the authorisation trail and the next action (from the user's perspective)
 $form_status = '<h4>' . $form->formref . ': ' . $form->name . $student_number . '</h4>' . $text;
 
 $parameters = [

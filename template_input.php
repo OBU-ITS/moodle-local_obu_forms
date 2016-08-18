@@ -82,10 +82,13 @@ class template_input extends moodleform {
 
 		if ($already_published) {
 			$mform->addElement('hidden', 'already_published', 1);
+			$mform->setType('already_published', PARAM_RAW);
 			$mform->addElement('hidden', 'published', 1);
+			$mform->setType('published', PARAM_RAW);
 			$mform->addElement('html', '<strong>' . get_string('published', 'local_obu_forms') . '</strong>' . get_string('publish_note', 'local_obu_forms'));
 		} else {
 			$mform->addElement('hidden', 'already_published', 0);
+			$mform->setType('already_published', PARAM_RAW);
 			$mform->addElement('advcheckbox', 'published', get_string('publish', 'local_obu_forms'), get_string('publish_note', 'local_obu_forms'), null, array(0, 1));
 			$mform->disabledIf('published', 'published', 'checked');
 		}

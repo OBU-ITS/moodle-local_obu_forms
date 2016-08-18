@@ -38,7 +38,7 @@ function local_obu_forms_extend_navigation($navigation) {
 	$students_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
 	$manager = ($staff_manager || $students_manager);
 	$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
-	$student = is_student($USER->id, 'PG'); // Enrolled on a PIP-based course (programme)? ***************************************************************************************
+	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
 	
 	// Add the 'My Forms' option
 	if ($manager || $staff || $student || !empty(get_form_data($USER->id))) {
@@ -73,7 +73,7 @@ function local_obu_forms_extend_navigation($navigation) {
 			$node = $nodeParent->add(get_string('settings_nav', 'local_obu_forms'), '/local/obu_forms/forms.php');
 			$node = $nodeParent->add(get_string('template_nav', 'local_obu_forms'), '/local/obu_forms/template.php');
 			$node = $nodeParent->add(get_string('auths_nav', 'local_obu_forms'), '/local/obu_forms/auths.php');
-			$node = $nodeParent->add(get_string('csa_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=csa');
+			$node = $nodeParent->add(get_string('sc_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=csa');
 			$node = $nodeParent->add(get_string('list_users_forms', 'local_obu_forms'), '/local/obu_forms/list.php');
 			$node = $nodeParent->add(get_string('formslist', 'local_obu_forms'), '/local/obu_forms/formslist.php');
 		} else { // For other users, add the option(s) to list all the relevant forms

@@ -71,12 +71,13 @@ function get_dates($month, $year, $back, $forward) {
 function get_authorisers() {
 	$authoriser = array(
 		'None',
-		'CSA',
+		'CSA/SC',
 		'Module Leader',
 		'Subject Coordinator',
 		'Supervisor',
 		'Academic Adviser',
-		'Programme Lead'
+		'Programme Lead',
+		'Programme Lead (2)'
 	);
 	
 	return $authoriser;
@@ -103,6 +104,34 @@ function get_reasons() {
 		'Course Unsatisfactory',
 		'Transferring to Another Institution',
 		'Transferring to Another OBU Course',
+		'Other (please give details below)'
+	);
+	
+	return $reason;
+}
+
+function get_addition_reasons() {
+	$reason = array(
+		'I have failed or need to re-sit a module and subsequently need to make programme changes',
+		'The module I had selected was cancelled so I need to add a replacement module',
+		'I have been on an exchange or industrial year out placement',
+		'I am returning from a period of Approved/Unapproved Temporary Withdrawal',
+		'I have been allowed to return after successfully appealing my exclusion on the grounds of academic failure',
+		'My subject change request was accepted after the Monday, Week 10 Module Addition Deadline',
+		'Other (please give details below)'
+	);
+	
+	return $reason;
+}
+
+function get_deletion_reasons() {
+	$reason = array(
+		'I have failed or need to re-sit a module and subsequently need to make programme changes',
+		'The module I had selected was cancelled so I need to add a replacement module',
+		'I have been on an exchange or industrial year out placement',
+		'I am returning from a period of Approved/Unapproved Temporary Withdrawal',
+		'I have been allowed to return after successfully appealing my exclusion on the grounds of academic failure',
+		'My subject change request was accepted after the Monday, Week 10 Module Addition Deadline',
 		'Other (please give details below)'
 	);
 	
@@ -172,12 +201,18 @@ function split_input_field($input_field) {
 			// If the 'value' parameter is suffixed then the field (or one of the required group) must be completed
 			if ($key == 'value') {
 				$suffix = substr($value, (strlen($value) - 1));
-				if (($suffix == '#') || ($suffix == '*')) {
+				if (($suffix == '*') || ($suffix == '#') || ($suffix == '=') || ($suffix == '+') || ($suffix == '-')) {
 					$value = substr($value, 0, (strlen($value) - 1)); // Strip-off the indicator
-					if ($suffix == '#') {
-						$params['rule'] = 'group';
+					if ($suffix == '*') {
+						$params['rule'] = 'required'; // A mandatory field
+					} else if ($suffix == '#') {
+						$params['rule'] = 'group'; // One of a (single) group of which at least one must be completed
+					} else if ($suffix == '=') {
+						$params['rule'] = 'check'; // A (single) check box that controls whether groups of fields are mandatory
+					} else if ($suffix == '+') {
+						$params['rule'] = 'check_set'; // A field that is mandatory if the controlling check box is set
 					} else {
-						$params['rule'] = 'required';
+						$params['rule'] = 'check_unset'; // A field that is mandatory if the controlling check box is unset
 					}
 				}
 			}
@@ -257,13 +292,20 @@ function load_form_fields($record, &$fields) {
 	}
 }
 
-function get_form_status($user_id, $data, &$text, &$button) {
+function get_form_status($user_id, $form, $data, &$text, &$button) {
 
 	$text = '';
 	$button = '';
 	$context = context_system::instance();
-	$manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_staff', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
 	
+	// Get the Student Central ID and relevant name
+	$sc = get_complete_user_data('username', 'csa'); // Student Central (CSA/SC)
+	$sc_id = $sc->id;
+	if ($form->modular) { // Use the SCAT details (UMP)
+		$sc = get_complete_user_data('username', 'scat');
+	}
+	$sc_name = $sc->alternatename;
+
 	// Prepare the submission/authorisation trail
 	$date = date_create();
 	$format = 'd-m-y H:i';
@@ -272,17 +314,23 @@ function get_form_status($user_id, $data, &$text, &$button) {
 		$text .= date_format($date, $format) . ' ';
 		if ($data->author == $user_id) {
 			$name = 'you';
+		} else if ($data->author == $sc_id) {
+			$name = $sc_name;
 		} else {
 			$authoriser = get_complete_user_data('id', $data->author);
 			$name = $authoriser->firstname . ' ' . $authoriser->lastname;
 		}
 		$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('submitted', 'local_obu_forms'), 'by' => $name));
 		$text .= '<br />';
+		
+		// Authorisation level 1
 		if (($data->authorisation_level == 1) && ($data->authorisation_state > 0)) { // The workflow ended here
 			date_timestamp_set($date, $data->auth_1_date);
 			$text .= date_format($date, $format) . ' ';
 			if ($data->auth_1_id == $user_id) {
 				$name = 'you';
+			} else if ($data->auth_1_id == $sc_id) {
+				$name = $sc_name;
 			} else {
 				$authoriser = get_complete_user_data('id', $data->auth_1_id);
 				$name = $authoriser->firstname . ' ' . $authoriser->lastname;
@@ -293,22 +341,30 @@ function get_form_status($user_id, $data, &$text, &$button) {
 				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 			}
 			$text .= ' ' . $data->auth_1_notes . '<br />';
-		} else if ($data->authorisation_level > 1) {
-			date_timestamp_set($date, $data->auth_1_date);
-			$text .= date_format($date, $format) . ' ';
-			if ($data->auth_1_id == $user_id) {
-				$name = 'you';
-			} else {
-				$authoriser = get_complete_user_data('id', $data->auth_1_id);
-				$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+		} else if ($data->authorisation_level > 1) { // We've passed this level
+			if ($data->auth_1_id != 0) { // Include level in trail only if it wasn't skipped
+				date_timestamp_set($date, $data->auth_1_date);
+				$text .= date_format($date, $format) . ' ';
+				if ($data->auth_1_id == $user_id) {
+					$name = 'you';
+				} else if ($data->auth_1_id == $sc_id) {
+					$name = $sc_name;
+				} else {
+					$authoriser = get_complete_user_data('id', $data->auth_1_id);
+					$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+				}
+				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+				$text .= ' ' . $data->auth_1_notes . '<br />';
 			}
-			$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
-			$text .= ' ' . $data->auth_1_notes . '<br />';
+			
+			// Authorisation level 2
 			if (($data->authorisation_level == 2) && ($data->authorisation_state > 0)) { // The workflow ended here
 				date_timestamp_set($date, $data->auth_2_date);
 				$text .= date_format($date, $format) . ' ';
 				if ($data->auth_2_id == $user_id) {
 					$name = 'you';
+				} else if ($data->auth_2_id == $sc_id) {
+					$name = $sc_name;
 				} else {
 					$authoriser = get_complete_user_data('id', $data->auth_2_id);
 					$name = $authoriser->firstname . ' ' . $authoriser->lastname;
@@ -319,22 +375,30 @@ function get_form_status($user_id, $data, &$text, &$button) {
 					$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 				}
 				$text .= ' ' . $data->auth_2_notes . '<br />';
-			} else if ($data->authorisation_level > 2) {
-				date_timestamp_set($date, $data->auth_2_date);
-				$text .= date_format($date, $format) . ' ';
-				if ($data->auth_2_id == $user_id) {
-					$name = 'you';
-				} else {
-					$authoriser = get_complete_user_data('id', $data->auth_2_id);
-					$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+			} else if ($data->authorisation_level > 2) { // We've passed this level
+				if ($data->auth_2_id != 0) { // Include level in trail only if it wasn't skipped
+					date_timestamp_set($date, $data->auth_2_date);
+					$text .= date_format($date, $format) . ' ';
+					if ($data->auth_2_id == $user_id) {
+						$name = 'you';
+					} else if ($data->auth_2_id == $sc_id) {
+						$name = $sc_name;
+					} else {
+						$authoriser = get_complete_user_data('id', $data->auth_2_id);
+						$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+					}
+					$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+					$text .= ' ' . $data->auth_2_notes . '<br />';
 				}
-				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
-				$text .= ' ' . $data->auth_2_notes . '<br />';
-				if ($data->authorisation_state > 0) { // The workflow ended here
+				
+				// Authorisation level 3
+				if (($data->authorisation_level == 3) && ($data->authorisation_state > 0)) { // The workflow ended here
 					date_timestamp_set($date, $data->auth_3_date);
 					$text .= date_format($date, $format) . ' ';
 					if ($data->auth_3_id == $user_id) {
 						$name = 'you';
+					} else if ($data->auth_3_id == $sc_id) {
+						$name = $sc_name;
 					} else {
 						$authoriser = get_complete_user_data('id', $data->auth_3_id);
 						$name = $authoriser->firstname . ' ' . $authoriser->lastname;
@@ -344,7 +408,77 @@ function get_form_status($user_id, $data, &$text, &$button) {
 					} else {
 						$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 					}
-					$text .= ' ' . $data->auth_2_notes . '<br />';
+					$text .= ' ' . $data->auth_3_notes . '<br />';
+				} else if ($data->authorisation_level > 3) { // We've passed this level
+					if ($data->auth_3_id != 0) { // Include level in trail only if it wasn't skipped
+						date_timestamp_set($date, $data->auth_3_date);
+						$text .= date_format($date, $format) . ' ';
+						if ($data->auth_3_id == $user_id) {
+							$name = 'you';
+						} else if ($data->auth_3_id == $sc_id) {
+							$name = $sc_name;
+						} else {
+							$authoriser = get_complete_user_data('id', $data->auth_3_id);
+							$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+						}
+						$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+						$text .= ' ' . $data->auth_3_notes . '<br />';
+					}
+					
+					// Authorisation level 4
+					if (($data->authorisation_level == 4) && ($data->authorisation_state > 0)) { // The workflow ended here
+						date_timestamp_set($date, $data->auth_4_date);
+						$text .= date_format($date, $format) . ' ';
+						if ($data->auth_4_id == $user_id) {
+							$name = 'you';
+						} else if ($data->auth_4_id == $sc_id) {
+							$name = $sc_name;
+						} else {
+							$authoriser = get_complete_user_data('id', $data->auth_4_id);
+							$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+						}
+						if ($data->authorisation_state == 1) {
+							$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('rejected', 'local_obu_forms'), 'by' => $name));
+						} else {
+							$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+						}
+						$text .= ' ' . $data->auth_4_notes . '<br />';
+					} else if ($data->authorisation_level > 4) { // We've passed this level
+						if ($data->auth_4_id != 0) { // Include level in trail only if it wasn't skipped
+							date_timestamp_set($date, $data->auth_4_date);
+							$text .= date_format($date, $format) . ' ';
+							if ($data->auth_4_id == $user_id) {
+								$name = 'you';
+							} else if ($data->auth_4_id == $sc_id) {
+								$name = $sc_name;
+							} else {
+								$authoriser = get_complete_user_data('id', $data->auth_4_id);
+								$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+							}
+							$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+							$text .= ' ' . $data->auth_4_notes . '<br />';
+						}
+						
+						// Authorisation level 5 (the last possible one)
+						if ($data->authorisation_state > 0) { // The workflow ended here
+							date_timestamp_set($date, $data->auth_5_date);
+							$text .= date_format($date, $format) . ' ';
+							if ($data->auth_5_id == $user_id) {
+								$name = 'you';
+							} else if ($data->auth_5_id == $sc_id) {
+								$name = $sc_name;
+							} else {
+								$authoriser = get_complete_user_data('id', $data->auth_5_id);
+								$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+							}
+							if ($data->authorisation_state == 1) {
+								$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('rejected', 'local_obu_forms'), 'by' => $name));
+							} else {
+								$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+							}
+							$text .= ' ' . $data->auth_5_notes . '<br />';
+						}
+					}
 				}
 			}
 		}
@@ -357,8 +491,12 @@ function get_form_status($user_id, $data, &$text, &$button) {
 				$name = 'you';
 				$button = 'submit';
 			} else {
-				$authoriser = get_complete_user_data('id', $data->author);
-				$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+				if ($data->author == $sc_id) {
+					$name = $sc_name;
+				} else {
+					$authoriser = get_complete_user_data('id', $data->author);
+					$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+				}
 				$button = 'continue';
 			}
 			$text .= '<p />' . get_string('awaiting_action', 'local_obu_forms', array('action' => get_string('submission', 'local_obu_forms'), 'by' => $name));
@@ -367,20 +505,24 @@ function get_form_status($user_id, $data, &$text, &$button) {
 				$authoriser_id = $data->auth_1_id;
 			} else if ($data->authorisation_level == 2) {
 				$authoriser_id = $data->auth_2_id;
-			} else {
+			} else if ($data->authorisation_level == 3) {
 				$authoriser_id = $data->auth_3_id;
+			} else if ($data->authorisation_level == 4) {
+				$authoriser_id = $data->auth_4_id;
+			} else {
+				$authoriser_id = $data->auth_5_id;
 			}
-			if ($authoriser_id == $user_id) {
+			if (($authoriser_id == $user_id) || (($authoriser_id == $sc_id) && is_manager($form))) {
 				$name = 'you';
 				$button = 'authorise';
 			} else {
-				$authoriser = get_complete_user_data('id', $authoriser_id);
-				$name = $authoriser->firstname . ' ' . $authoriser->lastname;
-				if (($name == 'CSA Team') && $manager) {
-					$button = 'authorise';
+				if ($authoriser_id == $sc_id) {
+					$name = $sc_name;
 				} else {
-					$button = 'continue';
+					$authoriser = get_complete_user_data('id', $authoriser_id);
+					$name = $authoriser->firstname . ' ' . $authoriser->lastname;
 				}
+				$button = 'continue';
 			}
 			$text .= '<p />' . get_string('awaiting_action', 'local_obu_forms', array('action' => get_string('authorisation', 'local_obu_forms'), 'by' => $name));
 		}
@@ -404,14 +546,18 @@ function update_authoriser($form, $data, $authoriser_id) {
 	// Determine the URL to use to link to the form
 	$program = new moodle_url('/local/obu_forms/process.php') . '?id=' . $data->id;
 
-	// Email the new status to the author and to the CSA Team (if not the next authoriser)
-	$csa = get_complete_user_data('username', 'csa');
-	$csa_id = $csa->id; // The ID used for CSA authorisation
-	if ($form->modular) { // Get the alternative contact details
-		$csa = get_complete_user_data('username', 'csa_ump');
+	// Email the new status to the author and to Student Central (if not the next authoriser)
+	$sc = get_complete_user_data('username', 'csa');
+	$sc_id = $sc->id;
+	if (!$form->modular) { // Use the default CSA Team contact and notification details (PG)
+		$sc_contact = $sc;
+		$sc_notifications = $sc;
+	} else { // Use the SCAT contact and notification details (UMP)
+		$sc_contact = get_complete_user_data('username', 'scat');
+		$sc_notifications = get_complete_user_data('username', 'scat_notifications');
 	}
 	$author = get_complete_user_data('id', $data->author);
-	get_form_status($author->id, $data, $text, $button_text); // get the status from the author's perspective
+	get_form_status($author->id, $form, $data, $text, $button_text); // get the status from the author's perspective
 	
 	// If a staff form, extract any given student number
 	$student_number = '';
@@ -423,23 +569,23 @@ function update_authoriser($form, $data, $authoriser_id) {
 	}
 	
 	$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
-	email_to_user($author, $csa, 'The Status of Your Form ' . $form->formref . $student_number, html_to_text($html), $html);
-	if ($authoriser_id != $csa_id) {
-		get_form_status($csa_id, $data, $text, $button_text); // get the status from the CSA's perspective
+	email_to_user($author, $sc_contact, 'The Status of Your Form ' . $form->formref . $student_number, html_to_text($html), $html);
+	if ($authoriser_id != $sc_id) {
+		get_form_status($sc_id, $form, $data, $text, $button_text); // get the status from the perspective of Student Central
 		$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
-		email_to_user($csa, $author, 'Form ' . $form->formref . $student_number . ' Status Update (' . $author->username . ')', html_to_text($html), $html);
+		email_to_user($sc_notifications, $author, 'Form ' . $form->formref . $student_number . ' Status Update (' . $author->username . ')', html_to_text($html), $html);
 	}
 	
 	// Notify the next authoriser (if there is one)
 	if ($authoriser_id) {
-		if ($authoriser_id == $csa_id) {
-			$authoriser = $csa;
+		if ($authoriser_id == $sc_id) {
+			$authoriser = $sc_notifications;
 		} else {
 			$authoriser = get_complete_user_data('id', $authoriser_id);
 		}
 		$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
-		$email_link = '<a href="mailto:' . $csa->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $csa->email . '</a>';
-		$html = get_string('request_authorisation', 'local_obu_forms', array('form' => $form_link, 'phone' => $csa->phone1, 'email' => $email_link));
+		$email_link = '<a href="mailto:' . $sc_contact->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $sc_contact->email . '</a>';
+		$html = get_string('request_authorisation', 'local_obu_forms', array('form' => $form_link, 'name' => $sc_contact->alternatename, 'phone' => $sc_contact->phone1, 'email' => $email_link));
 		email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
 	}
 }

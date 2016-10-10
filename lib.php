@@ -37,7 +37,7 @@ function local_obu_forms_extend_navigation($navigation) {
 	$staff_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_staff', $context));
 	$students_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
 	$manager = ($staff_manager || $students_manager);
-	$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
+	$staff = is_staff($USER->username); // Has a 'p' number?
 	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
 	
 	// Add the 'My Forms' option
@@ -80,7 +80,10 @@ function local_obu_forms_extend_navigation($navigation) {
 			if ($staff) {
 				$node = $nodeParent->add(get_string('staff_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=staff');
 			}
-			$node = $nodeParent->add(get_string('student_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=student'); // Staff can also view student forms
+			$node = $nodeParent->add(get_string('student_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=student'); // Both staff and students can view student forms
+			if ($staff) {
+				$node = $nodeParent->add(get_string('list_users_forms', 'local_obu_forms'), '/local/obu_forms/list.php');
+			}
 		}
 	}
 }

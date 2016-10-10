@@ -521,6 +521,9 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 				} else {
 					$authoriser = get_complete_user_data('id', $authoriser_id);
 					$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+					if ($authoriser->username == 'csa-tbd') { // Authoriser TBD so highlight
+						$name = "<span style='color:red'>" . $name . "</span>";
+					}
 				}
 				$button = 'continue';
 			}
@@ -547,6 +550,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 	$program = new moodle_url('/local/obu_forms/process.php') . '?id=' . $data->id;
 
 	// Email the new status to the author and to Student Central (if not the next authoriser)
+	$author = get_complete_user_data('id', $data->author);
 	$sc = get_complete_user_data('username', 'csa');
 	$sc_id = $sc->id;
 	if (!$form->modular) { // Use the default CSA Team contact and notification details (PG)
@@ -556,7 +560,19 @@ function update_authoriser($form, $data, $authoriser_id) {
 		$sc_contact = get_complete_user_data('username', 'scat');
 		$sc_notifications = get_complete_user_data('username', 'scat_notifications');
 	}
-	$author = get_complete_user_data('id', $data->author);
+	
+    // Add email headers to help prevent auto-responders
+    $author->customheaders = array (
+		'Precedence: Bulk',
+		'X-Auto-Response-Suppress: All',
+		'Auto-Submitted: auto-generated'
+	);
+	$sc_contact->customheaders = array (
+		'Precedence: Bulk',
+		'X-Auto-Response-Suppress: All',
+		'Auto-Submitted: auto-generated'
+	);
+
 	get_form_status($author->id, $form, $data, $text, $button_text); // get the status from the author's perspective
 	
 	// If a staff form, extract any given student number
@@ -583,10 +599,12 @@ function update_authoriser($form, $data, $authoriser_id) {
 		} else {
 			$authoriser = get_complete_user_data('id', $authoriser_id);
 		}
-		$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
-		$email_link = '<a href="mailto:' . $sc_contact->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $sc_contact->email . '</a>';
-		$html = get_string('request_authorisation', 'local_obu_forms', array('form' => $form_link, 'name' => $sc_contact->alternatename, 'phone' => $sc_contact->phone1, 'email' => $email_link));
-		email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
+		if ($authoriser->username != 'csa-tbd') { // No notification possible if authoriser TBD
+			$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
+			$email_link = '<a href="mailto:' . $sc_contact->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $sc_contact->email . '</a>';
+			$html = get_string('request_authorisation', 'local_obu_forms', array('form' => $form_link, 'name' => $sc_contact->alternatename, 'phone' => $sc_contact->phone1, 'email' => $email_link));
+			email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
+		}
 	}
 }
 

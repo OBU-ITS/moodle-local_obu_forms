@@ -143,7 +143,7 @@ foreach ($selects as $select) {
 			break;
 		case 'course':
 			if (empty($course)) {
-				$course = get_current_courses();
+				$course = get_current_courses(0, $form->modular);
 			}
 			break;
 		case 'not_enroled':

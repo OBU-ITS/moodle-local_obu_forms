@@ -400,11 +400,18 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	}
 	
 	if (($authoriser_id == 0) && ($role != 7)) { // Don't leave them hanging...
-		$authoriser = get_complete_user_data('username', 'csa'); // Default
+		$authoriser = get_complete_user_data('username', 'csa-tbd'); // Default ('TO BE DETERMINED')
 		$authoriser_id = $authoriser->id;
 	}
 	
 	return $authoriser_id;
+}
+
+// Check if the given user is a member of staff
+function is_staff($username = null) {
+	$is_staff = ((strlen($username) == 8) && (substr($username, 0, 1) == 'p') && is_numeric(substr($username, 1)));
+	
+	return $is_staff;
 }
 
 // Check 'quickly' if the user is officially enrolled as a student on any PIP-based course
@@ -447,11 +454,14 @@ function get_current_courses($user_id = 0, $modular = false) {
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes (for validation purposes)
 		$sql = 'SELECT c.id, c.idnumber FROM {course} c WHERE c.idnumber LIKE "_~%"';
-		if ($modular) { // Restrict the courses to a given type
+	
+		// Restrict the courses to a given type
+		if ($modular) {
 			$sql .= ' AND c.idnumber LIKE "%~MC%"';
 		} else {
 			$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
 		}
+
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
 			$pos = strpos($row->idnumber, '~');
@@ -486,11 +496,14 @@ function get_current_courses($user_id = 0, $modular = false) {
 				. ' AND ra.userid = ue.userid'
 				. ' AND ra.roleid = ?'
 				. ' AND c.idnumber LIKE "_~%"';
-		if ($modular) { // Restrict the courses to a given type
+
+		// Restrict the courses to a given type
+		if ($modular) {
 			$sql .= ' AND c.idnumber LIKE "%~MC%"';
 		} else {
 			$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
 		}
+		
 		$sql .= ' ORDER BY c.fullname';
 		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 		foreach ($db_ret as $row) {

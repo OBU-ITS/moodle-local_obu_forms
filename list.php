@@ -30,7 +30,9 @@ require_once('./user_input.php');
 
 require_login();
 $home = new moodle_url('/');
-if (!is_manager()) {
+
+// Can only list someone else's forms if we are a form manager or a member of staff
+if (!is_manager() && !is_staff($USER->username)) {
 	redirect($home);
 }
 

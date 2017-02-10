@@ -77,6 +77,9 @@ foreach ($auths as $auth) {
 				if (array_key_exists('student_number', $fields)) {
 					$student_number = ' [' . $fields['student_number'] . ']';
 				}
+			} else if ($form->modular) {
+				$author = get_complete_user_data('id', $data->author);
+				$student_number = ' [' . $author->username . ']';
 			}
 
 			echo '<h4><a href="' . $process . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>';

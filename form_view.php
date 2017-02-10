@@ -318,7 +318,7 @@ class form_view extends moodleform {
 					$suffix = substr($value, 1);
 					if ((strlen($value) != 6) || (($prefix != 'C') && ($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
-					} else if ($this->_customdata['modular'] && ($prefix != 'U')) {
+					} else if ($this->_customdata['modular'] && ($prefix != 'P') && ($prefix != 'U')) {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 					} else if ($key == 'module') { // Exact match - should be a current module
 						$current_modules = get_current_modules();

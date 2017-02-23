@@ -97,5 +97,21 @@
         <INDEX NAME="authoriser" UNIQUE="false" FIELDS="authoriser" COMMENT="The required authoriser's Moodle user ID"/>
       </INDEXES>
     </TABLE>
+    <TABLE NAME="local_obu_forms_forwarders" COMMENT="OBU forms - requests to forward authorisations">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="from_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Moodle user ID to forward from"/>
+        <FIELD NAME="to_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Moodle user ID to forward to"/>
+        <FIELD NAME="start_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date to start forwarding"/>
+        <FIELD NAME="stop_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date to stop forwarding"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="from_id" UNIQUE="true" FIELDS="from_id" COMMENT="Moodle user ID to forward from"/>
+        <INDEX NAME="to_id" UNIQUE="false" FIELDS="to_id" COMMENT="Moodle user ID to forward to"/>
+      </INDEXES>
+    </TABLE>
   </TABLES>
 </XMLDB>

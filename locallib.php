@@ -305,6 +305,8 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 		$sc = get_complete_user_data('username', 'scat');
 	}
 	$sc_name = $sc->alternatename;
+	
+	$authoriser_role = get_authorisers();
 
 	// Prepare the submission/authorisation trail
 	$date = date_create();
@@ -328,7 +330,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 			date_timestamp_set($date, $data->auth_1_date);
 			$text .= date_format($date, $format) . ' ';
 			if ($data->auth_1_id == $user_id) {
-				$name = 'you';
+				$name = 'you as ' . $authoriser_role[$form->auth_1_role];
 			} else if ($data->auth_1_id == $sc_id) {
 				$name = $sc_name;
 			} else {
@@ -346,7 +348,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 				date_timestamp_set($date, $data->auth_1_date);
 				$text .= date_format($date, $format) . ' ';
 				if ($data->auth_1_id == $user_id) {
-					$name = 'you';
+					$name = 'you as ' . $authoriser_role[$form->auth_1_role];
 				} else if ($data->auth_1_id == $sc_id) {
 					$name = $sc_name;
 				} else {
@@ -362,7 +364,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 				date_timestamp_set($date, $data->auth_2_date);
 				$text .= date_format($date, $format) . ' ';
 				if ($data->auth_2_id == $user_id) {
-					$name = 'you';
+					$name = 'you as ' . $authoriser_role[$form->auth_2_role];
 				} else if ($data->auth_2_id == $sc_id) {
 					$name = $sc_name;
 				} else {
@@ -380,7 +382,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 					date_timestamp_set($date, $data->auth_2_date);
 					$text .= date_format($date, $format) . ' ';
 					if ($data->auth_2_id == $user_id) {
-						$name = 'you';
+						$name = 'you as ' . $authoriser_role[$form->auth_2_role];
 					} else if ($data->auth_2_id == $sc_id) {
 						$name = $sc_name;
 					} else {
@@ -396,7 +398,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 					date_timestamp_set($date, $data->auth_3_date);
 					$text .= date_format($date, $format) . ' ';
 					if ($data->auth_3_id == $user_id) {
-						$name = 'you';
+						$name = 'you as ' . $authoriser_role[$form->auth_3_role];
 					} else if ($data->auth_3_id == $sc_id) {
 						$name = $sc_name;
 					} else {
@@ -414,7 +416,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 						date_timestamp_set($date, $data->auth_3_date);
 						$text .= date_format($date, $format) . ' ';
 						if ($data->auth_3_id == $user_id) {
-							$name = 'you';
+							$name = 'you as ' . $authoriser_role[$form->auth_3_role];
 						} else if ($data->auth_3_id == $sc_id) {
 							$name = $sc_name;
 						} else {
@@ -430,7 +432,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 						date_timestamp_set($date, $data->auth_4_date);
 						$text .= date_format($date, $format) . ' ';
 						if ($data->auth_4_id == $user_id) {
-							$name = 'you';
+							$name = 'you as ' . $authoriser_role[$form->auth_4_role];
 						} else if ($data->auth_4_id == $sc_id) {
 							$name = $sc_name;
 						} else {
@@ -448,7 +450,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 							date_timestamp_set($date, $data->auth_4_date);
 							$text .= date_format($date, $format) . ' ';
 							if ($data->auth_4_id == $user_id) {
-								$name = 'you';
+								$name = 'you as ' . $authoriser_role[$form->auth_4_role];
 							} else if ($data->auth_4_id == $sc_id) {
 								$name = $sc_name;
 							} else {
@@ -464,7 +466,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 							date_timestamp_set($date, $data->auth_5_date);
 							$text .= date_format($date, $format) . ' ';
 							if ($data->auth_5_id == $user_id) {
-								$name = 'you';
+								$name = 'you as ' . $authoriser_role[$form->auth_5_role];
 							} else if ($data->auth_5_id == $sc_id) {
 								$name = $sc_name;
 							} else {
@@ -503,17 +505,22 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 		} else {
 			if ($data->authorisation_level == 1) {
 				$authoriser_id = $data->auth_1_id;
+				$role_id = $form->auth_1_role;
 			} else if ($data->authorisation_level == 2) {
 				$authoriser_id = $data->auth_2_id;
+				$role_id = $form->auth_2_role;
 			} else if ($data->authorisation_level == 3) {
 				$authoriser_id = $data->auth_3_id;
+				$role_id = $form->auth_3_role;
 			} else if ($data->authorisation_level == 4) {
 				$authoriser_id = $data->auth_4_id;
+				$role_id = $form->auth_4_role;
 			} else {
 				$authoriser_id = $data->auth_5_id;
+				$role_id = $form->auth_5_role;
 			}
 			if (($authoriser_id == $user_id) || (($authoriser_id == $sc_id) && is_manager($form))) {
-				$name = 'you';
+				$name = 'you as ' . $authoriser_role[$role_id];
 				$button = 'authorise';
 			} else {
 				if ($authoriser_id == $sc_id) {
@@ -535,6 +542,8 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 }
 
 function update_authoriser($form, $data, $authoriser_id) {
+
+	$authoriser_role = get_authorisers();
 
 	// Update the stored authorisation requests
 	read_form_auths($data->id, $auth);
@@ -600,9 +609,21 @@ function update_authoriser($form, $data, $authoriser_id) {
 			$authoriser = get_complete_user_data('id', $authoriser_id);
 		}
 		if ($authoriser->username != 'csa-tbd') { // No notification possible if authoriser TBD
+			if ($data->authorisation_level == 1) {
+				$role_id = $form->auth_1_role;
+			} else if ($data->authorisation_level == 2) {
+				$role_id = $form->auth_2_role;
+			} else if ($data->authorisation_level == 3) {
+				$role_id = $form->auth_3_role;
+			} else if ($data->authorisation_level == 4) {
+				$role_id = $form->auth_4_role;
+			} else {
+				$role_id = $form->auth_5_role;
+			}
 			$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
 			$email_link = '<a href="mailto:' . $sc_contact->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $sc_contact->email . '</a>';
-			$html = get_string('request_authorisation', 'local_obu_forms', array('form' => $form_link, 'name' => $sc_contact->alternatename, 'phone' => $sc_contact->phone1, 'email' => $email_link));
+			$html = get_string('request_authorisation', 'local_obu_forms',
+				array('form' => $form_link, 'role' => $authoriser_role[$role_id], 'name' => $sc_contact->alternatename, 'phone' => $sc_contact->phone1, 'email' => $email_link));
 			email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
 		}
 	}

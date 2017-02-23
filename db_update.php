@@ -276,6 +276,56 @@ function get_form_auths($authoriser) {
 	return $auths;
 }
 
+function write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
+    global $DB;
+    
+	$record = read_form_forwarder($from_id);
+	$record->to_id = $to_id;
+	$record->start_date = $start_date;
+	$record->stop_date = $stop_date;
+
+	if ($record->id == 0) {
+		$DB->insert_record('local_obu_forms_forwarders', $record);
+	} else {
+		$DB->update_record('local_obu_forms_forwarders', $record);
+	}
+	
+	return;
+}
+
+function read_form_forwarder($from_id) {
+    global $DB;
+    
+	$record = $DB->get_record('local_obu_forms_forwarders', array('from_id' => $from_id), '*', IGNORE_MISSING);
+	if ($record === false) {
+		$record = new stdClass();
+		$record->id = 0;
+		$record->from_id = $from_id;
+		$record->to_id = 0;
+		$record->start_date = 0;
+		$record->stop_date = 0;
+	}
+
+	return $record;
+}
+
+function delete_form_forwarder($from_id) {
+    global $DB;
+    
+	$record = read_form_forwarder($from_id);
+	if ($record->id != 0) {
+		$DB->delete_records('local_obu_forms_forwarders', array('id' => $record->id));
+	}
+
+	return;
+}
+
+function get_form_forwarders() {
+    global $DB;
+	
+	return $DB->get_records('local_obu_forms_forwarders');
+}
+
 function get_academic_adviser($user_id) {
 	global $DB;
 	   
@@ -358,7 +408,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	global $DB;
 	
 	$authoriser_id = 0;
-	if ($role == 1) { // CSA
+	if ($role == 1) { // SC/CSA
 		$authoriser = get_complete_user_data('username', 'csa');
 		$authoriser_id = $authoriser->id;
 	} else if ($role == 2) { // Module Leader
@@ -402,6 +452,15 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	if (($authoriser_id == 0) && ($role != 7)) { // Don't leave them hanging...
 		$authoriser = get_complete_user_data('username', 'csa-tbd'); // Default ('TO BE DETERMINED')
 		$authoriser_id = $authoriser->id;
+	}
+	
+	// Finally, check if all forms for the determined authoriser should be forwarded (temporarily)
+	$forwarder = read_form_forwarder($authoriser_id);
+	if ($forwarder->id != 0) { // There is a forwarder - action it if it's active today
+		$today = strtotime('today midnight');
+		if (($today >= $forwarder->start_date) && ($today <= $forwarder->stop_date)) {
+			$authoriser_id = $forwarder->to_id;
+		}
 	}
 	
 	return $authoriser_id;

@@ -76,6 +76,8 @@ function local_obu_forms_extend_navigation($navigation) {
 			$node = $nodeParent->add(get_string('sc_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=csa');
 			$node = $nodeParent->add(get_string('list_users_forms', 'local_obu_forms'), '/local/obu_forms/list.php');
 			$node = $nodeParent->add(get_string('formslist', 'local_obu_forms'), '/local/obu_forms/formslist.php');
+			$node = $nodeParent->add(get_string('forward_forms', 'local_obu_forms'), '/local/obu_forms/forward.php');
+			$node = $nodeParent->add(get_string('forward_check', 'local_obu_forms'), '/local/obu_forms/forward_check.php');
 		} else { // For other users, add the option(s) to list all the relevant forms
 			if ($staff) {
 				$node = $nodeParent->add(get_string('staff_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=staff');

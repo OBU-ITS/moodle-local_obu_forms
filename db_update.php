@@ -447,6 +447,9 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser_id = get_programme_lead($author_id, $modular, 0);
 	} else if ($role == 7) { // Programme Lead (2) - only present for joint honours students (will skip step otherwise)
 		$authoriser_id = get_programme_lead($author_id, $modular, 1);
+	} else if ($role == 8) { // Exchanges Office
+		$authoriser = get_complete_user_data('username', 'exchanges');
+		$authoriser_id = $authoriser->id;
 	}
 	
 	if (($authoriser_id == 0) && ($role != 7)) { // Don't leave them hanging...
@@ -489,7 +492,7 @@ function is_student($user_id = 0, $type = null) {
 		. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
 		. ' JOIN {course} c ON c.id = e.courseid'
 		. ' WHERE ue.userid = ?'
-		. ' AND e.enrol = "databaseextended"'
+			. ' AND e.enrol = "databaseextended"'
 			. ' AND ct.contextlevel = 50'
 			. ' AND ra.userid = ue.userid'
 			. ' AND ra.roleid = ?'

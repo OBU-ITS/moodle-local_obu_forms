@@ -37,6 +37,7 @@ $string['list_users_forms'] = 'List a user\'s forms';
 $string['list_staff_forms'] = 'List a student\'s staff forms';
 $string['redirect_form'] = 'Redirect form';
 $string['forward_forms'] = 'Forward forms';
+$string['data_download'] = 'Data download';
 $string['myforms'] = 'My forms';
 
 $string['continue'] = 'Continue';
@@ -94,6 +95,10 @@ $string['forward_stop'] = 'Date to stop forwarding';
 $string['invalid_date'] = 'Invalid date.';
 $string['forward_text'] = '<h4>Notes</h4><ul><li>You must enter the number of the staff member from whom authorisations are to be automatically forwarded.  Only one forwarding instruction is allowed per staff member and a new instruction will replace any existing one.</li><li>If you do not enter a number for the staff member to whom authorisations are to be automatically forwarded, this will be taken to be a deletion.  If there is an existing instruction for the given \'from\' member of staff then this will be removed.</li><li>Both dates are inclusive</li></ul>';
 $string['forward_check'] = 'Check forwarding';
+
+$string['date_from'] = 'From';
+$string['date_to'] = 'To';
+$string['no_forms'] = 'No forms selected';
 
 $string['form_title'] = 'Form';
 

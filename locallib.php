@@ -147,6 +147,32 @@ function decode_xml($string) {
 	return(html_entity_decode($string, ENT_NOQUOTES | ENT_XML1, 'UTF-8'));
 }
 
+function template_fields($template) {
+	$fields = array();
+	
+	$fld_start = '<input ';
+	$fld_start_len = strlen($fld_start);
+	$fld_end = '>';
+	$fld_end_len = strlen($fld_end);
+	$offset = 0;
+	do {
+		$pos = strpos($template, $fld_start, $offset);
+		if ($pos === false) {
+			break;
+		}
+		$offset = $pos + $fld_start_len;
+		$pos = strpos($template, $fld_end, $offset);
+		if ($pos === false) {
+			break;
+		}
+		$element = split_input_field(substr($template, $offset, ($pos - $offset)));
+		$fields[] = $element;
+		$offset = $pos + $fld_end_len;
+	} while(true);
+	
+	return $fields;
+}
+
 function template_selects($template) {
 	$selects = array();
 	

@@ -123,6 +123,27 @@ function get_forms($manager, $staff, $pg_student, $ump_student) {
 	return $forms;
 }
 
+function get_forms_data($formref, $date_from, $date_to) {
+    global $DB;
+
+	// Get the selected form data records for each published template of this form type
+	$time_to = $date_to + 86399; // Take up to midnight on the last day
+	$forms_data = array();
+	$settings = read_form_settings_by_ref($formref);
+	$templates = read_form_templates($settings->id);
+	foreach ($templates as $template) {
+		if ($template->published) {
+			$where = 'template_id = ' . $template->id . ' and date >= ' . $date_from . ' and date <= ' . $time_to;
+			$records = $DB->get_records_select('local_obu_forms_data', $where);
+			foreach ($records as $record) {
+				$forms_data[] = $record;
+			}
+		}
+	}
+
+	return $forms_data;
+}
+
 function write_form_template($author, $form_data) {
 	global $DB;
 	

@@ -140,6 +140,21 @@ class form_view extends moodleform {
 							$mform->addElement('date_selector', $element['id'], $element['value']);
 						}
 						break;
+					case 'radio':
+						$radioarray = array();
+						$default = '';
+						$options = explode('|', $element['name']);
+						foreach ($options as $option) {
+							$radioarray[] = $mform->createElement('radio', $element['id'], '', $option, $option);
+							if ($default == '') {
+								$default = $option;
+							}
+						}
+						$mform->addGroup($radioarray, 'radioar', '', array(';&nbsp;&nbsp;&nbsp;&nbsp;'), false);
+						if ($default != '') {
+							$mform->setDefault($element['id'], $default);
+						}
+						break;
 					case 'select':
 						switch ($element['name']) {
 							case 'start_dates':

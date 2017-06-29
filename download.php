@@ -60,20 +60,24 @@ else if ($mform_data = $mform->get_data()) {
 
 		$headings = array('Submitted', 'Status');
 		if (!$settings->student) { // A staff form
-			$headings[] = 'Author';
-			$headings[] = 'Name';
+			$headings[] = 'Author ID';
+			$headings[] = 'Author Name';
 		}
 
-		// Determine which of the form's templates have been used in this selection
+		// For this selection, determine which of the form's templates have been used and the maximum authorisation level reached
 		$template_ids = array();
+		$max_authorisation_level = 0;
 		foreach ($forms_data as $form_data) {
 			if (!in_array($form_data->template_id, $template_ids)) { // Not recorded yet
 				$template_ids[] = $form_data->template_id;
 			}
+			if ($form_data->authorisation_level > $max_authorisation_level) {
+				$max_authorisation_level = $form_data->authorisation_level;
+			}
 		}
-		$template_ids = array_reverse($template_ids); // Most recent (relevant) first, please
 
 		// Scan each template to extract field info and to get a list of all possible data field IDs
+		$template_ids = array_reverse($template_ids); // Most recent (relevant) first, please
 		$template_fields = array();
 		$data_ids = array();
 		foreach ($template_ids as $template_id) {
@@ -83,6 +87,38 @@ else if ($mform_data = $mform->get_data()) {
 				if (!in_array($element['id'], $data_ids)) {
 					$data_ids[] = $element['id'];
 					$headings[] = $element['value'];
+				}
+			}
+		}
+		
+		// Add the minimum authorisation headings
+		if ($max_authorisation_level > 0) {
+			$headings[] = 'Authoriser 1 ID';
+			$headings[] = 'Authoriser 1 Name';
+			$headings[] = 'Authorisation 1 Date';
+			$headings[] = 'Authorisation 1 Notes';
+			if ($max_authorisation_level > 1) {
+				$headings[] = 'Authoriser 2 ID';
+				$headings[] = 'Authoriser 2 Name';
+				$headings[] = 'Authorisation 2 Date';
+				$headings[] = 'Authorisation 2 Notes';
+				if ($max_authorisation_level > 2) {
+					$headings[] = 'Authoriser 3 ID';
+					$headings[] = 'Authoriser 3 Name';
+					$headings[] = 'Authorisation 3 Date';
+					$headings[] = 'Authorisation 3 Notes';
+					if ($max_authorisation_level > 3) {
+						$headings[] = 'Authoriser 4 ID';
+						$headings[] = 'Authoriser 4 Name';
+						$headings[] = 'Authorisation 4 Date';
+						$headings[] = 'Authorisation 4 Notes';
+						if ($max_authorisation_level > 4) {
+							$headings[] = 'Authoriser 5 ID';
+							$headings[] = 'Authoriser 5 Name';
+							$headings[] = 'Authorisation 5 Date';
+							$headings[] = 'Authorisation 5 Notes';
+						}
+					}
 				}
 			}
 		}
@@ -103,10 +139,10 @@ else if ($mform_data = $mform->get_data()) {
 			}
 			if (!$settings->student) {
 				$author = get_complete_user_data('id', $form_data->author);
-				$fields['Author'] = $author->username;
-				$fields['Name'] = $author->firstname . ' ' . $author->lastname;
+				$fields['Author ID'] = $author->username;
+				$fields['Author Name'] = $author->firstname . ' ' . $author->lastname;
 			}
-			
+
 			// Add all the possible form data field IDs
 			foreach ($data_ids as $data_id) {
 				$fields[$data_id] = '';
@@ -122,6 +158,85 @@ else if ($mform_data = $mform->get_data()) {
 				}
 			}
 
+			// Add all the possible authorisation field IDs
+			if ($max_authorisation_level > 0) {
+				$fields['Authoriser 1 ID'] = '';
+				$fields['Authoriser 1 Name'] = '';
+				$fields['Authorisation 1 Date'] = '';
+				$fields['Authorisation 1 Notes'] = '';
+				if ($max_authorisation_level > 1) {
+					$fields['Authoriser 2 ID'] = '';
+					$fields['Authoriser 2 Name'] = '';
+					$fields['Authorisation 2 Date'] = '';
+					$fields['Authorisation 2 Notes'] = '';
+					if ($max_authorisation_level > 2) {
+						$fields['Authoriser 3 ID'] = '';
+						$fields['Authoriser 3 Name'] = '';
+						$fields['Authorisation 3 Date'] = '';
+						$fields['Authorisation 3 Notes'] = '';
+						if ($max_authorisation_level > 3) {
+							$fields['Authoriser 4 ID'] = '';
+							$fields['Authoriser 4 Name'] = '';
+							$fields['Authorisation 4 Date'] = '';
+							$fields['Authorisation 4 Notes'] = '';
+							if ($max_authorisation_level > 4) {
+								$fields['Authoriser 5 ID'] = '';
+								$fields['Authoriser 5 Name'] = '';
+								$fields['Authorisation 5 Date'] = '';
+								$fields['Authorisation 5 Notes'] = '';
+							}
+						}
+					}
+				}
+			}
+
+			// Copy the relevant authorisation fields (NB a level may have been skipped)
+			if ($form_data->auth_1_id > 0) {
+				$authoriser = get_complete_user_data('id', $form_data->auth_1_id);
+				$fields['Authoriser 1 ID'] = $authoriser->username;
+				$fields['Authoriser 1 Name'] = $authoriser->firstname . ' ' . $authoriser->lastname;
+				if ($form_data->auth_1_date > 0) {
+					$fields['Authorisation 1 Date'] = date('d/m/Y', $form_data->auth_1_date);
+					$fields['Authorisation 1 Notes'] = $form_data->auth_1_notes;
+				}
+			}
+			if ($form_data->auth_2_id > 0) {
+				$authoriser = get_complete_user_data('id', $form_data->auth_2_id);
+				$fields['Authoriser 2 ID'] = $authoriser->username;
+				$fields['Authoriser 2 Name'] = $authoriser->firstname . ' ' . $authoriser->lastname;
+				if ($form_data->auth_2_date > 0) {
+					$fields['Authorisation 2 Date'] = date('d/m/Y', $form_data->auth_2_date);
+					$fields['Authorisation 2 Notes'] = $form_data->auth_2_notes;
+				}
+			}
+			if ($form_data->auth_3_id > 0) {
+				$authoriser = get_complete_user_data('id', $form_data->auth_3_id);
+				$fields['Authoriser 3 ID'] = $authoriser->username;
+				$fields['Authoriser 3 Name'] = $authoriser->firstname . ' ' . $authoriser->lastname;
+				if ($form_data->auth_3_date > 0) {
+					$fields['Authorisation 3 Date'] = date('d/m/Y', $form_data->auth_3_date);
+					$fields['Authorisation 3 Notes'] = $form_data->auth_3_notes;
+				}
+			}
+			if ($form_data->auth_4_id > 0) {
+				$authoriser = get_complete_user_data('id', $form_data->auth_4_id);
+				$fields['Authoriser 4 ID'] = $authoriser->username;
+				$fields['Authoriser 4 Name'] = $authoriser->firstname . ' ' . $authoriser->lastname;
+				if ($form_data->auth_4_date > 0) {
+					$fields['Authorisation 4 Date'] = date('d/m/Y', $form_data->auth_4_date);
+					$fields['Authorisation 4 Notes'] = $form_data->auth_4_notes;
+				}
+			}
+			if ($form_data->auth_5_id > 0) {
+				$authoriser = get_complete_user_data('id', $form_data->auth_5_id);
+				$fields['Authoriser 5 ID'] = $authoriser->username;
+				$fields['Authoriser 5 Name'] = $authoriser->firstname . ' ' . $authoriser->lastname;
+				if ($form_data->auth_5_date > 0) {
+					$fields['Authorisation 5 Date'] = date('d/m/Y', $form_data->auth_5_date);
+					$fields['Authorisation 5 Notes'] = $form_data->auth_5_notes;
+				}
+			}
+			
 			fputcsv($fp, $fields);
 		}
 		fclose($fp);

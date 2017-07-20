@@ -78,7 +78,9 @@ function get_authorisers() {
 		'Academic Adviser',
 		'Programme Lead',
 		'Programme Lead (2)',
-		'Exchanges Office'
+		'Module Leader (2)',
+		'Exchanges Office',
+		'Student'
 	);
 	
 	return $authoriser;

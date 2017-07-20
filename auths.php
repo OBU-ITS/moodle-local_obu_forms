@@ -32,12 +32,16 @@ if (!is_manager()) {
 $authoriser_username = optional_param('authoriser', '', PARAM_TEXT);
 if ($authoriser_username) {
 	$authoriser = get_complete_user_data('username', $authoriser_username);
-	$authoriser_id = $authoriser->id;
 	$url = new moodle_url('/local/obu_forms/auths.php', array('authoriser' => $authoriser_username));
 	if ($authoriser->username == 'csa') {
 		$heading = get_string('sc_auths', 'local_obu_forms');
+		$authoriser_id = $authoriser->id;
+	} else if ($authoriser->username == 'tpt') {
+		$heading = get_string('tpt_auths', 'local_obu_forms');
+		$authoriser_id = 0;
 	} else {
 		$heading = get_string('auths', 'local_obu_forms') . ': ' . $authoriser->firstname . ' ' . $authoriser->lastname;
+		$authoriser_id = $authoriser->id;
 	}
 } else {
 	$authoriser = get_complete_user_data('username', 'csa'); // So that we can exclude them later
@@ -66,7 +70,17 @@ foreach ($auths as $auth) {
 		$template = read_form_template_by_id($data->template_id);
 		$form = read_form_settings($template->form_id);
 		
-		// Check first that the user is a manager of this type of form and that it hasn't already been finally approved or rejected
+		// Ceheck that the form type is correct for this report
+		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L')) {
+			$tpt_form = true; // The responsibility of the Taught Programmes Team
+		} else {
+			$tpt_form = false;
+		}
+		if ((($authoriser->username == 'tpt') && !$tpt_form) || (($authoriser->username != 'tpt') && $tpt_form)) {
+			continue;
+		}
+		
+		// Check that the user is a manager of this type of form and that it hasn't already been finally approved or rejected
 		if (is_manager($form) && ($data->authorisation_state == 0)) {
 			get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 

@@ -428,8 +428,16 @@ function get_supervisors($user_id) { // In this iterration, at least, a supervis
 function get_authoriser($author_id, $modular, $role, $fields) {
 	global $DB;
 	
+	// Determine if the student is the author or the subject
+	if (!$fields['student_number']) {
+		$student_id = $author_id;
+	} else {
+		$student = get_complete_user_data('username', $fields['student_number']);
+		$student_id = $student->id;
+	}
+		
 	$authoriser_id = 0;
-	if ($role == 1) { // SC/CSA
+	if ($role == 1) { // CSA/SC
 		$authoriser = get_complete_user_data('username', 'csa');
 		$authoriser_id = $authoriser->id;
 	} else if ($role == 2) { // Module Leader
@@ -440,8 +448,8 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
 			$courses = get_current_courses();
 			$course_id = array_search(strtoupper($fields['course']), $courses, true);
-		} else { // Get the author's current course (programme)
-			$courses = get_current_courses($author_id, $modular);
+		} else { // Get the student's current course (programme)
+			$courses = get_current_courses($student_id, $modular);
 			$course_id = key($courses);
 		}
 		if ($course_id) {
@@ -458,22 +466,28 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);		
 		$authoriser_id = $supervisor->id;
 	} else if ($role == 5) { // Academic Adviser
-		$context = context_user::instance($author_id);
+		$context = context_user::instance($student_id);
 		$aa_role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
 		$academic_advisers = get_role_users($aa_role->id, $context, false, 'u.id'); // Exclude inherited roles
 		foreach ($academic_advisers as $academic_adviser) {
 			$authoriser_id = $academic_adviser->id;
 		}
 	} else if ($role == 6) { // Programme Lead
-		$authoriser_id = get_programme_lead($author_id, $modular, 0);
+		$authoriser_id = get_programme_lead($student_id, $modular, 0);
 	} else if ($role == 7) { // Programme Lead (2) - only present for joint honours students (will skip step otherwise)
-		$authoriser_id = get_programme_lead($author_id, $modular, 1);
-	} else if ($role == 8) { // Exchanges Office
+		$authoriser_id = get_programme_lead($student_id, $modular, 1);
+	} else if (($role == 8) && $fields['module_2']) { // Module Leader (2) - second module must be present (will skip step otherwise)
+		$modules = get_current_modules();
+		$module_id = array_search(strtoupper($fields['module_2']), $modules, true);
+		$authoriser_id = get_module_leader($module_id);
+	} else if ($role == 9) { // Exchanges Office
 		$authoriser = get_complete_user_data('username', 'exchanges');
 		$authoriser_id = $authoriser->id;
+	} else if ($role == 10) { // Student
+		$authoriser_id = $student->id;
 	}
 	
-	if (($authoriser_id == 0) && ($role != 7)) { // Don't leave them hanging...
+	if (($authoriser_id == 0) && ($role != 7) && ($role != 8)) { // Don't leave them hanging...
 		$authoriser = get_complete_user_data('username', 'csa-tbd'); // Default ('TO BE DETERMINED')
 		$authoriser_id = $authoriser->id;
 	}

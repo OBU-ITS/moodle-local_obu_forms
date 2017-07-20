@@ -74,6 +74,7 @@ function local_obu_forms_extend_navigation($navigation) {
 			$node = $nodeParent->add(get_string('template_nav', 'local_obu_forms'), '/local/obu_forms/template.php');
 			$node = $nodeParent->add(get_string('auths_nav', 'local_obu_forms'), '/local/obu_forms/auths.php');
 			$node = $nodeParent->add(get_string('sc_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=csa');
+			$node = $nodeParent->add(get_string('tpt_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=tpt');
 			$node = $nodeParent->add(get_string('list_users_forms', 'local_obu_forms'), '/local/obu_forms/list.php');
 			$node = $nodeParent->add(get_string('formslist', 'local_obu_forms'), '/local/obu_forms/formslist.php');
 			$node = $nodeParent->add(get_string('forward_forms', 'local_obu_forms'), '/local/obu_forms/forward.php');

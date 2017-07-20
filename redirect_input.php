@@ -46,7 +46,7 @@ class redirect_input extends moodleform {
 			$this->add_action_buttons(true, get_string('continue', 'local_obu_forms'));
 		} else {
 			$mform->addElement('hidden', 'authoriser', $data->authoriser);
-			$mform->addElement('static', 'authoriser', get_string('user_number', 'local_obu_forms'), $data->authoriser);
+			$mform->addElement('static', 'authoriser_number', get_string('user_number', 'local_obu_forms'), $data->authoriser);
 			$mform->addElement('static', 'authoriser_name', null, $data->authoriser_name);
 			$this->add_action_buttons(true, get_string('save', 'local_obu_forms'));
 		}

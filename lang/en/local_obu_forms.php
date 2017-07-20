@@ -30,6 +30,7 @@ $string['obu_forms:manage_ump_students'] = 'Manage, view and authorise UMP stude
 
 $string['forms'] = 'Forms';
 $string['sc_auths'] = 'CSA/SC authorisations';
+$string['tpt_auths'] = 'TPT authorisations';
 $string['formslist'] = 'Forms list';
 $string['staff_forms'] = 'Staff request forms';
 $string['student_forms'] = 'Student request forms';

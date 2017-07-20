@@ -141,9 +141,13 @@ class form_view extends moodleform {
 						}
 						break;
 					case 'radio':
-						$radioarray = array();
-						$default = '';
 						$options = explode('|', $element['name']);
+						if (array_key_exists('value', $element) && in_array($element['value'], $options)) {
+							$default = $element['value'];
+						} else {
+							$default = '';
+						}
+						$radioarray = array();
 						foreach ($options as $option) {
 							$radioarray[] = $mform->createElement('radio', $element['id'], '', $option, $option);
 							if ($default == '') {
@@ -335,7 +339,7 @@ class form_view extends moodleform {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 					} else if ($this->_customdata['modular'] && ($prefix != 'P') && ($prefix != 'U')) {
 						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
-					} else if ($key == 'module') { // Exact match - should be a current module
+					} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
 						$current_modules = get_current_modules();
 						if (!in_array($prefix . $suffix, $current_modules, true)) {
 							$errors[$key] = get_string('module_not_found', 'local_obu_forms');

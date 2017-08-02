@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2017, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -29,13 +29,18 @@ require_once('./db_update.php');
 require_once('./forms_input.php');
 
 require_login();
+
 $home = new moodle_url('/');
 if (!is_manager()) {
 	redirect($home);
 }
 
-$url = $home . 'local/obu_forms/forms.php';
 $context = context_system::instance();
+if (!has_capability('local/obu_forms:update', $context)) {
+	redirect($home);
+}
+
+$url = $home . 'local/obu_forms/forms.php';
 
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);

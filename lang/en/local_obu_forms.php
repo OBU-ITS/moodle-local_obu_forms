@@ -24,6 +24,7 @@
  */
 
 $string['pluginname'] = 'OBU Forms';
+$string['obu_forms:update'] = 'Update forms in obu_forms (non \'read only\')';
 $string['obu_forms:manage_pg'] = 'Manage, view and authorise PG forms in obu_forms';
 $string['obu_forms:manage_ump_staff'] = 'Manage, view and authorise UMP staff forms in obu_forms';
 $string['obu_forms:manage_ump_students'] = 'Manage, view and authorise UMP student forms in obu_forms';
@@ -138,6 +139,7 @@ $string['submission'] = 'submission';
 $string['authorisation'] = 'authorisation';
 
 $string['form_unavailable'] = 'Sorry, this form is unavailable to you.';
+$string['maintenance_mode'] = 'Sorry, Moodle is in maintenance mode.';
 $string['form_error'] = 'Your form can\'t be submitted (please see problems below).';
 $string['value_required'] = 'You must supply a value here.';
 $string['group_required'] = 'You must supply at least one value.';

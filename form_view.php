@@ -260,28 +260,33 @@ class form_view extends moodleform {
 			}
 		} while(true);
 
-		$mform->addElement('html', substr($data->template->data, $offset)); // output any remaining HTML
+		$mform->addElement('html', substr($data->template->data, $offset)); // Output any remaining HTML
 
 		if (!empty($data->status_text)) {
-			$mform->addElement('html', '<p /><strong>' . $data->status_text . '</strong>'); // output any status text
+			$mform->addElement('html', '<p /><strong>' . $data->status_text . '</strong>'); // Output any status text
 		}
 		
 		$buttonarray = array();
-		if ($data->button_text != 'cancel') {
-			$buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string($data->button_text, 'local_obu_forms'));
-		}
-		if ($data->button_text != 'continue') {
-			if ($data->button_text == 'authorise') {
-				$mform->addElement('text', 'comment', get_string('comment', 'local_obu_forms'));
-				$mform->setType('comment', PARAM_RAW);
-				$buttonarray[] = &$mform->createElement('submit', 'rejectbutton', get_string('reject', 'local_obu_forms'));
-				if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
-					$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
-				}
-			}
+		if (!has_capability('local/obu_forms:update', context_system::instance())) {
+			$mform->addElement('html', '<p /><strong>' . get_string('maintenance_mode', 'local_obu_forms') . '</strong>'); // Output 'maintenance' message
 			$buttonarray[] = &$mform->createElement('cancel');
-		} else if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
-			$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
+		} else {
+			if ($data->button_text != 'cancel') {
+				$buttonarray[] = &$mform->createElement('submit', 'submitbutton', get_string($data->button_text, 'local_obu_forms'));
+			}
+			if ($data->button_text != 'continue') {
+				if ($data->button_text == 'authorise') {
+					$mform->addElement('text', 'comment', get_string('comment', 'local_obu_forms'));
+					$mform->setType('comment', PARAM_RAW);
+					$buttonarray[] = &$mform->createElement('submit', 'rejectbutton', get_string('reject', 'local_obu_forms'));
+					if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
+						$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
+					}
+				}
+				$buttonarray[] = &$mform->createElement('cancel');
+			} else if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
+				$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
+			}
 		}
 		$mform->addGroup($buttonarray, 'buttonarray', '', array(' '), false);
 		$mform->closeHeaderBefore('buttonarray');

@@ -47,8 +47,9 @@ $dir = $home . 'local/obu_forms/';
 $program = $dir . 'process.php?id=' . $data_id;
 $redirect_form = $dir . 'redirect.php?id=' . $data_id;
 
+$context = context_system::instance();
 $PAGE->set_url($program);
-$PAGE->set_context(context_system::instance());
+$PAGE->set_context($context);
 $PAGE->set_pagelayout('standard');
 $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('form_title', 'local_obu_forms'));
@@ -138,8 +139,9 @@ $mform = new form_view(null, $parameters);
 
 if ($mform->is_cancelled()) {
     redirect($home);
-} 
-else if ($mform_data = $mform->get_data()) {
+}
+
+if ($mform_data = $mform->get_data()) {
 	if (($mform_data->redirectbutton == get_string('redirect', 'local_obu_forms')) && is_manager($form) && ($record->authorisation_state == 0)) { // They want to redirect the form
 		redirect($redirect_form);
 	} else if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms')) // They can do something (and they want to)

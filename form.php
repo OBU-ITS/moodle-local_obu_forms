@@ -28,16 +28,20 @@ require_once('./locallib.php');
 require_once('./form_view.php');
 
 require_login();
-$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
 
 $home = new moodle_url('/');
+$context = context_system::instance();
+if (!has_capability('local/obu_forms:update', $context)) {
+	redirect($home);
+}
+
 $dir = '/local/obu_forms/';
 $program = $dir . 'form.php';
 $process_url = $home . $dir . 'process.php';
 
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($program);
-$PAGE->set_context(context_system::instance());
+$PAGE->set_context($context);
 $PAGE->set_heading($SITE->fullname);
 $PAGE->set_title(get_string('form_title', 'local_obu_forms'));
 
@@ -45,6 +49,8 @@ $PAGE->set_title(get_string('form_title', 'local_obu_forms'));
 $message = '';
 $data_id = 0;
 $fields = array();
+
+$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
 
 if (isset($_REQUEST['ref'])) { // A request for a brand new form
 	$form = read_form_settings_by_ref($_REQUEST['ref']);
@@ -208,10 +214,11 @@ $parameters = [
 	
 $mform = new form_view(null, $parameters);
 
-if ($mform->is_cancelled()) {
+if ($mform->is_cancelled() || !has_capability('local/obu_forms:update', $context)) {
     redirect($home);
-} 
-else if ($mform_data = (array)$mform->get_data()) {
+}
+
+if ($mform_data = (array)$mform->get_data()) {
 	$fields = array();
 	foreach ($mform_data as $key => $value) {
 		// ignore the mandatory and standard fields (but keep 'template' for completeness)

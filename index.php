@@ -102,8 +102,8 @@ foreach ($forms_data as $data) {
 		}
 		echo $text;
 		
-		// Allow form to be directed if possible
-		if (is_manager($form) && ($data->authorisation_state == 0)) { // Not yet finally approved or rejected
+		// Allow form to be redirected if possible
+		if (is_manager($form) && ($data->authorisation_state == 0) && has_capability('local/obu_forms:update', context_system::instance())) { // Not yet finally approved or rejected
 			echo '<p><a href="' . $redirect_form . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
 		}
 	}

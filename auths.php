@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2017, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -50,9 +50,10 @@ if ($authoriser_username) {
 	$heading = get_string('auths_title', 'local_obu_forms');
 }
 
+$context = context_system::instance();
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
-$PAGE->set_context(context_system::instance());
+$PAGE->set_context($context);
 $PAGE->set_title($heading);
 $PAGE->set_heading($heading);
 
@@ -70,7 +71,7 @@ foreach ($auths as $auth) {
 		$template = read_form_template_by_id($data->template_id);
 		$form = read_form_settings($template->form_id);
 		
-		// Ceheck that the form type is correct for this report
+		// Check that the form type is correct for this report
 		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L')) {
 			$tpt_form = true; // The responsibility of the Taught Programmes Team
 		} else {
@@ -98,7 +99,7 @@ foreach ($auths as $auth) {
 
 			echo '<h4><a href="' . $process . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>';
 			echo $text . '<' . $form->formref . '>';
-			if ($authoriser_username != 'csa') { // They can't redirect away from themselves
+			if (has_capability('local/obu_forms:update', $context) && ($authoriser_username != 'csa')) { // They can't redirect away from themselves
 				echo '<p><a href="' . $redirect . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
 			}
 		}

@@ -15,13 +15,19 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2017, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 
 
 $capabilities = array(
+    'local/obu_forms:update' => array(
+		'riskbitmask' => 0,
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => array('user' => CAP_ALLOW)
+    ),
     'local/obu_forms:manage_pg' => array(
 		'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
         'captype' => 'write',

@@ -28,14 +28,19 @@ require_once('./locallib.php');
 require_once('./forward_form.php');
 
 require_login();
+
 $home = new moodle_url('/');
 if (!is_manager()) {
 	redirect($home);
 }
 
+$context = context_system::instance();
+if (!has_capability('local/obu_forms:update', $context)) {
+	redirect($home);
+}
+
 $url = $home . 'local/obu_forms/forward.php';
 $check = $home . 'local/obu_forms/forward_check.php';
-$context = context_system::instance();
 
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);

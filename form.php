@@ -233,10 +233,18 @@ if ($mform_data = (array)$mform->get_data()) {
 					$value = $start_dates[$value];
 					break;
 				case 'adviser':
-					$value = $adviser[$value];
+					if ($value == '0') { // Default is 'Please select'
+						$value = '';
+					} else {
+						$value = $adviser[$value];
+					}
 					break;
 				case 'supervisor':
-					$value = $supervisor[$value];
+					if ($value == '0') { // Default is 'Please select'
+						$value = '';
+					} else {
+						$value = $supervisor[$value];
+					}
 					break;
 				case 'course':
 					$value = $course[$value];

@@ -80,7 +80,8 @@ function get_authorisers() {
 		'Programme Lead (2)',
 		'Module Leader (2)',
 		'Exchanges Office',
-		'Student'
+		'Student',
+		'Supervisor (2)'
 	);
 	
 	return $authoriser;

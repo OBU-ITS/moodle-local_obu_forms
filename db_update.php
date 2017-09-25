@@ -485,9 +485,14 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser_id = $authoriser->id;
 	} else if ($role == 10) { // Student
 		$authoriser_id = $student->id;
+	} else if (($role == 11) && $fields['supervisor_2']) { // Supervisor (2) - second supervisor must be present (will skip step otherwise)
+		$start_pos = strpos($fields['supervisor_2'], '(') + 1;
+		$end_pos = strpos($fields['supervisor_2'], ')', $start_pos);
+		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor_2'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);		
+		$authoriser_id = $supervisor->id;
 	}
 	
-	if (($authoriser_id == 0) && ($role != 7) && ($role != 8)) { // Don't leave them hanging...
+	if (($authoriser_id == 0) && ($role != 7) && ($role != 8) && ($role != 11)) { // Don't leave them hanging...
 		$authoriser = get_complete_user_data('username', 'csa-tbd'); // Default ('TO BE DETERMINED')
 		$authoriser_id = $authoriser->id;
 	}

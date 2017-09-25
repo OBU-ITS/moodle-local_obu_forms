@@ -313,22 +313,17 @@ class form_view extends moodleform {
 		// Do our own validation and add errors to array
 		$required_value = false;
 		foreach ($data as $key => $value) {
-			if (($value == '') && in_array($key, $this->required_field, true)) {
-				$required_value = true; // Leave the field error display to Moodle
+			$is_null = (($value == '') || (($value == '0') && (($key == 'adviser') || ($key == 'supervisor') || ($key == 'supervisor_2')))); // Include special cases
+			if (in_array($key, $this->required_field, true) && ($value == '')) { // Leave the field error display to Moodle
+				$required_value = true;
+			} else if (in_array($key, $this->required_field, true) && $is_null) { // Moodle wouldn't identify special cases as blank
+				$errors[$key] = get_string('value_required', 'local_obu_forms');
 			} else if (!$group_entry && in_array($key, $this->required_group, true)) { // One of a required group with no entries
 				$errors[$key] = get_string('group_required', 'local_obu_forms');
-			} else if (($value == '') && in_array($key, $this->set_group, true) && (array_key_exists($this->check_id, $data) && ($data[$this->check_id] == '1'))) { // Controlled by a check box
+			} else if (in_array($key, $this->set_group, true) && (array_key_exists($this->check_id, $data) && ($data[$this->check_id] == '1')) && $is_null) { // Controlled by a check box
 				$errors[$key] = get_string('value_required', 'local_obu_forms');
-			} else if (($value == '') && in_array($key, $this->unset_group, true) && (array_key_exists($this->check_id, $data) && ($data[$this->check_id] == '0'))) { // Controlled by a check box
+			} else if (in_array($key, $this->unset_group, true) && (array_key_exists($this->check_id, $data) && ($data[$this->check_id] == '0')) && $is_null) { // Controlled by a check box
 				$errors[$key] = get_string('value_required', 'local_obu_forms');
-			} else if ($key == 'adviser') { // They must have selected one
-				if ($value == '0') { // Oh No! They haven't!
-					$errors[$key] = get_string('value_required', 'local_obu_forms');
-				}
-			} else if ($key == 'supervisor') { // They must have selected one
-				if ($value == '0') { // Oh No! They haven't!
-					$errors[$key] = get_string('value_required', 'local_obu_forms');
-				}
 			} else if ($key == 'course') { // Exact match - should be a current course (programme) code
 				if ($value != '') { // Might not be mandatory
 					$current_courses = get_current_courses(0, $this->_customdata['modular']);

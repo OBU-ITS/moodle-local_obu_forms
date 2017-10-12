@@ -653,15 +653,12 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	}
 	$now = time();
 	foreach ($db_ret as $row) {
-		$module_type = substr($row->fullname, 0, 1);
+		$module_type = substr($row->shortname, 0, 1);
 		$module_start = strtotime('01 ' . substr($row->shortname, 7, 3) . ' ' . substr($row->shortname, 10, 2));
 		$module_end = strtotime('31 ' .	substr($row->shortname, 13, 3) . ' ' . substr($row->shortname, 16, 2));
 		if ((!$type || ($module_type == $type)) && ($module_end >= $now)) { // Must be the required type and not already ended
 			if ($user_id == 0) { // Just need the module code for validation purposes
-				$split_pos = strpos($row->fullname, ': ');
-				if ($split_pos !== false) {
-					$modules[$row->course_id] = substr($row->fullname, 0, $split_pos);
-				}
+				$modules[$row->course_id] = substr($row->shortname, 0, 6);
 			} else { // Need the full name
 				$split_pos = strpos($row->fullname, ' (');
 				if ($split_pos !== false) {

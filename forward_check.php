@@ -54,7 +54,16 @@ foreach ($forwarders as $forwarder) {
 	$start = date_format($date, $date_format);
 	date_timestamp_set($date, $forwarder->stop_date);
 	$stop = date_format($date, $date_format);
-	echo '<h4><a href="' . $url . '?authoriser=' . $from->id . '">' . $from->username . ' (' . $from->firstname . ' ' . $from->lastname . ') to ' . $to->username . ' (' . $to->firstname . ' ' . $to->lastname . ')</a> : ' . $start . ' to ' . $stop . '</h4>';
+	echo '<h4>';
+	echo '<a href="' . $url . '?authoriser=' . $from->id . '">' . $from->username . ' (' . $from->firstname . ' ' . $from->lastname . ') to ' . $to->username . ' (' . $to->firstname . ' ' . $to->lastname . ')</a>';
+	echo ' : ' . $start . ' to ' . $stop;
+	if ($forwarder->updater_id > 0) {
+		$updater = get_complete_user_data('id', $forwarder->updater_id);
+		date_timestamp_set($date, $forwarder->update_date);
+		$update_date = date_format($date, $date_format);
+		echo ' [' . $updater->firstname . ' ' . $updater->lastname . ' ' . $update_date . ']';
+	}
+	echo '</h4>';
 }
 
 echo $OUTPUT->footer();

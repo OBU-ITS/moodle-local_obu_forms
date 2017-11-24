@@ -132,9 +132,14 @@ foreach ($selects as $select) {
 	switch ($select) {
 		case 'start_dates':
 			if (empty($start_dates)) {
-				// Get an array of possible module start dates (6 months back and 12 months forward from today)
-				$start_dates = get_dates(date('m'), date('y'), 6, 12);
-				$start_selected = 6;
+				// Get an array of possible module start dates
+				if ($form->modular) { // This academic year and next
+					$start_dates = get_dates(date('m'), date('y'));
+					$start_selected = 0; // Default to the start of the year
+				} else { // 6 months back and 12 months forward from today
+					$start_dates = get_dates(date('m'), date('y'), 6, 12);
+					$start_selected = 6; // Default to this month
+				}
 			}
 			break;
 		case 'adviser':
@@ -195,7 +200,7 @@ $parameters = [
 	'forenames' => $USER->firstname,
 	'current_course' => $current_course,
 	'start_dates' => $start_dates,
-	'start_selected' => 6,
+	'start_selected' => $start_selected,
 	'adviser' => $adviser,
 	'supervisor' => $supervisor,
 	'course' => $course,
@@ -209,6 +214,7 @@ $parameters = [
 	'auth_state' => null,
 	'auth_level' => null,
 	'status_text' => null,
+	'notes' => null,
 	'button_text' => $button_text
 ];
 	

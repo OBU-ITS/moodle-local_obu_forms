@@ -144,6 +144,25 @@ function get_forms_data($formref, $date_from, $date_to) {
 	return $forms_data;
 }
 
+function get_withdrawals($date_from, $date_to) {
+    global $DB;
+
+	$time_to = $date_to + 86399; // Take up to midnight on the last day
+
+	// Get the required form data records for each published template of the withdrawal form types
+	$sql = 'SELECT d.id AS form_id, f.formref AS form_ref, u.username AS student, u.lastname AS lastname, u.firstname AS firstname, d.auth_1_date AS authorised, d.data AS data'
+		. ' FROM {local_obu_forms} f'
+		. ' JOIN {local_obu_forms_templates} t ON t.form_id = f.id AND t.published = 1'
+		. ' JOIN {local_obu_forms_data} d ON d.template_id = t.id AND d.authorisation_state = 2'
+		. ' JOIN {user} u ON u.id = d.author'
+		. ' WHERE f.formref LIKE "_20%"'
+		. '  AND d.auth_1_date >= ' . $date_from
+		. '  AND d.auth_1_date <= ' . $time_to
+		. ' ORDER BY student, authorised';
+
+	return $DB->get_records_sql($sql);
+}
+
 function write_form_template($author, $form_data) {
 	global $DB;
 	
@@ -298,12 +317,14 @@ function get_form_auths($authoriser) {
 }
 
 function write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
-    global $DB;
+    global $DB, $USER;
     
 	$record = read_form_forwarder($from_id);
 	$record->to_id = $to_id;
 	$record->start_date = $start_date;
 	$record->stop_date = $stop_date;
+	$record->updater_id = $USER->id;
+	$record->update_date = time();
 
 	if ($record->id == 0) {
 		$DB->insert_record('local_obu_forms_forwarders', $record);

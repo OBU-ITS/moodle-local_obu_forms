@@ -128,9 +128,10 @@ $parameters = [
 	'reason' => null,
 	'addition_reason' => null,
 	'deletion_reason' => null,
-	'fields' => $fields,
 	'auth_state' => $record->authorisation_state,
 	'auth_level' => $record->authorisation_level,
+	'notes' => $record->notes,
+	'fields' => $fields,
 	'status_text' => $status_text,
 	'button_text' => $button_text
 ];
@@ -142,14 +143,21 @@ if ($mform->is_cancelled()) {
 }
 
 if ($mform_data = $mform->get_data()) {
-	if (($mform_data->redirectbutton == get_string('redirect', 'local_obu_forms')) && is_manager($form) && ($record->authorisation_state == 0)) { // They want to redirect the form
-		redirect($redirect_form);
-	} else if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms')) // They can do something (and they want to)
-		&& ($mform_data->auth_state == $record->authorisation_state) && ($mform_data->auth_level == $record->authorisation_level)) { // Check nothing happened while we were away (or they clicked twice)
-		if ($mform_data->rejectbutton != get_string('reject', 'local_obu_forms')) {
-			update_workflow(true, $mform_data->comment);
-		} else {
-			update_workflow(false, $mform_data->comment);
+	if (($mform_data->auth_state == $record->authorisation_state) && ($mform_data->auth_level == $record->authorisation_level)) { // Check nothing happened while we were away (or they clicked twice)
+		if (is_manager($form) && ($mform_data->redirectbutton == get_string('redirect', 'local_obu_forms')) && ($record->authorisation_state == 0)) { // They want to redirect the form
+			save_notes($mform_data->notes);
+			redirect($redirect_form);
+		} else if (is_manager($form) && ($mform_data->savebutton == get_string('save', 'local_obu_forms'))) { // They just want to save the notes
+			save_notes($mform_data->notes);
+		} else if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms'))) { // They can do something (and they want to)
+			if (is_manager($form)) { // A forms manager
+				save_notes($mform_data->notes);
+			}
+			if ($mform_data->rejectbutton != get_string('reject', 'local_obu_forms')) {
+				update_workflow(true, $mform_data->comment);
+			} else {
+				update_workflow(false, $mform_data->comment);
+			}
 		}
 	}
 
@@ -170,6 +178,14 @@ else {
 }
 
 echo $OUTPUT->footer();
+
+function save_notes($notes) {
+	global $record, $fields;
+	
+	// Update the form data record
+	$record->notes = $notes;
+	save_form_data($record, $fields);
+}
 
 function update_workflow($authorised = true, $comment = null) {
 	global $form, $record, $fields;
@@ -261,6 +277,7 @@ function update_workflow($authorised = true, $comment = null) {
 			$record->authorisation_state = 2; // It ends here
 		}
 	}
+
 	save_form_data($record, $fields);
 	
 	// Update the stored authorisation requests and send notification emails

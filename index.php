@@ -71,15 +71,26 @@ foreach ($forms_data as $data) {
 	$template = read_form_template_by_id($data->template_id);
 	$form = read_form_settings($template->form_id);
 	
-	// If a staff form, allow a forms manager to extract any given student number
+	// Extract any module codes from a student form or (if a forms manager) any student number from a staff one
 	$student = '';
-	$student_number = '';
-	if (!$form->student && is_manager($form)) {
-		load_form_fields($data, $fields);
-		if (array_key_exists('student_number', $fields)) {
-			$student = $fields['student_number'];
-			$student_number = ' [' . $student . ']';
+	$subject = '';
+	load_form_fields($data, $fields);
+	if ($form->student) {
+		$modules = '';
+		foreach ($fields as $key => $value) {
+			if ((strpos($key, 'module') !== false) && ($value != '')) {
+				if ($modules != '') {
+					$modules .= ', ';
+				}
+				$modules .= strtoupper($value);
+			}
 		}
+		if ($modules != '') {
+			$subject = ' [' . $modules . ']';
+		}
+	} else if (is_manager($form) && array_key_exists('student_number', $fields)) {
+			$student = $fields['student_number'];
+			$subject = ' [' . $student . ']';
 	}
 	
 	if (($data->author == $user->id) || ($student == $user->username)) {
@@ -96,9 +107,9 @@ foreach ($forms_data as $data) {
 		}
 	
 		if ($url) {
-			echo '<h4><a href="' . $url . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>';
+			echo '<h4><a href="' . $url . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
 		} else {
-			echo '<h4>' . $form->formref . ': ' . $form->name . $student_number . '</h4>';
+			echo '<h4>' . $form->formref . ': ' . $form->name . $subject . '</h4>';
 		}
 		echo $text;
 		

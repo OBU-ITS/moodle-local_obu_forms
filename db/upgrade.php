@@ -235,6 +235,38 @@ function xmldb_local_obu_forms_upgrade($oldversion = 0) {
 		// obu_forms savepoint reached
 		upgrade_plugin_savepoint(true, 2017021500, 'local', 'obu_forms');
     }
+
+	if ($oldversion < 2017110800) {
+
+		// Define additional fields to be added to local_obu_forms_data
+		$table = new xmldb_table('local_obu_forms_data');
+		$field = new xmldb_field('notes', XMLDB_TYPE_TEXT, 'small', null, null, null, null, 'auth_5_date');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+		$field = new xmldb_field('redirector_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'notes');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+		$field = new xmldb_field('redirection_date', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'redirector_id');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+
+		// Define additional fields to be added to local_obu_forms_forwarders
+		$table = new xmldb_table('local_obu_forms_forwarders');
+		$field = new xmldb_field('updater_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'stop_date');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+		$field = new xmldb_field('update_date', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'updater_id');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+
+		// obu_forms savepoint reached
+		upgrade_plugin_savepoint(true, 2017110800, 'local', 'obu_forms');
+    }
     
     return $result;
 }

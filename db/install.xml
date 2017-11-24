@@ -73,6 +73,9 @@
         <FIELD NAME="auth_5_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The authoriser's Moodle ID"/>
         <FIELD NAME="auth_5_notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Authoriser's Notes"/>
         <FIELD NAME="auth_5_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form authorisation/rejection"/>
+        <FIELD NAME="notes" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Student Central notes"/>
+        <FIELD NAME="redirector_id" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The redirector's Moodle ID"/>
+        <FIELD NAME="redirection_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of form redirection"/>
         <FIELD NAME="data" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Form data"/>
       </FIELDS>
       <KEYS>
@@ -104,6 +107,8 @@
         <FIELD NAME="to_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Moodle user ID to forward to"/>
         <FIELD NAME="start_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date to start forwarding"/>
         <FIELD NAME="stop_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date to stop forwarding"/>
+        <FIELD NAME="updater_id" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="The updater's Moodle ID"/>
+        <FIELD NAME="update_date" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Date of update"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

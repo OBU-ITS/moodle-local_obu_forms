@@ -57,11 +57,17 @@ class form_view extends moodleform {
         $data->reason = $this->_customdata['reason'];
         $data->addition_reason = $this->_customdata['addition_reason'];
         $data->deletion_reason = $this->_customdata['deletion_reason'];
-        $data->fields = $this->_customdata['fields'];
         $data->auth_state = $this->_customdata['auth_state'];
         $data->auth_level = $this->_customdata['auth_level'];
+        $data->notes = $this->_customdata['notes'];
+        $data->fields = $this->_customdata['fields'];
 		$data->status_text = $this->_customdata['status_text'];
+		$data->notes = $this->_customdata['notes'];
 		$data->button_text = $this->_customdata['button_text'];
+
+		if ($data->notes != '') {
+			$this->set_data(array('notes' => $data->notes));
+		}
 		
 		// Start with the required hidden fields
 		if ($data->data_id > 0) { // Using form to amend or view
@@ -201,6 +207,8 @@ class form_view extends moodleform {
 									break;
 								default:
 							}
+						} else if ($element['name'] == 'start_dates') {
+							$select->setSelected($data->start_selected); // Use the default
 						}
 						break;
 					case 'static':
@@ -265,6 +273,11 @@ class form_view extends moodleform {
 		if (!empty($data->status_text)) {
 			$mform->addElement('html', '<p /><strong>' . $data->status_text . '</strong>'); // Output any status text
 		}
+
+		if (is_manager()) {
+			$mform->addElement('textarea', 'notes', get_string('notes', 'local_obu_forms'), 'cols="100" rows="10"');
+			$mform->setType($element['notes'], PARAM_RAW);
+		}
 		
 		$buttonarray = array();
 		if (!has_capability('local/obu_forms:update', context_system::instance())) {
@@ -283,9 +296,15 @@ class form_view extends moodleform {
 						$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
 					}
 				}
+				if (is_manager()) { // A forms manager can opt to just save the notes
+					$buttonarray[] = &$mform->createElement('submit', 'savebutton', get_string('save', 'local_obu_forms'));
+				}
 				$buttonarray[] = &$mform->createElement('cancel');
-			} else if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
-				$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
+			} else if (is_manager()) { // A forms manager
+				if ($data->auth_state == 0) { // Can redirect the form
+					$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
+				}
+				$buttonarray[] = &$mform->createElement('submit', 'savebutton', get_string('save', 'local_obu_forms')); // Can opt to just save the notes
 			}
 		}
 		$mform->addGroup($buttonarray, 'buttonarray', '', array(' '), false);
@@ -369,12 +388,14 @@ class form_view extends moodleform {
 				}
 			} else if (strpos($key, 'start') !== false) { // Validate start date format
 				if ($value != '') { // Only validate if the field was completed
-					$month = strtoupper(substr($value, 0, 3));
-					$year = substr($value, 3);
-					if ((strlen($value) != 5) || is_numeric($month) || !is_numeric($year)) {
-						$errors[$key] = get_string('invalid_date_format', 'local_obu_forms');
-					} else if (!in_array($month . $year, $start_dates, true)) {
-						$errors[$key] = get_string('invalid_start_date', 'local_obu_forms');
+					if ((strlen($value) > 2) || !is_numeric($value)) { // Ignore any drop-down selection
+						$month = strtoupper(substr($value, 0, 3));
+						$year = substr($value, 3);
+						if ((strlen($value) != 5) || is_numeric($month) || !is_numeric($year)) {
+							$errors[$key] = get_string('invalid_date_format', 'local_obu_forms');
+						} else if (!in_array($month . $year, $start_dates, true)) {
+							$errors[$key] = get_string('invalid_start_date', 'local_obu_forms');
+						}
 					}
 				}
 			}

@@ -41,27 +41,45 @@ function is_manager($form = null) {
 	return $is_manager;
 }
 
-function get_dates($month, $year, $back, $forward) {
+function get_dates($month, $year, $back = 0, $forward = 0) {
 	$months = [ 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC' ];
 
-	// Get the starting year and month
-	$y = (int)($back / 12); // Years back
-	$m = $back - ($y * 12); // Months back
-	$y = $year - $y;
-	$m = $month - $m;
-	if ($m < 1) {
-		$y--;
-		$m += 12;
-	}
-	
 	$dates = array();
-	for ($i = 0; $i <= ($back + $forward); $i++) {
-		$dates[] = $months[$m - 1] . $y;
-		if ($m < 12) {
-			$m++;
+	
+	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in this academic year and next
+		if ($month >= 8) { // Date range moves forward in August
+			$y = $year;
 		} else {
-			$y++;
-			$m = 1;
+			$y = $year - 1;
+		}
+		$m = 9; // Begin in September
+		for ($i = 0; $i < 6; $i++) { // Two years worth
+			$dates[] = $months[$m - 1] . $y;
+			$m += 4;
+			if ($m > 12) {
+				$y++;
+				$m -= 12;
+			}
+		}
+	} else {
+		// Get the starting year and month
+		$y = (int)($back / 12); // Years back
+		$m = $back - ($y * 12); // Months back
+		$y = $year - $y;
+		$m = $month - $m;
+		if ($m < 1) {
+			$y--;
+			$m += 12;
+		}
+	
+		for ($i = 0; $i <= ($back + $forward); $i++) {
+			$dates[] = $months[$m - 1] . $y;
+			if ($m < 12) {
+				$m++;
+			} else {
+				$y++;
+				$m = 1;
+			}
 		}
 	}
 	

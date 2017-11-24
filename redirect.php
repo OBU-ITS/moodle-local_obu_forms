@@ -108,16 +108,20 @@ else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {
 		if ($data->authorisation_level == 1) {
 			$data->auth_1_id = $authoriser_id;
-		} 
-		else if ($data->authorisation_level == 2) {
+		} else if ($data->authorisation_level == 2) {
 			$data->auth_2_id = $authoriser_id;
-		} 
-		else if ($data->authorisation_level == 3) {
+		} else if ($data->authorisation_level == 3) {
 			$data->auth_3_id = $authoriser_id;
+		} else if ($data->authorisation_level == 4) {
+			$data->auth_4_id = $authoriser_id;
+		} else if ($data->authorisation_level == 5) {
+			$data->auth_5_id = $authoriser_id;
 		} else {
 			echo(get_string('invalid_data', 'local_obu_forms'));
 			die;
 		}
+		$data->redirector_id = $USER->id;
+		$data->redirection_date = time();
 		write_form_data($data); // Update the form data record
 		update_authoriser($form, $data, $authoriser_id); // Update the authorisations and send notification emails
 		

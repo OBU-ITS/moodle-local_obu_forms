@@ -40,8 +40,10 @@ $string['list_staff_forms'] = 'List a student\'s staff forms';
 $string['redirect_form'] = 'Redirect form';
 $string['forward_forms'] = 'Forward forms';
 $string['data_download'] = 'Data download';
+$string['student_withdrawals'] = 'Student withdrawals';
 $string['myforms'] = 'My forms';
 
+$string['notes'] = 'Notes (Student Central)';
 $string['continue'] = 'Continue';
 $string['save'] = 'Save';
 $string['submit'] = 'Submit';

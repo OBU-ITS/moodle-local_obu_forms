@@ -46,14 +46,14 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 
 	$dates = array();
 	
-	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in this academic year and next
+	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in this academic year and the next two
 		if ($month >= 8) { // Date range moves forward in August
 			$y = $year;
 		} else {
 			$y = $year - 1;
 		}
 		$m = 9; // Begin in September
-		for ($i = 0; $i < 6; $i++) { // Two years worth
+		for ($i = 0; $i < 9; $i++) { // Three years worth
 			$dates[] = $months[$m - 1] . $y;
 			$m += 4;
 			if ($m > 12) {

@@ -171,15 +171,22 @@ function write_form_template($author, $form_data) {
 		return 0;
 	}
 
-    $record = new stdClass();
+    $current_version = strtoupper($form_data->version);
+    $new_version = strtoupper($form_data->new_version); // New version name (if any)
+
+	$record = new stdClass();
 	$record->form_id = $settings->id;
-    $record->version = strtoupper($form_data->version);
+	if ($new_version == '') { // No new version name
+		$record->version = $current_version;
+	} else {
+		$record->version = $new_version;
+	}
     $record->author = $author;
 	$record->date = time();
 	$record->published = $form_data->published;
 	$record->data = $form_data->data['text'];
 
-	$template = read_form_template($record->form_id, $record->version);
+	$template = read_form_template($record->form_id, $current_version);
 	if ($template !== false) {
 		$id = $template->id;
 		$record->id = $id;
@@ -758,7 +765,7 @@ function get_module_leader($module_id = 0) {
 	}
 	
 	// Get all the users enrolled on the module (with their enrollment methods) that have the Module Leader role
-	$sql = 'SELECT ue.userid, e.enrol'
+	$sql = 'SELECT DISTINCT ue.id, ue.userid, e.enrol'
 		. ' FROM {enrol} e'
 		. ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
 		. ' JOIN {role_assignments} ra ON ra.userid = ue.userid'

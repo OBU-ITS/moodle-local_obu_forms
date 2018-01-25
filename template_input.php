@@ -75,7 +75,15 @@ class template_input extends moodleform {
 		$mform->addElement('hidden', 'version', strtoupper($data->version));
 		$mform->setType('version', PARAM_RAW);
 		$mform->addElement('static', null, get_string('version', 'local_obu_forms'), strtoupper($data->version));
-		
+
+		//  Allow a site admin to rename a version
+		if (is_siteadmin()) {
+			$mform->addElement('text', 'new_version', get_string('new_version', 'local_obu_forms'), 'size="10" maxlength="10"');
+		} else {
+			$mform->addElement('hidden', 'new_version', '');
+		}
+		$mform->setType('new_version', PARAM_RAW);
+
 		$mform->addElement('editor', 'data', get_string('template', 'local_obu_forms'));
 		$mform->setType('data', PARAM_RAW);
 		$mform->disabledIf('data', 'published', 'checked');

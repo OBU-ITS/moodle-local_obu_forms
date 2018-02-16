@@ -389,7 +389,7 @@ function get_academic_adviser($user_id) {
 	return $advisers[0]->id; // We assume only one (or that the first is most relevant)
 }
 
-function get_advisers($user_id) {
+function get_advisers($user_id, $modular) {
 	global $DB;
 	   
 	$adviser = array();
@@ -405,7 +405,7 @@ function get_advisers($user_id) {
 	}
 	
 	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads for the user's course
-	$courses = get_current_courses($user_id); // Should only be one
+	$courses = get_current_courses($user_id, $modular); // Should only be one
 	$course_id = key($courses);
 	if ($course_id) {
 		$context = context_course::instance($course_id);

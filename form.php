@@ -144,7 +144,7 @@ foreach ($selects as $select) {
 			break;
 		case 'adviser':
 			if (empty($adviser)) {
-				$adviser = get_advisers($USER->id);
+				$adviser = get_advisers($USER->id, $form->modular);
 			}
 			break;
 		case 'supervisor':

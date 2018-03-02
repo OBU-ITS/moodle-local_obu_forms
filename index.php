@@ -75,7 +75,11 @@ foreach ($forms_data as $data) {
 	$student = '';
 	$subject = '';
 	load_form_fields($data, $fields);
-	if ($form->student) {
+	if (is_manager($form) && array_key_exists('student_number', $fields)) {
+		$student = $fields['student_number'];
+		$subject .= ' [' . $student . ']';
+	}
+	if (is_manager($form) || $form->student) {
 		$modules = '';
 		foreach ($fields as $key => $value) {
 			if ((strpos($key, 'module') !== false) && ($value != '')) {
@@ -86,11 +90,8 @@ foreach ($forms_data as $data) {
 			}
 		}
 		if ($modules != '') {
-			$subject = ' [' . $modules . ']';
+			$subject .= ' [' . $modules . ']';
 		}
-	} else if (is_manager($form) && array_key_exists('student_number', $fields)) {
-			$student = $fields['student_number'];
-			$subject = ' [' . $student . ']';
 	}
 	
 	if (($data->author == $user->id) || ($student == $user->username)) {

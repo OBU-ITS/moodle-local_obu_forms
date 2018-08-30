@@ -332,7 +332,7 @@ class form_view extends moodleform {
 		// Do our own validation and add errors to array
 		$required_value = false;
 		foreach ($data as $key => $value) {
-			$is_null = (($value == '') || (($value == '0') && (($key == 'adviser') || ($key == 'supervisor') || ($key == 'supervisor_2')))); // Include special cases
+			$is_null = (($value == '') || (($value == '0') && ((strpos($key, 'start_date') !== false) || ($key == 'adviser') || ($key == 'supervisor') || ($key == 'supervisor_2')))); // Include special cases
 			if (in_array($key, $this->required_field, true) && ($value == '')) { // Leave the field error display to Moodle
 				$required_value = true;
 			} else if (in_array($key, $this->required_field, true) && $is_null) { // Moodle wouldn't identify special cases as blank
@@ -345,7 +345,7 @@ class form_view extends moodleform {
 				$errors[$key] = get_string('value_required', 'local_obu_forms');
 			} else if ($key == 'course') { // Exact match - should be a current course (programme) code
 				if ($value != '') { // Might not be mandatory
-					$current_courses = get_current_courses(0, $this->_customdata['modular']);
+					$current_courses = get_current_courses($this->_customdata['modular']);
 					if (!in_array(strtoupper($value), $current_courses, true)) {
 						$errors[$key] = get_string('course_not_found', 'local_obu_forms');
 					}

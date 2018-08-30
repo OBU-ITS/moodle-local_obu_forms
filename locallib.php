@@ -45,6 +45,7 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 	$months = [ 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC' ];
 
 	$dates = array();
+	$dates[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
 	
 	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in this academic year and the next two
 		if ($month >= 8) { // Date range moves forward in August
@@ -95,11 +96,14 @@ function get_authorisers() {
 		'Supervisor',
 		'Academic Adviser',
 		'Programme Lead',
-		'Programme Lead (2)',
+		'Programme Lead (Joint Honours)',
 		'Module Leader (2)',
 		'Exchanges Office',
 		'Student',
-		'Supervisor (2)'
+		'Supervisor (2)',
+		'Admissions',
+		'ISA Team',
+		'Programme Lead (Course Change)'
 	);
 	
 	return $authoriser;

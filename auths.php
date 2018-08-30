@@ -72,7 +72,7 @@ foreach ($auths as $auth) {
 		$form = read_form_settings($template->form_id);
 		
 		// Check that the form type is correct for this report
-		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L')) {
+		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L') || ($form->formref == 'M300')) {
 			$tpt_form = true; // The responsibility of the Taught Programmes Team
 		} else {
 			$tpt_form = false;
@@ -99,6 +99,9 @@ foreach ($auths as $auth) {
 
 			echo '<h4><a href="' . $process . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>';
 			echo $text . '<' . $form->formref . '>';
+			if ($data->notes) {
+				echo '<h6>' . $data->notes . '</h6>';
+			}
 			if (has_capability('local/obu_forms:update', $context) && ($authoriser_username != 'csa')) { // They can't redirect away from themselves
 				echo '<p><a href="' . $redirect . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
 			}

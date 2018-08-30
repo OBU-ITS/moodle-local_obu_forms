@@ -67,6 +67,7 @@ function local_obu_forms_extend_navigation($navigation) {
 		$nodeHome = $navigation->children->get('1')->parent;
 		if ($nodeHome) {
 			$nodeParent = $nodeHome->add(get_string('forms', 'local_obu_forms'), null, navigation_node::TYPE_SYSTEM);
+			$nodeParent->showinflatnavigation = true;
 		}
 	}
 	

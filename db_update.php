@@ -389,7 +389,7 @@ function get_academic_adviser($user_id) {
 	return $advisers[0]->id; // We assume only one (or that the first is most relevant)
 }
 
-function get_advisers($user_id, $modular) {
+function get_advisers($modular, $user_id) {
 	global $DB;
 	   
 	$adviser = array();
@@ -405,7 +405,7 @@ function get_advisers($user_id, $modular) {
 	}
 	
 	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads for the user's course
-	$courses = get_current_courses($user_id, $modular); // Should only be one
+	$courses = get_current_courses($modular, $user_id); // Should only be one
 	$course_id = key($courses);
 	if ($course_id) {
 		$context = context_course::instance($course_id);
@@ -474,10 +474,10 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser_id = get_module_leader($module_id);
 	} else if ($role == 3) { // Subject Coordinator
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
-			$courses = get_current_courses();
+			$courses = get_current_courses($modular);
 			$course_id = array_search(strtoupper($fields['course']), $courses, true);
 		} else { // Get the student's current course (programme)
-			$courses = get_current_courses($student_id, $modular);
+			$courses = get_current_courses($modular, $student_id);
 			$course_id = key($courses);
 		}
 		if ($course_id) {
@@ -501,9 +501,9 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			$authoriser_id = $academic_adviser->id;
 		}
 	} else if ($role == 6) { // Programme Lead
-		$authoriser_id = get_programme_lead($student_id, $modular, 0);
-	} else if ($role == 7) { // Programme Lead (2) - only present for joint honours students (will skip step otherwise)
-		$authoriser_id = get_programme_lead($student_id, $modular, 1);
+		$authoriser_id = get_programme_leads($student_id, $modular, 0);
+	} else if ($role == 7) { // Programme Lead (Joint Honours) - only present for joint honours students (will skip step otherwise)
+		$authoriser_id = get_programme_leads($student_id, $modular, 1);
 	} else if (($role == 8) && $fields['module_2']) { // Module Leader (2) - second module must be present (will skip step otherwise)
 		$modules = get_current_modules();
 		$module_id = array_search(strtoupper($fields['module_2']), $modules, true);
@@ -518,6 +518,34 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$end_pos = strpos($fields['supervisor_2'], ')', $start_pos);
 		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor_2'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);		
 		$authoriser_id = $supervisor->id;
+	} else if ($role == 12) { // Admissions
+		$authoriser = get_complete_user_data('username', 'admissions');
+		$authoriser_id = $authoriser->id;
+	} else if ($role == 13) { // ISA Team
+		$authoriser = get_complete_user_data('username', 'isat');
+		$authoriser_id = $authoriser->id;
+	} else if (($role == 14) && $fields['course_change']) { // Programme Lead (Course Change)
+		$course = $fields['course_change']; // Could just be the course code or the title with the code in square (priority) or round brackets
+		$last_bracket = -1;
+		while (($pos = strpos($course, '[', ($last_bracket + 1))) !== false) {
+			$last_bracket = $pos;
+		}
+		if (($last_bracket > -1) && (($pos = strpos($course, ']', ($last_bracket + 1))) !== false)) {
+			$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
+		} else {
+			$last_bracket = -1;
+			while (($pos = strpos($course, '(', ($last_bracket + 1))) !== false) {
+				$last_bracket = $pos;
+			}
+			if (($last_bracket > -1) && (($pos = strpos($course, ')', ($last_bracket + 1))) !== false)) {
+				$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
+			} else {
+				$course_code = $course;
+			}
+		}
+		$courses = get_current_courses($modular);
+		$course_id = array_search(strtoupper($course_code), $courses, true);
+		$authoriser_id = get_programme_lead($course_id);
 	}
 	
 	if (($authoriser_id == 0) && ($role != 7) && ($role != 8) && ($role != 11)) { // Don't leave them hanging...
@@ -578,18 +606,20 @@ function is_student($user_id = 0, $type = null) {
 	}
 }
 
-function get_current_courses($user_id = 0, $modular = false) {
+function get_current_courses($modular = false, $user_id = 0, $names = false) {
 	global $DB;
 	
 	$courses = array();
-	if ($user_id == 0) { // Just need all the course codes (for validation purposes)
-		$sql = 'SELECT c.id, c.idnumber FROM {course} c WHERE c.idnumber LIKE "_~%"';
+	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
+		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "_~%"';
 	
-		// Restrict the courses to a given type
-		if ($modular) {
-			$sql .= ' AND c.idnumber LIKE "%~MC%"';
-		} else {
-			$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
+		// Restrict the courses to a given type?
+		if ($modular !== false) {
+			if ($modular) {
+				$sql .= ' AND (c.idnumber LIKE "%~MC10-%" OR c.idnumber LIKE "%~ED15%")';
+			} else {
+				$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
+			}
 		}
 
 		$db_ret = $DB->get_records_sql($sql, array());
@@ -610,8 +640,26 @@ function get_current_courses($user_id = 0, $modular = false) {
 					$course_code = substr($course_code, ($pos + 1));
 				}
 			}
-			$courses[$row->id] = $course_code;
+			if (!$names) {
+				$courses[$row->id] = $course_code;
+			} else {
+				$last_bracket = -1;
+				while (($pos = strpos($row->fullname, '(', ($last_bracket + 1))) !== false) {
+					$last_bracket = $pos;
+				}
+				if (($last_bracket < 0) || (($pos = strpos($row->fullname, ')', ($last_bracket + 1))) === false)) {
+					$given_code = '';
+				} else {
+					$given_code = substr($row->fullname, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
+				}
+				if ($given_code == $course_code) {
+					$courses[$row->id] = $row->fullname;
+				} else { 
+					$courses[$row->id] = $row->fullname . '  [' . $course_code . ']';
+				} 
+			}
 		}
+		asort($courses);
 	} else { // Need the full names of the course(s) on which this user is enrolled as a student
 		$role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
 		$sql = 'SELECT c.id, c.fullname'
@@ -627,11 +675,13 @@ function get_current_courses($user_id = 0, $modular = false) {
 				. ' AND ra.roleid = ?'
 				. ' AND c.idnumber LIKE "_~%"';
 
-		// Restrict the courses to a given type
-		if ($modular) {
-			$sql .= ' AND c.idnumber LIKE "%~MC%"';
-		} else {
-			$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
+		// Restrict the courses to a given type?
+		if ($modular !== false) {
+			if ($modular) {
+				$sql .= ' AND c.idnumber LIKE "%~MC%"';
+			} else {
+				$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
+			}
 		}
 		
 		$sql .= ' ORDER BY c.fullname';
@@ -701,45 +751,18 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	return $modules;
 }
 
-function get_programme_lead($student_id = 0, $modular = false, $index = 0) {
+function get_programme_leads($student_id = 0, $modular = false, $index = 0) {
 	global $DB;
 	
 	// Get all courses for this student (normally 1 but 2 for joint honours students)
-	$courses = get_current_courses($student_id, $modular);
+	$courses = get_current_courses($modular, $student_id);
 	if (empty($courses)) {
 		return 0;
 	}
 
 	$programme_leads = array();
 	foreach ($courses as $course_id => $course_name) {
-		$context = context_course::instance($course_id);
-		if ($context == null) {
-			continue;
-		}
-	
-		// Get all the users enrolled on the course (with their enrollment methods) that have the Programme Lead role
-		$sql = 'SELECT ue.userid, e.enrol'
-			. ' FROM {enrol} e'
-			. ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
-			. ' JOIN {role_assignments} ra ON ra.userid = ue.userid'
-			. ' JOIN {role} r ON r.id = ra.roleid'
-			. ' WHERE e.courseid = ? AND ra.contextid = ? AND r.shortname = "programme_lead"'
-			. ' ORDER BY ue.timecreated';
-		$db_ret = $DB->get_records_sql($sql, array($course_id, $context->id));
-
-		// Find the latest PL enrollment (giving precedence to external ones)
-		$programme_lead = 0;
-		$external = false;
-		foreach ($db_ret as $row) {
-			if ($row->enrol == 'databaseextended') {
-				$programme_lead = $row->userid;
-				$external = true;
-			} else if (!$external) {
-				$programme_lead = $row->userid;
-			}
-		}
-
-		// Store them
+		$programme_lead = get_programme_lead($course_id);
 		if (($programme_lead > 0) && !in_array($programme_lead, $programme_leads, true)) {
 			$programme_leads[] = $programme_lead;
 		}
@@ -750,6 +773,39 @@ function get_programme_lead($student_id = 0, $modular = false, $index = 0) {
 	}
 	
 	return $programme_leads[$index];
+}
+
+function get_programme_lead($course_id = 0) {
+	global $DB;
+	
+	$context = context_course::instance($course_id);
+	if ($context == null) {
+		return 0;
+	}
+
+	// Get all the users enrolled on the course (with their enrollment methods) that have the Programme Lead role
+	$sql = 'SELECT ue.userid, e.enrol'
+		. ' FROM {enrol} e'
+		. ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
+		. ' JOIN {role_assignments} ra ON ra.userid = ue.userid'
+		. ' JOIN {role} r ON r.id = ra.roleid'
+		. ' WHERE e.courseid = ? AND ra.contextid = ? AND r.shortname = "programme_lead"'
+		. ' ORDER BY ue.timecreated';
+	$db_ret = $DB->get_records_sql($sql, array($course_id, $context->id));
+
+	// Find the latest PL enrollment (giving precedence to external ones)
+	$programme_lead = 0;
+	$external = false;
+	foreach ($db_ret as $row) {
+		if ($row->enrol == 'databaseextended') {
+			$programme_lead = $row->userid;
+			$external = true;
+		} else if (!$external) {
+			$programme_lead = $row->userid;
+		}
+	}
+	
+	return $programme_lead;
 }
 
 function get_module_leader($module_id = 0) {

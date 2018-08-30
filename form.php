@@ -101,7 +101,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 $current_course = '';
 $button_text = 'submit';
 if ($form->student) { // A student form - the user must be enrolled in a current course (programme) of the right type in order to submit it
-	$course = get_current_courses($USER->id, $form->modular);
+	$course = get_current_courses($form->modular, $USER->id);
 	$current_course = current($course); // We're assuming only one
 	if ($current_course === false) {
 		if (is_manager($form) || $staff) { // Let them view, but not submit, the form
@@ -138,13 +138,14 @@ foreach ($selects as $select) {
 					$start_selected = 0; // Default to the start of the year
 				} else { // 6 months back and 12 months forward from today
 					$start_dates = get_dates(date('m'), date('y'), 6, 12);
-					$start_selected = 6; // Default to this month
+//					$start_selected = 6; // Default to this month
+					$start_selected = 0; // Now we say 'Please select'
 				}
 			}
 			break;
 		case 'adviser':
 			if (empty($adviser)) {
-				$adviser = get_advisers($USER->id, $form->modular);
+				$adviser = get_advisers($form->modular, $USER->id);
 			}
 			break;
 		case 'supervisor':
@@ -154,7 +155,7 @@ foreach ($selects as $select) {
 			break;
 		case 'course':
 			if (empty($course)) {
-				$course = get_current_courses(0, $form->modular);
+				$course = get_current_courses($form->modular, 0, true);
 			}
 			break;
 		case 'not_enroled':
@@ -236,7 +237,11 @@ if ($mform_data = (array)$mform->get_data()) {
 		if (array_key_exists($key, $selects)) {
 			switch ($selects[$key]) {
 				case 'start_dates':
-					$value = $start_dates[$value];
+					if ($value == '0') { // Default is 'Please select'
+						$value = '';
+					} else {
+						$value = $start_dates[$value];
+					}
 					break;
 				case 'adviser':
 					if ($value == '0') { // Default is 'Please select'

@@ -87,6 +87,8 @@ $string['publish'] = 'Publish';
 $string['publish_note'] = ' (Note - a published template version can no longer be amended)';
 $string['draft'] = 'Draft';
 $string['published'] = 'Published';
+$string['date_test'] = 'Date Test';
+$string['date_input'] = 'Date (MMYY)';
 
 $string['auths_title'] = 'Form Authorisations';
 $string['auths_nav'] = 'Form authorisations';

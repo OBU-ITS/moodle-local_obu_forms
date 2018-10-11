@@ -47,14 +47,21 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 	$dates = array();
 	$dates[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
 	
-	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in this academic year and the next two
-		if ($month >= 8) { // Date range moves forward in August
+	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in the last AY, this AY and the next two
+		if ($month >= 8) { // AY moves forward in August
 			$y = $year;
 		} else {
 			$y = $year - 1;
 		}
-		$m = 9; // Begin in September
-		for ($i = 0; $i < 9; $i++) { // Three years worth
+		if (($month < 4) || ($month >= 8)) { // Date range decreases in April
+			$m = 1; // Begin in January
+			$sems = 11; // Semesters to display
+		}
+		else {
+			$m = 9; // Begin in September
+			$sems = 9; // Semesters to display
+		}
+		for ($i = 0; $i < $sems; $i++) {
 			$dates[] = $months[$m - 1] . $y;
 			$m += 4;
 			if ($m > 12) {

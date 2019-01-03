@@ -51,6 +51,7 @@ class form_view extends moodleform {
         $data->adviser = $this->_customdata['adviser'];
         $data->supervisor = $this->_customdata['supervisor'];
         $data->course = $this->_customdata['course'];
+        $data->course_joint = $this->_customdata['course_joint'];
         $data->not_enroled = $this->_customdata['not_enroled'];
         $data->enroled = $this->_customdata['enroled'];
         $data->study_mode = $this->_customdata['study_mode'];
@@ -178,6 +179,9 @@ class form_view extends moodleform {
 								break;
 							case 'course':
 								$options = $data->course;
+								break;
+							case 'course_joint':
+								$options = $data->course_joint;
 								break;
 							case 'not_enroled':
 								$options = $data->not_enroled;

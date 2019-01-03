@@ -120,6 +120,7 @@ $start_selected = 0;
 $adviser = array();
 $supervisor = array();
 $course = array();
+$course_joint = array();
 $not_enroled = array();
 $enroled = array();
 $study_mode = array();
@@ -155,7 +156,12 @@ foreach ($selects as $select) {
 			break;
 		case 'course':
 			if (empty($course)) {
-				$course = get_current_courses($form->modular, 0, true);
+				$course = get_current_courses($form->modular, 0, true, false);
+			}
+			break;
+		case 'course_joint':
+			if (empty($course_joint)) {
+				$course_joint = array_merge(array('0' => ''), get_current_courses($form->modular, 0, true, true));
 			}
 			break;
 		case 'not_enroled':
@@ -205,6 +211,7 @@ $parameters = [
 	'adviser' => $adviser,
 	'supervisor' => $supervisor,
 	'course' => $course,
+	'course_joint' => $course_joint,
 	'not_enroled' => $not_enroled,
 	'enroled' => $enroled,
 	'study_mode' => $study_mode,
@@ -259,6 +266,9 @@ if ($mform_data = (array)$mform->get_data()) {
 					break;
 				case 'course':
 					$value = $course[$value];
+					break;
+				case 'course_joint':
+					$value = $course_joint[$value];
 					break;
 				case 'not_enroled':
 					$value = $not_enroled[$value];

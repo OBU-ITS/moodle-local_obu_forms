@@ -606,7 +606,7 @@ function is_student($user_id = 0, $type = null) {
 	}
 }
 
-function get_current_courses($modular = false, $user_id = 0, $names = false) {
+function get_current_courses($modular = false, $user_id = 0, $names = false, $joint = false) {
 	global $DB;
 	
 	$courses = array();
@@ -620,6 +620,9 @@ function get_current_courses($modular = false, $user_id = 0, $names = false) {
 			} else {
 				$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
 			}
+		}
+		if ($joint) {
+			$sql .= ' AND c.idnumber LIKE "_~MCJ~%"';
 		}
 
 		$db_ret = $DB->get_records_sql($sql, array());

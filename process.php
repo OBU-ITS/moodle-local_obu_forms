@@ -100,8 +100,10 @@ if ($button_text != 'authorise') { // If not the next authoriser, check that thi
 		$text = $form->auth_3_notes;
 	} else if ($record->authorisation_level == 4) {
 		$text = $form->auth_4_notes;
-	} else {
+	} else if ($record->authorisation_level == 5) {
 		$text = $form->auth_5_notes;
+	} else {
+		$text = $form->auth_6_notes;
 	}
 	if ($text) {
 		$text = '<h4>' . $text . '</h4>';
@@ -266,11 +268,29 @@ function update_workflow($authorised = true, $comment = null) {
 		} else {
 			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_5_role, $fields);
 			$record->auth_5_id = $authoriser_id;
-			$record->authorisation_level = 5;
+			if ($authoriser_id != 0) {
+				$record->authorisation_level = 5;
+			} else { // Skip the level (OK for some roles)
+				$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_6_role, $fields);
+				$record->auth_6_id = $authoriser_id;
+				$record->authorisation_level = 6;
+			}
 		}
-	} else {
+	} else if ($record->authorisation_level == 5) {
 		$record->auth_5_notes = $comment;
 		$record->auth_5_date = time();
+		if (!$authorised) {
+			$record->authorisation_state = 1; // Rejected
+		} else if ($form->auth_6_role == 0) {
+			$record->authorisation_state = 2; // It ends here
+		} else {
+			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_6_role, $fields);
+			$record->auth_6_id = $authoriser_id;
+			$record->authorisation_level = 6;
+		}
+	} else {
+		$record->auth_6_notes = $comment;
+		$record->auth_6_date = time();
 		if (!$authorised) {
 			$record->authorisation_state = 1; // Rejected
 		} else {

@@ -75,6 +75,8 @@ $string['auth_4_role'] = 'Role for Fourth Authorisation';
 $string['auth_4_notes'] = 'Notes for Fourth Authorisation';
 $string['auth_5_role'] = 'Role for Fifth Authorisation';
 $string['auth_5_notes'] = 'Notes for Fifth Authorisation';
+$string['auth_6_role'] = 'Role for Sixth Authorisation';
+$string['auth_6_notes'] = 'Notes for Sixth Authorisation';
 
 $string['template_title'] = 'Add or Amend a Form Template';
 $string['template_nav'] = 'Form templates';

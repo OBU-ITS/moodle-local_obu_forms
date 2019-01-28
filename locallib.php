@@ -110,7 +110,9 @@ function get_authorisers() {
 		'Supervisor (2)',
 		'Admissions',
 		'ISA Team',
-		'Programme Lead (Course Change)'
+		'Programme Lead (Course Change)',
+		'Subject Coordinator (Course Change)',
+		'Subject Coordinator (Course Change, Joint Honours)'
 	);
 	
 	return $authoriser;
@@ -520,8 +522,8 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 							$text .= ' ' . $data->auth_4_notes . '<br />';
 						}
 						
-						// Authorisation level 5 (the last possible one)
-						if ($data->authorisation_state > 0) { // The workflow ended here
+						// Authorisation level 5
+						if (($data->authorisation_level == 5) && ($data->authorisation_state > 0)) { // The workflow ended here
 							date_timestamp_set($date, $data->auth_5_date);
 							$text .= date_format($date, $format) . ' ';
 							if ($data->auth_5_id == $user_id) {
@@ -538,6 +540,41 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 								$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 							}
 							$text .= ' ' . $data->auth_5_notes . '<br />';
+						} else if ($data->authorisation_level > 5) { // We've passed this level
+							if ($data->auth_5_id != 0) { // Include level in trail only if it wasn't skipped
+								date_timestamp_set($date, $data->auth_5_date);
+								$text .= date_format($date, $format) . ' ';
+								if ($data->auth_5_id == $user_id) {
+									$name = 'you as ' . $authoriser_role[$form->auth_5_role];
+								} else if ($data->auth_5_id == $sc_id) {
+									$name = $sc_name;
+								} else {
+									$authoriser = get_complete_user_data('id', $data->auth_5_id);
+									$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+								}
+								$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+								$text .= ' ' . $data->auth_5_notes . '<br />';
+							}
+						
+							// Authorisation level 6 (the last possible one)
+							if ($data->authorisation_state > 0) { // The workflow ended here
+								date_timestamp_set($date, $data->auth_6_date);
+								$text .= date_format($date, $format) . ' ';
+								if ($data->auth_6_id == $user_id) {
+									$name = 'you as ' . $authoriser_role[$form->auth_6_role];
+								} else if ($data->auth_6_id == $sc_id) {
+									$name = $sc_name;
+								} else {
+									$authoriser = get_complete_user_data('id', $data->auth_6_id);
+									$name = $authoriser->firstname . ' ' . $authoriser->lastname;
+								}
+								if ($data->authorisation_state == 1) {
+									$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('rejected', 'local_obu_forms'), 'by' => $name));
+								} else {
+									$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
+								}
+								$text .= ' ' . $data->auth_6_notes . '<br />';
+							}
 						}
 					}
 				}
@@ -574,9 +611,12 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 			} else if ($data->authorisation_level == 4) {
 				$authoriser_id = $data->auth_4_id;
 				$role_id = $form->auth_4_role;
-			} else {
+			} else if ($data->authorisation_level == 5) {
 				$authoriser_id = $data->auth_5_id;
 				$role_id = $form->auth_5_role;
+			} else {
+				$authoriser_id = $data->auth_6_id;
+				$role_id = $form->auth_6_role;
 			}
 			if (($authoriser_id == $user_id) || (($authoriser_id == $sc_id) && is_manager($form))) {
 				$name = 'you as ' . $authoriser_role[$role_id];

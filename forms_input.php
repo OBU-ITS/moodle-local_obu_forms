@@ -53,7 +53,9 @@ class settings_input extends moodleform {
 				'auth_4_role' => $data->record->auth_4_role,
 				'auth_4_notes' => $data->record->auth_4_notes,
 				'auth_5_role' => $data->record->auth_5_role,
-				'auth_5_notes' => $data->record->auth_5_notes
+				'auth_5_notes' => $data->record->auth_5_notes,
+				'auth_6_role' => $data->record->auth_6_role,
+				'auth_6_notes' => $data->record->auth_6_notes
 			];
 			$this->set_data($fields);
 		} else if (($data->form_indicator > 0) || ($data->student_indicator > 0)) { // We have presets for the new form
@@ -134,6 +136,14 @@ class settings_input extends moodleform {
 		}
 		$mform->addElement('text', 'auth_5_notes', get_string('auth_5_notes', 'local_obu_forms'), 'size="60" maxlength="200"');
 		$mform->setType('auth_5_notes', PARAM_RAW);
+
+		// Authoriser 6
+		$select = $mform->addElement('select', 'auth_6_role', get_string('auth_6_role', 'local_obu_forms'), $authorisers, null);
+		if ($data->record != null) {
+			$select->setSelected($data->record->auth_6_role);
+		}
+		$mform->addElement('text', 'auth_6_notes', get_string('auth_6_notes', 'local_obu_forms'), 'size="60" maxlength="200"');
+		$mform->setType('auth_6_notes', PARAM_RAW);
 
         $this->add_action_buttons(true, get_string('save', 'local_obu_forms'));
     }

@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -35,7 +35,8 @@ if (!has_capability('local/obu_forms:update', $context)) {
 	redirect($home);
 }
 
-$url = $home . 'local/obu_forms/purge_auths.php';
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'purge_auths.php';
 $heading = get_string('auths_title', 'local_obu_forms');
 
 $PAGE->set_url($url);
@@ -70,5 +71,3 @@ foreach ($auths as $auth) {
 }
 
 echo $OUTPUT->footer();
-
-

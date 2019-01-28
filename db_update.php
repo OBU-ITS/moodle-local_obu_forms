@@ -45,6 +45,8 @@ function write_form_settings($author, $form_data) {
 	$record->auth_4_notes = $form_data->auth_4_notes;
 	$record->auth_5_role = $form_data->auth_5_role;
 	$record->auth_5_notes = $form_data->auth_5_notes;
+	$record->auth_6_role = $form_data->auth_6_role;
+	$record->auth_6_notes = $form_data->auth_6_notes;
 
 	$settings = read_form_settings_by_ref($record->formref);
 	if ($settings !== false) {
@@ -525,30 +527,31 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser = get_complete_user_data('username', 'isat');
 		$authoriser_id = $authoriser->id;
 	} else if (($role == 14) && $fields['course_change']) { // Programme Lead (Course Change)
-		$course = $fields['course_change']; // Could just be the course code or the title with the code in square (priority) or round brackets
-		$last_bracket = -1;
-		while (($pos = strpos($course, '[', ($last_bracket + 1))) !== false) {
-			$last_bracket = $pos;
-		}
-		if (($last_bracket > -1) && (($pos = strpos($course, ']', ($last_bracket + 1))) !== false)) {
-			$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
-		} else {
-			$last_bracket = -1;
-			while (($pos = strpos($course, '(', ($last_bracket + 1))) !== false) {
-				$last_bracket = $pos;
-			}
-			if (($last_bracket > -1) && (($pos = strpos($course, ')', ($last_bracket + 1))) !== false)) {
-				$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
-			} else {
-				$course_code = $course;
-			}
-		}
-		$courses = get_current_courses($modular);
-		$course_id = array_search(strtoupper($course_code), $courses, true);
+		$course_id = get_course_id($fields['course_change'], $modular);
 		$authoriser_id = get_programme_lead($course_id);
+	} else if (($role == 15) && $fields['course_change']) { // Subject Coordinator (Course Change)
+		$course_id = get_course_id($fields['course_change'], $modular);
+		if ($course_id) {
+			$context = context_course::instance($course_id);
+			$sc_role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST);
+			$subject_coordinators = get_role_users($sc_role->id, $context, false, 'u.id'); // Exclude inherited roles
+			foreach ($subject_coordinators as $subject_coordinator) {
+				$authoriser_id = $subject_coordinator->id;
+			}
+		}
+	} else if (($role == 16) && $fields['course_change_joint']) { // Subject Coordinator (Course Change, Joint Honours)
+		$course_id = get_course_id($fields['course_change_joint'], $modular);
+		if ($course_id) {
+			$context = context_course::instance($course_id);
+			$sc_role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST);
+			$subject_coordinators = get_role_users($sc_role->id, $context, false, 'u.id'); // Exclude inherited roles
+			foreach ($subject_coordinators as $subject_coordinator) {
+				$authoriser_id = $subject_coordinator->id;
+			}
+		}
 	}
 	
-	if (($authoriser_id == 0) && ($role != 7) && ($role != 8) && ($role != 11)) { // Don't leave them hanging...
+	if (($authoriser_id == 0) && ($role != 7) && ($role != 8) && ($role != 11) && ($role != 16)) { // Don't leave them hanging...
 		$authoriser = get_complete_user_data('username', 'csa-tbd'); // Default ('TO BE DETERMINED')
 		$authoriser_id = $authoriser->id;
 	}
@@ -563,6 +566,29 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	}
 	
 	return $authoriser_id;
+}
+
+function get_course_id($course, $modular) { // Course could just be the course code or the title with the code in square (priority) or round brackets
+	$last_bracket = -1;
+	while (($pos = strpos($course, '[', ($last_bracket + 1))) !== false) {
+		$last_bracket = $pos;
+	}
+	if (($last_bracket > -1) && (($pos = strpos($course, ']', ($last_bracket + 1))) !== false)) {
+		$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
+	} else {
+		$last_bracket = -1;
+		while (($pos = strpos($course, '(', ($last_bracket + 1))) !== false) {
+			$last_bracket = $pos;
+		}
+		if (($last_bracket > -1) && (($pos = strpos($course, ')', ($last_bracket + 1))) !== false)) {
+			$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
+		} else {
+			$course_code = $course;
+		}
+	}
+	$courses = get_current_courses($modular);
+	
+	return(array_search(strtoupper($course_code), $courses, true));
 }
 
 // Check if the given user is a member of staff

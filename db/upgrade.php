@@ -268,5 +268,37 @@ function xmldb_local_obu_forms_upgrade($oldversion = 0) {
 		upgrade_plugin_savepoint(true, 2017110800, 'local', 'obu_forms');
     }
     
+	if ($oldversion < 2019011100) {
+
+		// Define additional authorisation fields to be added to local_obu_forms
+		$table = new xmldb_table('local_obu_forms');
+		$field = new xmldb_field('auth_6_role', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'auth_5_notes');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+		$field = new xmldb_field('auth_6_notes', XMLDB_TYPE_TEXT, 'small', null, null, null, null, 'auth_6_role');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+
+		// Define additional authorisation fields to be added to local_obu_forms_data
+		$table = new xmldb_table('local_obu_forms_data');
+		$field = new xmldb_field('auth_6_id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'auth_5_date');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+		$field = new xmldb_field('auth_6_notes', XMLDB_TYPE_TEXT, 'small', null, null, null, null, 'auth_6_id');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+		$field = new xmldb_field('auth_6_date', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'auth_6_notes');
+		if (!$dbman->field_exists($table, $field)) {
+			$dbman->add_field($table, $field);
+		}
+
+		// obu_forms savepoint reached
+		upgrade_plugin_savepoint(true, 2019011100, 'local', 'obu_forms');
+    }
+
     return $result;
 }

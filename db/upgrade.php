@@ -299,6 +299,6 @@ function xmldb_local_obu_forms_upgrade($oldversion = 0) {
 		// obu_forms savepoint reached
 		upgrade_plugin_savepoint(true, 2019011100, 'local', 'obu_forms');
     }
-
+    
     return $result;
 }

@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -40,6 +40,7 @@ class form_view extends moodleform {
         $mform =& $this->_form;
 		
         $data = new stdClass();
+		$data->source = $this->_customdata['source'];
         $data->data_id = $this->_customdata['data_id'];
 		$data->template = $this->_customdata['template'];
 		$data->username = $this->_customdata['username'];
@@ -71,6 +72,8 @@ class form_view extends moodleform {
 		}
 		
 		// Start with the required hidden fields
+		$mform->addElement('hidden', 'source', $data->source);
+		$mform->setType('source', PARAM_RAW);
 		if ($data->data_id > 0) { // Using form to amend or view
 			$mform->addElement('hidden', 'id', $data->data_id);
 			$mform->setType('id', PARAM_RAW);

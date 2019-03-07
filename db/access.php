@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2018, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -27,20 +27,5 @@ $capabilities = array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes' => array('user' => CAP_ALLOW)
-    ),
-    'local/obu_forms:manage_pg' => array(
-		'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM
-    ),
-    'local/obu_forms:manage_ump_staff' => array(
-		'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM
-    ),
-    'local/obu_forms:manage_ump_students' => array(
-		'riskbitmask' => RISK_SPAM | RISK_PERSONAL,
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_SYSTEM
     )
 );

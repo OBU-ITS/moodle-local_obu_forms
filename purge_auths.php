@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2019, Oxford Brookes University
+ * @copyright  2018, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -30,20 +30,23 @@ if (!is_manager()) {
 	redirect($home);
 }
 
-$context = context_system::instance();
-if (!has_capability('local/obu_forms:update', $context)) {
-	redirect($home);
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . '/course/view.php?id=' . $forms_course;
+
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
 }
 
-$dir = $home . 'local/obu_forms/';
-$url = $dir . 'purge_auths.php';
-$heading = get_string('auths_title', 'local_obu_forms');
+$url = $home . 'local/obu_forms/purge_auths.php';
 
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('auths_title', 'local_obu_forms');
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
-$PAGE->set_context($context);
-$PAGE->set_title($heading);
-$PAGE->set_heading($heading);
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 // The page contents
 echo $OUTPUT->header();
@@ -71,3 +74,5 @@ foreach ($auths as $auth) {
 }
 
 echo $OUTPUT->footer();
+
+

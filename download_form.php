@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -30,8 +30,6 @@ class download_form extends moodleform {
     function definition() {
         $mform =& $this->_form;
 		
-		$mform->addElement('html', '<h2>' . get_string('data_download', 'local_obu_forms') . '</h2>');
-
 		$mform->addElement('text', 'formref', get_string('form', 'local_obu_forms'), 'size="10" maxlength="10"');
 		$mform->setType('formref', PARAM_RAW);
 		$mform->addRule('formref', null, 'required', null, 'server');

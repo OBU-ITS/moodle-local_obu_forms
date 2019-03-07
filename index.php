@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -26,7 +26,8 @@ require_once('./locallib.php');
 require_login();
 
 // Determine if the user can list the requested forms
-if (!is_manager() && !is_staff($USER->username)) { // Students can only see their own forms
+$manager = is_manager();
+if (!$manager && !is_staff($USER->username)) { // Students can only see their own forms
     $user = $USER;
 } else {
 	$user_id = optional_param('userid', 0, PARAM_INT);
@@ -37,29 +38,37 @@ if (!is_manager() && !is_staff($USER->username)) { // Students can only see thei
 		if (!$user) {
 			print_error('invaliduserid');
 		}
-		if (is_staff($user->username) && !is_manager()) { // Only managers can view forms for other staff members
+		if (is_staff($user->username) && !$manager) { // Only managers can view forms for other staff members
 			$user = $USER;
 		}
 	}
 }
 
-$url = new moodle_url('/local/obu_forms/index.php', array('userid' => $user_id));
-$redirect_form = new moodle_url('/local/obu_forms/redirect.php');
+$home = new moodle_url('/');
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'index.php?userid=' . $user_id;
+$redirect_form = $dir . 'redirect.php';
+
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
 
-if ($user->id == $USER->id) {
+if ($user->id == $USER->id) { // User
+	$PAGE->set_context(context_user::instance($user->id));
 	$currentuser = true;
+	$title = get_string('myforms', 'local_obu_forms');
 	$heading = get_string('myforms', 'local_obu_forms');
-} else {
-    $currentuser = false; // If we're looking at someone else's forms we may need to lock/remove some UI elements
-    $PAGE->navigation->extend_for_user($user);
+} else { // Forms management
+	if ($manager) {
+		require_login(get_forms_course());
+	}
+    $currentuser = false;
+	$title = get_string('forms_management', 'local_obu_forms');
 	$heading = get_string('forms', 'local_obu_forms') . ': ' . $user->firstname . ' ' . $user->lastname;
+	$PAGE->navbar->add($heading);
 }
 
-$PAGE->set_context(context_user::instance($user->id));
-$PAGE->set_title($heading);
-$PAGE->set_heading($heading);
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
 
 // The page contents
 echo $OUTPUT->header();
@@ -101,14 +110,10 @@ foreach ($forms_data as $data) {
 		$url = '';
 		if ($button == 'submit') {
 			if ($currentuser) {
-				$url = new moodle_url('/local/obu_forms/form.php');
+				echo '<h4><a href="' . $dir . 'form.php?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
 			}
 		} else if ($currentuser || is_manager($form) || $button == 'authorise') { // Owner, manager or next authoriser
-			$url = new moodle_url('/local/obu_forms/process.php');
-		}
-	
-		if ($url) {
-			echo '<h4><a href="' . $url . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
+			echo '<h4><a href="' . $dir . 'process.php?source=' . urlencode('index.php?userid=' . $user_id) . '&id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
 		} else {
 			echo '<h4>' . $form->formref . ': ' . $form->name . $subject . '</h4>';
 		}
@@ -122,5 +127,3 @@ foreach ($forms_data as $data) {
 }
 
 echo $OUTPUT->footer();
-
-

@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2018, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -30,20 +30,28 @@ require_once('./form_view.php');
 require_login();
 
 $home = new moodle_url('/');
-$context = context_system::instance();
-if (!has_capability('local/obu_forms:update', $context)) {
-	redirect($home);
+if (is_manager()) {
+	$forms_course = get_forms_course();
+	require_login($forms_course);
+	$back = $home . 'course/view.php?id=' . $forms_course;
+} else {
+	$PAGE->set_context(context_user::instance($USER->id));
+	$back = $home;
 }
 
-$dir = '/local/obu_forms/';
-$program = $dir . 'form.php';
-$process_url = $home . $dir . 'process.php';
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
+}
 
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'form.php';
+$process_url = $dir . 'process.php';
+
+$title = get_string('forms_management', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
-$PAGE->set_url($program);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('form_title', 'local_obu_forms'));
+$PAGE->set_url($url);
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
 
 // Initialise values
 $message = '';
@@ -228,8 +236,8 @@ $parameters = [
 	
 $mform = new form_view(null, $parameters);
 
-if ($mform->is_cancelled() || !has_capability('local/obu_forms:update', $context)) {
-    redirect($home);
+if ($mform->is_cancelled() || !has_capability('local/obu_forms:update', context_system::instance())) {
+    redirect($back);
 }
 
 if ($mform_data = (array)$mform->get_data()) {

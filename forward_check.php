@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -24,23 +24,30 @@ require_once('../../config.php');
 require_once('./locallib.php');
 
 require_login();
+
 $home = new moodle_url('/');
 if (!is_manager()) {
 	redirect($home);
 }
 
-$url = new moodle_url('/local/obu_forms/forward_check.php');
-$context = context_system::instance();
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . 'course/view.php?id=' . $forms_course;
 
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'forward_check.php';
+
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('forward_check', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('forward_check', 'local_obu_forms'));
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 // The page contents
 echo $OUTPUT->header();
-echo $OUTPUT->heading(get_string('forward_check', 'local_obu_forms'));
+echo $OUTPUT->heading($heading);
 
 $forwarders = get_form_forwarders();
 
@@ -67,5 +74,3 @@ foreach ($forwarders as $forwarder) {
 }
 
 echo $OUTPUT->footer();
-
-

@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -34,19 +34,25 @@ if (!is_manager()) {
 	redirect($home);
 }
 
-$context = context_system::instance();
-if (!has_capability('local/obu_forms:update', $context)) {
-	redirect($home);
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . 'course/view.php?id=' . $forms_course;
+
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
 }
 
-$url = $home . 'local/obu_forms/forward.php';
-$check = $home . 'local/obu_forms/forward_check.php';
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'forward.php';
+$check = $dir . 'forward_check.php';
 
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('forward_forms', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('forward_forms', 'local_obu_forms'));
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 $message = '';
 $from = '';
@@ -76,7 +82,7 @@ $parameters = [
 $mform = new forward_form(null, $parameters);
 
 if ($mform->is_cancelled()) {
-    redirect($home);
+    redirect($back);
 } 
 else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {

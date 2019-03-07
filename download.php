@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -28,26 +28,33 @@ require_once('./locallib.php');
 require_once('./download_form.php');
 
 require_login();
+
 $home = new moodle_url('/');
 if (!is_manager()) {
 	redirect($home);
 }
+$dir = $home . 'local/obu_forms/';
 
-$url = $home . 'local/obu_forms/download.php';
-$context = context_system::instance();
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . 'course/view.php?id=' . $forms_course;
 
+$url = $dir . 'download.php';
+
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('data_download', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('data_download', 'local_obu_forms'));
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 $message = '';
 
 $mform = new download_form(null, array());
 
 if ($mform->is_cancelled()) {
-    redirect($home);
+    redirect($back);
 } 
 else if ($mform_data = $mform->get_data()) {
 		

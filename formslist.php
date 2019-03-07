@@ -1,4 +1,7 @@
 <?php
+
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -15,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -27,17 +30,25 @@ require_once('./db_update.php');
 require_login();
 
 $home = new moodle_url('/');
-$context = context_system::instance();
-if (!has_capability('local/obu_forms:update', $context)) {
-	redirect($home);
+if (is_manager()) {
+	$forms_course = get_forms_course();
+	require_login($forms_course);
+	$back = $home . 'course/view.php?id=' . $forms_course;
+} else {
+	$PAGE->set_context(context_user::instance($USER->id));
+	$back = $home;
+}
+
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
 }
 
 $type = optional_param('type', '', PARAM_TEXT);
 
-$url = new moodle_url('/local/obu_forms/formslist.php?type=' . $type);
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'formslist.php?type=' . $type;
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
-$PAGE->set_context($context);
 if ($type == 'staff') {
 	$heading = get_string('staff_forms', 'local_obu_forms');
 } else if ($type == 'student') {
@@ -45,8 +56,10 @@ if ($type == 'staff') {
 } else {
 	$heading = get_string('formslist', 'local_obu_forms');
 }
-$PAGE->set_title($heading);
-$PAGE->set_heading($heading);
+$title = get_string('forms_management', 'local_obu_forms');
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 $staff_forms = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1))); // Can view staff forms
 $pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student forms
@@ -74,5 +87,3 @@ foreach ($forms as $form) {
 }
 
 echo $OUTPUT->footer();
-
-

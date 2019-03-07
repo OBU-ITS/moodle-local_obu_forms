@@ -15,7 +15,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -23,16 +23,19 @@
 require_once('../../config.php');
 require_once('./locallib.php');
 
-require_login();
+$forms_course = get_forms_course();
+require_login($forms_course);
 $home = new moodle_url('/');
 if (!is_manager()) {
 	redirect($home);
 }
+$dir = $home . 'local/obu_forms/';
+$back = $home . 'course/view.php?id=' . $forms_course;
 
 $authoriser_username = optional_param('authoriser', '', PARAM_TEXT);
 if ($authoriser_username) {
 	$authoriser = get_complete_user_data('username', $authoriser_username);
-	$url = new moodle_url('/local/obu_forms/auths.php', array('authoriser' => $authoriser_username));
+	$url = $dir . 'auths.php?authoriser=' . $authoriser_username;
 	if ($authoriser->username == 'csa') {
 		$heading = get_string('sc_auths', 'local_obu_forms');
 		$authoriser_id = $authoriser->id;
@@ -46,23 +49,23 @@ if ($authoriser_username) {
 } else {
 	$authoriser = get_complete_user_data('username', 'csa'); // So that we can exclude them later
 	$authoriser_id = 0;
-	$url = $home . 'local/obu_forms/auths.php';
+	$url = $dir . 'auths.php';
 	$heading = get_string('auths_title', 'local_obu_forms');
 }
 
-$context = context_system::instance();
+$title = get_string('forms_management', 'local_obu_forms');
 $PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
-$PAGE->set_context($context);
-$PAGE->set_title($heading);
-$PAGE->set_heading($heading);
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 // The page contents
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-$process = $home . 'local/obu_forms/process.php';
-$redirect = $home . 'local/obu_forms/redirect.php';
+$process = $dir . 'process.php';
+$redirect = $dir . 'redirect.php';
 $auths = get_form_auths($authoriser_id); // Get outstanding authorisation requests
 
 foreach ($auths as $auth) {
@@ -97,12 +100,12 @@ foreach ($auths as $auth) {
 				$student_number = ' [' . $author->username . ']';
 			}
 
-			echo '<h4><a href="' . $process . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>';
+			echo '<h4><a href="' . $process . '?source=' . urlencode('auths.php?authoriser=' . $authoriser_username) . '&id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>';
 			echo $text . '<' . $form->formref . '>';
 			if ($data->notes) {
 				echo '<h6>' . $data->notes . '</h6>';
 			}
-			if (has_capability('local/obu_forms:update', $context) && ($authoriser_username != 'csa')) { // They can't redirect away from themselves
+			if (has_capability('local/obu_forms:update', context_system::instance()) && ($authoriser_username != 'csa')) { // They can't redirect away from themselves
 				echo '<p><a href="' . $redirect . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
 			}
 		}
@@ -110,5 +113,3 @@ foreach ($auths as $auth) {
 }
 
 echo $OUTPUT->footer();
-
-

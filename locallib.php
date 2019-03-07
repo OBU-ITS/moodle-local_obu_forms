@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -27,15 +27,18 @@ require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 
 // Check if the user is a forms manager (or a manager of a given form)
 function is_manager($form = null) {
-	$context = context_system::instance();
+	global $USER;
+	
+	if (is_siteadmin()) {
+		return true;
+	}
+	
 	if ($form == null) {
-		$is_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_staff', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
+		$is_manager = has_forms_role($USER->id, 4, 5);
 	} else if ($form->modular == '0') { // PG form
-		$is_manager = has_capability('local/obu_forms:manage_pg', $context);
-	} else if ($form->student == '0') { // UMP staff form
-		$is_manager = has_capability('local/obu_forms:manage_ump_staff', $context);
-	} else { // UMP student form
-		$is_manager = has_capability('local/obu_forms:manage_ump_students', $context);
+		$is_manager = has_forms_role($USER->id, 4);
+	} else { // UMP form
+		$is_manager = has_forms_role($USER->id, 5);
 	}
 	
 	return $is_manager;
@@ -521,7 +524,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 							$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 							$text .= ' ' . $data->auth_4_notes . '<br />';
 						}
-						
+					
 						// Authorisation level 5
 						if (($data->authorisation_level == 5) && ($data->authorisation_state > 0)) { // The workflow ended here
 							date_timestamp_set($date, $data->auth_5_date);

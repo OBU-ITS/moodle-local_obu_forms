@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -35,18 +35,24 @@ if (!is_manager()) {
 	redirect($home);
 }
 
-$context = context_system::instance();
-if (!has_capability('local/obu_forms:update', $context)) {
-	redirect($home);
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . 'course/view.php?id=' . $forms_course;
+
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
 }
 
-$url = $home . 'local/obu_forms/forms.php';
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'forms.php';
 
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('settings_title', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('settings_title', 'local_obu_forms'));
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 $message = '';
 $formref = '';
@@ -60,15 +66,13 @@ if (isset($_REQUEST['formref'])) {
 	if (($record !== false) && !is_manager($record)) {
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	} else {
-		if (!has_capability('local/obu_forms:manage_ump_students', $context) && !has_capability('local/obu_forms:manage_ump_staff', $context)) {
-			$form_indicator = 1; // Can only set UMP flag to false
-		} else if (!has_capability('local/obu_forms:manage_pg', $context)) {
-			$form_indicator = 2; // Can only set UMP flag to true
+		if ($formref != '') {
+			$PAGE->navbar->add(get_string('form', 'local_obu_forms') . ' ' . $formref);
 		}
-		if (!has_capability('local/obu_forms:manage_ump_students', $context) && has_capability('local/obu_forms:manage_ump_staff', $context)) {
-			$student_indicator = 1; // Can only set student flag to false
-		} else if (has_capability('local/obu_forms:manage_ump_students', $context) && !has_capability('local/obu_forms:manage_ump_staff', $context)) {
-			$student_indicator = 2; // Can only set student flag to true
+		if (!is_siteadmin() && !has_forms_role($USER->id, 4)) {
+			$form_indicator = 1; // Can only set UMP flag to false
+		} else if (!is_siteadmin() && !has_forms_role($USER->id, 3)) {
+			$form_indicator = 2; // Can only set UMP flag to true
 		}
 	}
 }
@@ -83,7 +87,11 @@ $parameters = [
 $mform = new settings_input(null, $parameters);
 
 if ($mform->is_cancelled()) {
-    redirect($url);
+	if ($formref == '') {
+		redirect($back);
+	} else {
+		redirect($url);
+	}
 } 
 else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {

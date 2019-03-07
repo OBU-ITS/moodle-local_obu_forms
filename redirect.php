@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2017, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -34,9 +34,12 @@ if (!is_manager()) {
 	redirect($home);
 }
 
-$context = context_system::instance();
-if (!has_capability('local/obu_forms:update', $context)) {
-	redirect($home);
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . 'course/view.php?id=' . $forms_course;
+
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
 }
 
 // We only handle an existing form (id given)
@@ -59,15 +62,16 @@ if (isset($_REQUEST['authoriser'])) {
 	$authoriser_name = null;
 }
 
-$dir = $home . '/local/obu_forms/';
-$program = $dir . 'redirect.php?id=' . $data_id;
-$heading = get_string('redirect_form', 'local_obu_forms');
+$dir = $home . 'local/obu_forms/';
+$url = $dir . 'redirect.php?id=' . $data_id;
 
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('redirect_form', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
-$PAGE->set_url($program);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title($heading);
+$PAGE->set_url($url);
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 read_form_data($data_id, $data);
 $template = read_form_template_by_id($data->template_id);
@@ -102,7 +106,7 @@ if (!is_manager($form) || ($data->authorisation_state > 0)) { // Already finally
 $mform = new redirect_input(null, $parameters);
 
 if ($mform->is_cancelled()) {
-    redirect($home);
+    redirect($back);
 } 
 else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {
@@ -125,7 +129,7 @@ else if ($mform_data = $mform->get_data()) {
 		write_form_data($data); // Update the form data record
 		update_authoriser($form, $data, $authoriser_id); // Update the authorisations and send notification emails
 		
-		redirect($home);
+		redirect($back);
 	}
 }	
 
@@ -133,7 +137,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
 if ($message) {
-    notice($message, $home);    
+    notice($message, $back);    
 }
 else {
     $mform->display();

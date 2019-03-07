@@ -20,7 +20,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -35,15 +35,12 @@ function local_obu_forms_extend_navigation($navigation) {
 	
 	$context = context_system::instance();
 	$update = has_capability('local/obu_forms:update', $context);
-	$staff_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_staff', $context));
-	$students_manager = (has_capability('local/obu_forms:manage_pg', $context) || has_capability('local/obu_forms:manage_ump_students', $context));
-	$manager = ($staff_manager || $students_manager);
 	$accommodation = ($USER->username == 'accommodation');
 	$staff = is_staff($USER->username); // Has a 'p' number?
 	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
 	
 	// Add the 'My Forms' option
-	if ($manager || $staff || $student || !empty(get_form_data($USER->id))) {
+	if ($staff || $student || !empty(get_form_data($USER->id))) {
 		// Find the 'myprofile' node
 		$nodeParent = $navigation->find('myprofile', navigation_node::TYPE_UNKNOWN);
 
@@ -53,7 +50,7 @@ function local_obu_forms_extend_navigation($navigation) {
 		}
 	}
 	
-	if (!$manager && !$accommodation && !$staff) {
+	if (!$accommodation && !$staff) {
 		if (!$student || !$update) { // Move on now please, nothing more to see here...
 			return;
 		}
@@ -72,25 +69,7 @@ function local_obu_forms_extend_navigation($navigation) {
 	}
 	
 	if ($nodeParent) {
-		
-		// For form managers, add the privileged maintenance and enquiry options
-		if ($manager) {
-			if ($update) {
-				$node = $nodeParent->add(get_string('settings_nav', 'local_obu_forms'), '/local/obu_forms/forms.php');
-				$node = $nodeParent->add(get_string('template_nav', 'local_obu_forms'), '/local/obu_forms/template.php');
-			}
-			$node = $nodeParent->add(get_string('auths_nav', 'local_obu_forms'), '/local/obu_forms/auths.php');
-			$node = $nodeParent->add(get_string('sc_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=csa');
-			$node = $nodeParent->add(get_string('tpt_auths', 'local_obu_forms'), '/local/obu_forms/auths.php?authoriser=tpt');
-			$node = $nodeParent->add(get_string('list_users_forms', 'local_obu_forms'), '/local/obu_forms/list.php');
-			if ($update) {
-				$node = $nodeParent->add(get_string('formslist', 'local_obu_forms'), '/local/obu_forms/formslist.php');
-				$node = $nodeParent->add(get_string('forward_forms', 'local_obu_forms'), '/local/obu_forms/forward.php');
-			}
-			$node = $nodeParent->add(get_string('forward_check', 'local_obu_forms'), '/local/obu_forms/forward_check.php');
-			$node = $nodeParent->add(get_string('data_download', 'local_obu_forms'), '/local/obu_forms/download.php');
-			$node = $nodeParent->add(get_string('student_withdrawals', 'local_obu_forms'), '/local/obu_forms/withdrawals.php');
-		} else if ($accommodation) {
+		if ($accommodation) {
 			$node = $nodeParent->add(get_string('student_withdrawals', 'local_obu_forms'), '/local/obu_forms/withdrawals.php');
 		} else { // For other users, add the option(s) to list all the relevant forms
 			if ($update) {

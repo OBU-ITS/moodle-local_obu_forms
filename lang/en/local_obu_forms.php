@@ -18,17 +18,14 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2018, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 
 $string['pluginname'] = 'OBU Forms';
 $string['obu_forms:update'] = 'Update forms in obu_forms (non \'read only\')';
-$string['obu_forms:manage_pg'] = 'Manage, view and authorise PG forms in obu_forms';
-$string['obu_forms:manage_ump_staff'] = 'Manage, view and authorise UMP staff forms in obu_forms';
-$string['obu_forms:manage_ump_students'] = 'Manage, view and authorise UMP student forms in obu_forms';
-
+$string['forms_management'] = 'Forms Management';
 $string['forms'] = 'Forms';
 $string['sc_auths'] = 'CSA/SC authorisations';
 $string['tpt_auths'] = 'TPT authorisations';

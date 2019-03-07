@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2016, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -29,6 +29,29 @@ require_once('./form_view.php');
 require_once($CFG->libdir . '/moodlelib.php');
 
 require_login();
+
+$home = new moodle_url('/');
+$dir = $home . 'local/obu_forms/';
+$source = '';
+if (is_manager()) {
+	$forms_course = get_forms_course();
+	require_login($forms_course);
+	if (isset($_REQUEST['source'])) {
+		$source = $_REQUEST['source'];
+	}
+	if ($source) {
+		$back = $dir . urldecode($source);
+	} else {
+		$back = $home . 'course/view.php?id=' . $forms_course;
+	}
+} else {
+	$PAGE->set_context(context_user::instance($USER->id));
+	$back = $home;
+}
+
+if (!has_capability('local/obu_forms:update', context_system::instance())) {
+	redirect($back);
+}
 
 // We only handle an existing form (id given)
 if (!isset($_REQUEST['id'])) {
@@ -42,17 +65,15 @@ if (!load_form_data($data_id, $record, $fields)) {
 	die;
 }
 
-$home = new moodle_url('/');
-$dir = $home . 'local/obu_forms/';
-$program = $dir . 'process.php?id=' . $data_id;
+$url = $dir . 'process.php?source=' . $source .'&id=' . $data_id;
 $redirect_form = $dir . 'redirect.php?id=' . $data_id;
 
-$context = context_system::instance();
-$PAGE->set_url($program);
-$PAGE->set_context($context);
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('form_title', 'local_obu_forms');
+$PAGE->set_url($url);
 $PAGE->set_pagelayout('standard');
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('form_title', 'local_obu_forms'));
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
 
 $template = read_form_template_by_id($record->template_id);
 $form = read_form_settings($template->form_id);
@@ -112,6 +133,7 @@ if ($button_text != 'authorise') { // If not the next authoriser, check that thi
 }
 
 $parameters = [
+	'source' => $source,
 	'modular' => $form->modular,
 	'data_id' => $data_id,
 	'template' => $template,
@@ -141,7 +163,7 @@ $parameters = [
 $mform = new form_view(null, $parameters);
 
 if ($mform->is_cancelled()) {
-    redirect($home);
+    redirect($back);
 }
 
 if ($mform_data = $mform->get_data()) {
@@ -166,14 +188,14 @@ if ($mform_data = $mform->get_data()) {
 	if ($USER->id == $record->author) { // Looking at their own form
 		redirect($dir);
 	} else {
-		redirect($home);
+		redirect($back);
 	}
 }
 
 echo $OUTPUT->header();
 
 if ($message) {
-    notice($message, $home);    
+    notice($message, $back);    
 }
 else {
     $mform->display();

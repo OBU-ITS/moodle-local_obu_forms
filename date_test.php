@@ -35,16 +35,21 @@ $home = new moodle_url('/');
 if (!is_manager()) {
 	redirect($home);
 }
+$dir = $home . 'local/obu_forms/';
 
-$context = context_system::instance();
+$forms_course = get_forms_course();
+require_login($forms_course);
+$back = $home . 'course/view.php?id=' . $forms_course;
 
-$url = $home . 'local/obu_forms/date_test.php';
+$url = $dir . 'date_test.php';
 
+$title = get_string('forms_management', 'local_obu_forms');
+$heading = get_string('date_test', 'local_obu_forms');
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($url);
-$PAGE->set_context($context);
-$PAGE->set_heading($SITE->fullname);
-$PAGE->set_title(get_string('date_test', 'local_obu_forms'));
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->navbar->add($heading);
 
 $date = '';
 $dates = array();
@@ -64,7 +69,7 @@ $parameters = [
 $mform = new date_test_input(null, $parameters);
 
 if ($mform->is_cancelled()) {
-    redirect($home);
+    redirect($back);
 }
 
 /*
@@ -81,6 +86,7 @@ if ($mform_data = $mform->get_data()) {
 }	
 */
 echo $OUTPUT->header();
+echo $OUTPUT->heading($heading);
 
 $mform->display();
 

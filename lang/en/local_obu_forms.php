@@ -18,10 +18,37 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2018, Oxford Brookes University
+ * @copyright  2019, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
+
+$string['privacy:metadata:local_obu_forms'] = 'Information about a form and the data entered onto the form itself.';
+$string['privacy:metadata:local_obu_forms:id'] = 'The form\'s ID.';
+$string['privacy:metadata:local_obu_forms:author'] = 'The authors\'s Moodle user ID.';
+$string['privacy:metadata:local_obu_forms:date'] = 'The date of the form\'s creation/amendment/submission.';
+$string['privacy:metadata:local_obu_forms:authorisation_state'] = 'The authorisation status of the form.';
+$string['privacy:metadata:local_obu_forms:auth_1_id'] = 'The first authoriser\'s Moodle ID.';
+$string['privacy:metadata:local_obu_forms:auth_1_notes'] = 'The first authoriser\'s notes.';
+$string['privacy:metadata:local_obu_forms:auth_1_date'] = 'The date of first form authorisation/rejection.';
+$string['privacy:metadata:local_obu_forms:auth_2_id'] = 'The second authoriser\'s Moodle ID.';
+$string['privacy:metadata:local_obu_forms:auth_2_notes'] = 'The second authoriser\'s notes.';
+$string['privacy:metadata:local_obu_forms:auth_2_date'] = 'The date of second form authorisation/rejection.';
+$string['privacy:metadata:local_obu_forms:auth_3_id'] = 'The third authoriser\'s Moodle ID.';
+$string['privacy:metadata:local_obu_forms:auth_3_notes'] = 'The third authoriser\'s notes.';
+$string['privacy:metadata:local_obu_forms:auth_3_date'] = 'The date of third form authorisation/rejection.';
+$string['privacy:metadata:local_obu_forms:auth_4_id'] = 'The forth authoriser\'s Moodle ID.';
+$string['privacy:metadata:local_obu_forms:auth_4_notes'] = 'The forth authoriser\'s notes.';
+$string['privacy:metadata:local_obu_forms:auth_4_date'] = 'The date of forth form authorisation/rejection.';
+$string['privacy:metadata:local_obu_forms:auth_5_id'] = 'The fifth authoriser\'s Moodle ID.';
+$string['privacy:metadata:local_obu_forms:auth_5_notes'] = 'The fifth authoriser\'s notes.';
+$string['privacy:metadata:local_obu_forms:auth_5_date'] = 'The date of fifth form authorisation/rejection.';
+$string['privacy:metadata:local_obu_forms:auth_6_id'] = 'The sixth authoriser\'s Moodle ID.';
+$string['privacy:metadata:local_obu_forms:auth_6_notes'] = 'The sixth authoriser\'s notes.';
+$string['privacy:metadata:local_obu_forms:auth_6_date'] = 'The date of sixth form authorisation/rejection.';
+$string['privacy:metadata:local_obu_forms:data'] = 'The form\'s entered data.';
+$string['privacy:obu_forms'] = 'Forms';
+$string['privacy:obu_form'] = 'Form {$a}';
 
 $string['pluginname'] = 'OBU Forms';
 $string['obu_forms:update'] = 'Update forms in obu_forms (non \'read only\')';

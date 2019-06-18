@@ -213,27 +213,24 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
 	}
 
 	public static function delete_data_for_all_users_in_context(\context $context) {
-		global $DB;
 
 		if ($context->contextlevel == CONTEXT_USER) {
-			$DB->delete_records('local_obu_forms_data', ['author' => $context->instanceid]);
+			self::delete_data($context->instanceid);
 		}
 		
 		return;
 	}
 
 	public static function delete_data_for_user(approved_contextlist $contextlist) {
-		global $DB;
 
 		if (empty($contextlist->count())) {
 			return;
 		}
 
 		$userid = $contextlist->get_user()->id;
-
 		foreach ($contextlist->get_contexts() as $context) {
 			if ($context->contextlevel == CONTEXT_USER) {
-				$DB->delete_records('local_obu_forms_data', ['author' => $context->instanceid]);
+				self::delete_data($userid);
 			}
 		}
 		
@@ -251,21 +248,26 @@ class provider implements \core_privacy\local\metadata\provider, \core_privacy\l
 	}
 
 	public static function delete_data_for_users(approved_userlist $userlist) {
-		global $DB;
 
 		$context = $userlist->get_context();
-		if ($context->contextlevel != CONTEXT_USER) {
-			return;
+		if ($context->contextlevel == CONTEXT_USER) {
+			self::delete_data($context->instanceid);
 		}
-		
+
+		return;
+	}
+	
+	static function delete_data($userid) {
+		global $DB;
+
 		// Firstly, delete any outstanding authorisations
-		$recs = $DB->get_records('local_obu_forms_data', ['author' => $context->instanceid]);
+		$recs = $DB->get_records('local_obu_forms_data', ['author' => $userid]);
 		foreach ($recs as $rec) {
 			$DB->delete_records('local_obu_forms_auths', ['data_id' => $rec->id]);
 		}
 
 		// Now, the main event
-		$DB->delete_records('local_obu_forms_data', ['author' => $context->instanceid]);
+		$DB->delete_records('local_obu_forms_data', ['author' => $userid]);
 
 		return;
 	}

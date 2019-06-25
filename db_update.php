@@ -762,7 +762,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	global $DB;
 	
 	// Establish the initial selection criteria to apply
-	$criteria = 'substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-" AND length(c.shortname) >= 18';
+	$criteria = '(substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-") OR substr(c.shortname, 9, 1) = " "';
 	if ($category_id > 0) {
 		// Restrict modules to ones in the given category
 		$criteria = $criteria . ' AND c.category = ' . $params['category_id'];
@@ -774,13 +774,13 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 		} else {
 			$criteria = $criteria . ' AND ue.userid != ' . $user_id;
 		}
-		$sql = 'SELECT ue.id, c.id AS course_id, c.fullname, c.shortname '
+		$sql = 'SELECT ue.id, c.id AS course_id, c.fullname, c.shortname, c.enddate '
 			. 'FROM {course} c '
 			. 'JOIN {enrol} e ON e.courseid = c.id '
 			. 'JOIN {user_enrolments} ue ON ue.enrolid = e.id '
 			. 'WHERE ' . $criteria;
 	} else {
-		$sql = 'SELECT c.id AS course_id, c.fullname, c.shortname '
+		$sql = 'SELECT c.id AS course_id, c.fullname, c.shortname, c.enddate '
 			. 'FROM {course} c '
 			. 'WHERE ' . $criteria;
 	}
@@ -793,14 +793,23 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	if ($user_id) {
 		$modules[0] = ''; // The 'None' option
 	}
-	$now = time();
+	$this_month = date('Ym');
 	foreach ($db_ret as $row) {
-		$module_type = substr($row->shortname, 0, 1);
-		$module_start = strtotime('01 ' . substr($row->shortname, 7, 3) . ' ' . substr($row->shortname, 10, 2));
-		$module_end = strtotime('31 ' .	substr($row->shortname, 13, 3) . ' ' . substr($row->shortname, 16, 2));
-		if ((!$type || ($module_type == $type)) && ($module_end >= $now)) { // Must be the required type and not already ended
+		if (substr($row->shortname, 6, 1) == ' ' ) { // old eCSIS format
+			$module_type = substr($row->shortname, 0, 1);
+		} else if (substr($row->shortname, 4, 1) < '7') {
+			$module_type = 'U';
+		} else {
+			$module_type = 'P';
+		}
+		if ((!$type || ($module_type == $type)) && ($this_month <= date('Ym', $row->enddate))) { // Must be the required type and not already ended
 			if ($user_id == 0) { // Just need the module code for validation purposes
-				$modules[$row->course_id] = substr($row->shortname, 0, 6);
+				$split_pos = strpos($row->shortname, ' ');
+				if ($split_pos !== false) {
+					$modules[$row->course_id] = substr($row->shortname, 0, $split_pos);
+				} else {
+					$modules[$row->course_id] = '';
+				}
 			} else { // Need the full name
 				$split_pos = strpos($row->fullname, ' (');
 				if ($split_pos !== false) {

@@ -16,7 +16,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * OBU Forms - Provide left hand navigation links
+ * OBU Forms - Provide left hand navigation link
  *
  * @package    local_obu_forms
  * @author     Peter Welham
@@ -27,60 +27,17 @@
 require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 
 function local_obu_forms_extend_navigation($navigation) {
-    global $CFG, $USER, $PAGE;
+    global $USER;
 	
 	if (!isloggedin() || isguestuser()) {
 		return;
 	}
 	
-	$context = context_system::instance();
-	$update = has_capability('local/obu_forms:update', $context);
-	$accommodation = ($USER->username == 'accommodation');
-	$staff = is_staff($USER->username); // Has a 'p' number?
-	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
-	
-	// Add the 'My Forms' option
-	if ($staff || $student || !empty(get_form_data($USER->id))) {
-		// Find the 'myprofile' node
-		$nodeParent = $navigation->find('myprofile', navigation_node::TYPE_UNKNOWN);
-
-		// Add the option to list their completed forms
-		if ($nodeParent) {
-			$node = $nodeParent->add(get_string('myforms', 'local_obu_forms'), '/local/obu_forms/index.php?userid=' . $USER->id);
-		}
-	}
-	
-	if (!$accommodation && !$staff) {
-		if (!$student || !$update) { // Move on now please, nothing more to see here...
-			return;
-		}
+	if (($USER->username != 'accommodation') && !is_staff($USER->username) && !is_student($USER->id) && empty(get_form_data($USER->id))) {
+		return;
 	}
 	 
-	// Find the 'forms' node
-	$nodeParent = $navigation->find(get_string('forms', 'local_obu_forms'), navigation_node::TYPE_SYSTEM);
-	
-	// If necessary, add the 'forms' node to 'home'
-	if (!$nodeParent) {
-		$nodeHome = $navigation->children->get('1')->parent;
-		if ($nodeHome) {
-			$nodeParent = $nodeHome->add(get_string('forms', 'local_obu_forms'), null, navigation_node::TYPE_SYSTEM);
-			$nodeParent->showinflatnavigation = true;
-		}
-	}
-	
-	if ($nodeParent) {
-		if ($accommodation) {
-			$node = $nodeParent->add(get_string('student_withdrawals', 'local_obu_forms'), '/local/obu_forms/withdrawals.php');
-		} else { // For other users, add the option(s) to list all the relevant forms
-			if ($update) {
-				if ($staff) {
-					$node = $nodeParent->add(get_string('staff_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=staff');
-				}
-				$node = $nodeParent->add(get_string('student_forms', 'local_obu_forms'), '/local/obu_forms/formslist.php?type=student'); // Both staff and students can view student forms
-			}
-			if ($staff) {
-				$node = $nodeParent->add(get_string('list_users_forms', 'local_obu_forms'), '/local/obu_forms/list.php');
-			}
-		}
-	}
+	$nodeHome = $navigation->children->get('1')->parent;
+	$node = $nodeHome->add(get_string('forms', 'local_obu_forms'), '/local/obu_forms/menu.php', navigation_node::TYPE_SYSTEM);
+	$node->showinflatnavigation = true;
 }

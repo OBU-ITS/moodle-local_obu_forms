@@ -359,17 +359,32 @@ class form_view extends moodleform {
 				}
 			} else if (strpos($key, 'module') !== false) { // Validate module code format etcetera
 				if ($value != '') { // Only validate if the field was completed
-					$prefix = strtoupper(substr($value, 0, 1));
-					$suffix = substr($value, 1);
-					if ((strlen($value) != 6) || (($prefix != 'C') && ($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
-						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
-					} else if ($this->_customdata['modular'] && ($prefix != 'P') && ($prefix != 'U')) {
-						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
-					} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
-						$current_modules = get_current_modules();
-						if (!in_array($prefix . $suffix, $current_modules, true)) {
-							$errors[$key] = get_string('module_not_found', 'local_obu_forms');
+					if (strlen($value) == 6) { // Should be in eCSIS format
+						$prefix = strtoupper(substr($value, 0, 1));
+						$suffix = substr($value, 1);
+						if ((($prefix != 'C') && ($prefix != 'F') && ($prefix != 'P') && ($prefix != 'U')) || !is_numeric($suffix)) {
+							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
+						} else if ($this->_customdata['modular'] && ($prefix != 'P') && ($prefix != 'U')) {
+							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
+						} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
+							$current_modules = get_current_modules();
+							if (!in_array($prefix . $suffix, $current_modules, true)) {
+								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
+							}
 						}
+					} else if (strlen($value) == 8) { // Should be in Banner format
+						$subject = strtoupper(substr($value, 0, 4));
+						$code = substr($value, 4);
+						if (is_numeric($subject) || !is_numeric($code)) {
+							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
+						} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
+							$current_modules = get_current_modules();
+							if (!in_array($subject . $code, $current_modules, true)) {
+								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
+							}
+						}
+					} else { // Not a known format
+						$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 					}
 					
 					// Check that any associated module fields have also been completed

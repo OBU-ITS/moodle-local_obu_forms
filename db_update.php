@@ -633,7 +633,7 @@ function is_staff($username = null) {
 	return $is_staff;
 }
 
-// Check 'quickly' if the user is officially enrolled as a student on any PIP-based course
+// Check 'quickly' if the user is officially enrolled as a student on any SRS-based course
 function is_student($user_id = 0, $type = null) {
 	global $DB;
 	

@@ -31,19 +31,20 @@ require_once('./user_input.php');
 require_login();
 
 $home = new moodle_url('/');
+$dir = $home . 'local/obu_forms/';
 
 // Can only list someone else's forms if we are a form manager or a member of staff
 if (is_manager()) {
 	$forms_course = get_forms_course();
 	require_login($forms_course);
 	$back = $home . 'course/view.php?id=' . $forms_course;
-} else if (is_staff($USER->username)) {
-	$back = $home;
 } else {
-	redirect($home);
+	$back = $dir . 'menu.php';
+	if (!is_staff($USER->username)) {
+		redirect($back);
+	}
 }
 
-$dir = $home . 'local/obu_forms/';
 $url = $dir . 'list.php';
 
 $title = get_string('forms_management', 'local_obu_forms');

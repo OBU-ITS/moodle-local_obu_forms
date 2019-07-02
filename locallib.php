@@ -25,6 +25,44 @@
  
 require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 
+// Determine the possible menu options for this user
+function get_menu_options() {
+	global $USER;
+	
+	$options = array();
+	$update = has_capability('local/obu_forms:update', context_system::instance());
+	$accommodation = ($USER->username == 'accommodation');
+	$staff = is_staff($USER->username); // Has a 'p' number?
+	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
+	
+	// Add the 'My Forms' option
+	if ($staff || $student || !empty(get_form_data($USER->id))) {
+		$options[get_string('myforms', 'local_obu_forms')] = '/local/obu_forms/index.php?userid=' . $USER->id;
+	}
+	
+	if (!$accommodation && !$staff) {
+		if (!$student || !$update) { // Move on now please, nothing more to see here...
+			return $options;
+		}
+	}
+	 
+	if ($accommodation) {
+			$options[get_string('student_withdrawals', 'local_obu_forms')] = '/local/obu_forms/withdrawals.php';
+	} else { // For other users, add the option(s) to list all the relevant forms
+		if ($update) {
+			if ($staff) {
+				$options[get_string('staff_forms', 'local_obu_forms')] = '/local/obu_forms/formslist.php?type=staff';
+			}
+			$options[get_string('student_forms', 'local_obu_forms')] = '/local/obu_forms/formslist.php?type=student'; // Both staff and students can view student forms
+		}
+		if ($staff) {
+			$options[get_string('list_users_forms', 'local_obu_forms')] = '/local/obu_forms/list.php';
+		}
+	}
+	
+	return $options;
+}
+
 // Check if the user is a forms manager (or a manager of a given form)
 function is_manager($form = null) {
 	global $USER;

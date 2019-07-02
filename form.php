@@ -30,20 +30,20 @@ require_once('./form_view.php');
 require_login();
 
 $home = new moodle_url('/');
+$dir = $home . 'local/obu_forms/';
 if (is_manager()) {
 	$forms_course = get_forms_course();
 	require_login($forms_course);
 	$back = $home . 'course/view.php?id=' . $forms_course;
 } else {
 	$PAGE->set_context(context_user::instance($USER->id));
-	$back = $home;
+	$back = $dir . 'menu.php';
 }
 
 if (!has_capability('local/obu_forms:update', context_system::instance())) {
 	redirect($back);
 }
 
-$dir = $home . 'local/obu_forms/';
 $url = $dir . 'form.php';
 $process_url = $dir . 'process.php';
 

@@ -180,3 +180,36 @@ $string['module_not_found'] = 'Module not found.';
 $string['invalid_module_code'] = 'Invalid module code.';
 $string['invalid_date_format'] = 'Invalid date format (MMMYY).';
 $string['invalid_start_date'] = 'Invalid start date.';
+
+$string['customfieldfile'] = 'File';
+$string['customfieldfile_help'] = 'This file must be a CSV file.';
+$string['courseprocess'] = 'Course process';
+$string['coursestotal'] = 'Courses total: {$a}';
+$string['coursesupdated'] = 'Courses updated: {$a}';
+$string['courseserrors'] = 'Courses errors: {$a}';
+$string['courseupdated'] = 'Course updated';
+$string['csvdelimiter'] = 'CSV delimiter';
+$string['csvdelimiter_help'] = 'CSV delimiter of the CSV file.';
+$string['csvfileerror'] = 'There is something wrong with the format of the CSV file. Please check the number of headings and columns match, and that the delimiter and file encoding are correct: {$a}';
+$string['csvline'] = 'Line';
+$string['defaultvalues'] = 'Default course values';
+$string['encoding'] = 'Encoding';
+$string['encoding_help'] = 'Encoding of the CSV file.';
+$string['id'] = 'ID';
+$string['invalidcsvfile'] = 'Invalid input CSV file';
+$string['invalidencoding'] = 'Invalid encoding';
+$string['nochanges'] = 'No changes';
+$string['preview'] = 'Preview';
+$string['result'] = 'Result';
+$string['rowpreviewnum'] = 'Preview rows';
+$string['rowpreviewnum_help'] = 'Number of rows from the CSV file that will be previewed on the following page. This option is for limiting the size of the following page.';
+$string['uploadcustomfields'] = 'Upload custom fields';
+$string['uploadcustomfields_help'] = 'Custom fields may be uploaded via text file. The format of the file should be as follows:
+
+* Each line of the file contains one record
+* Each record is a series of data separated by commas (or other delimiters)
+* The first record contains a list of fieldnames defining the format of the rest of the file
+* Required fieldname is shortname';
+$string['uploadcustomfieldspreview'] = 'Upload custom fields preview';
+$string['uploadcustomfieldsresult'] = 'Upload custom fields results';
+

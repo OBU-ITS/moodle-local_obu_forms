@@ -419,7 +419,7 @@ function get_academic_adviser($user_id) {
 	$context = context_user::instance($user_id);
 	$role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
 	$advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
-	if (empty($advisers)) { // Shouldn't happen of couse
+	if (empty($advisers)) { // Shouldn't happen, of course
 		return 0;
 	}
 	
@@ -649,15 +649,15 @@ function is_student($user_id = 0, $type = null) {
 		. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
 		. ' JOIN {course} c ON c.id = e.courseid'
 		. ' WHERE ue.userid = ?'
-			. ' AND e.enrol = "databaseextended"'
+			. ' AND (e.enrol = "database" OR e.enrol = "databaseextended" OR e.enrol = "ethos" OR e.enrol = "lmb")'
 			. ' AND ct.contextlevel = 50'
 			. ' AND ra.userid = ue.userid'
 			. ' AND ra.roleid = ?'
-			. ' AND c.idnumber LIKE "_~%"';
+			. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__~%")';
 	if ($type == 'UMP') { // Restrict the courses to a given student type
-		$sql .= ' AND c.idnumber LIKE "%~MC%"';
+		$sql .= ' AND c.idnumber LIKE "U%"';
 	} else if ($type == 'PG') {
-		$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
+		$sql .= ' AND c.idnumber LIKE "P%"';
 	}
 	$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 	if (empty($db_ret)) {
@@ -672,22 +672,21 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
-		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "_~%"';
-	
-		// Restrict the courses to a given type?
-		if ($modular !== false) {
-			if ($modular) {
-				$sql .= ' AND (c.idnumber LIKE "%~MC10-%" OR c.idnumber LIKE "%~ED15%")';
-			} else {
-				$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
-			}
-		}
-		if ($joint) {
-			$sql .= ' AND c.idnumber LIKE "_~MCJ~%"';
-		}
-
+		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__~%")';
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
+
+			// Restrict the courses to a given type?
+			$handler = core_course\customfield\course_handler::create();
+			$custom_fields = array();
+			$custom_fields = $handler->export_instance_data_object($row->id, true);
+			if (($modular !== false) && (($modular && ($custom_fields['modular_course'] != 'Yes')) || (!$modular && ($custom_fields['modular_course'] == 'Yes')))) {
+				continue;
+			}
+			if ($joint && ($custom_fields['joint_course'] != 'Yes')) {
+				continue;
+			}
+
 			$pos = strpos($row->idnumber, '~');
 			if ($pos === false) {
 				$course_type = '';
@@ -733,24 +732,23 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 			. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
 			. ' JOIN {course} c ON c.id = e.courseid'
 			. ' WHERE ue.userid = ?'
-				. ' AND e.enrol = "databaseextended"'
+				. ' AND (e.enrol = "database" OR e.enrol = "databaseextended" OR e.enrol = "ethos" OR e.enrol = "lmb")'
 				. ' AND ct.contextlevel = 50'
 				. ' AND ra.userid = ue.userid'
 				. ' AND ra.roleid = ?'
-				. ' AND c.idnumber LIKE "_~%"';
-
-		// Restrict the courses to a given type?
-		if ($modular !== false) {
-			if ($modular) {
-				$sql .= ' AND c.idnumber LIKE "%~MC%"';
-			} else {
-				$sql .= ' AND c.idnumber NOT LIKE "%~MC%"';
-			}
-		}
-		
-		$sql .= ' ORDER BY c.fullname';
+				. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__~%")'
+				. ' ORDER BY c.fullname';
 		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 		foreach ($db_ret as $row) {
+
+			// Restrict the courses to a given type?
+			$handler = core_course\customfield\course_handler::create();
+			$custom_fields = array();
+			$custom_fields = $handler->export_instance_data_object($row->id, true);
+			if (($modular !== false) && (($modular && ($custom_fields['modular_course'] != 'Yes')) || (!$modular && ($custom_fields['modular_course'] == 'Yes')))) {
+				continue;
+			}
+
 			$courses[$row->id] = $row->fullname;
 		}
 	}
@@ -870,7 +868,7 @@ function get_programme_lead($course_id = 0) {
 	$programme_lead = 0;
 	$external = false;
 	foreach ($db_ret as $row) {
-		if ($row->enrol == 'databaseextended') {
+		if (($row->enrol == 'database') || ($row->enrol == 'databaseextended') || ($row->enrol == 'ethos') || ($row->enrol == 'lmb')) {
 			$programme_lead = $row->userid;
 			$external = true;
 		} else if (!$external) {
@@ -907,7 +905,7 @@ function get_module_leader($module_id = 0) {
 	$module_leader = 0;
 	$external = false;
 	foreach ($db_ret as $row) {
-		if ($row->enrol == 'databaseextended') {
+		if (($row->enrol == 'database') || ($row->enrol == 'databaseextended') || ($row->enrol == 'ethos') || ($row->enrol == 'lmb')) {
 			$module_leader = $row->userid;
 			$external = true;
 		} else if (!$external) {

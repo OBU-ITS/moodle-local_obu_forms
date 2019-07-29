@@ -653,7 +653,7 @@ function is_student($user_id = 0, $type = null) {
 			. ' AND ct.contextlevel = 50'
 			. ' AND ra.userid = ue.userid'
 			. ' AND ra.roleid = ?'
-			. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__~%")';
+			. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__--%")';
 	if ($type == 'UMP') { // Restrict the courses to a given student type
 		$sql .= ' AND c.idnumber LIKE "U%"';
 	} else if ($type == 'PG') {
@@ -672,22 +672,26 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
-		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__~%")';
+		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__--%")';
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
 
 			// Restrict the courses to a given type?
 			$handler = core_course\customfield\course_handler::create();
-			$custom_fields = array();
 			$custom_fields = $handler->export_instance_data_object($row->id, true);
-			if (($modular !== false) && (($modular && ($custom_fields['modular_course'] != 'Yes')) || (!$modular && ($custom_fields['modular_course'] == 'Yes')))) {
+			if (($modular !== false) && (($modular && ($custom_fields->modular_course != 'Yes')) || (!$modular && ($custom_fields->modular_course == 'Yes')))) {
 				continue;
 			}
-			if ($joint && ($custom_fields['joint_course'] != 'Yes')) {
+			if ($joint && ($custom_fields->joint_course != 'Yes')) {
 				continue;
 			}
 
-			$pos = strpos($row->idnumber, '~');
+			$pos = strpos($row->idnumber, '--'); // Banner format
+			if ($pos === false) {
+				$pos = strpos($row->idnumber, '~'); // eCSIS format
+			} else {
+				$pos++;
+			}
 			if ($pos === false) {
 				$course_type = '';
 				$course_subtype = '';
@@ -736,16 +740,15 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 				. ' AND ct.contextlevel = 50'
 				. ' AND ra.userid = ue.userid'
 				. ' AND ra.roleid = ?'
-				. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__~%")'
+				. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__--%")'
 				. ' ORDER BY c.fullname';
 		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 		foreach ($db_ret as $row) {
 
 			// Restrict the courses to a given type?
 			$handler = core_course\customfield\course_handler::create();
-			$custom_fields = array();
 			$custom_fields = $handler->export_instance_data_object($row->id, true);
-			if (($modular !== false) && (($modular && ($custom_fields['modular_course'] != 'Yes')) || (!$modular && ($custom_fields['modular_course'] == 'Yes')))) {
+			if (($modular !== false) && (($modular && ($custom_fields->modular_course != 'Yes')) || (!$modular && ($custom_fields->modular_course == 'Yes')))) {
 				continue;
 			}
 

@@ -283,7 +283,7 @@ class form_view extends moodleform {
 
 		if (is_manager()) {
 			$mform->addElement('textarea', 'notes', get_string('notes', 'local_obu_forms'), 'cols="100" rows="10"');
-			$mform->setType($element['notes'], PARAM_RAW);
+			$mform->setType('notes', PARAM_RAW);
 		}
 		
 		$buttonarray = array();

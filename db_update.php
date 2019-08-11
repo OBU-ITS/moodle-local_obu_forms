@@ -763,7 +763,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	global $DB;
 	
 	// Establish the initial selection criteria to apply
-	$criteria = '(substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-") OR substr(c.shortname, 9, 1) = " "';
+	$criteria = 'c.idnumber LIKE "%.%" AND ((substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-") OR substr(c.shortname, 8, 2) = " (" OR substr(c.shortname, 9, 2) = " (")';
 	if ($category_id > 0) {
 		// Restrict modules to ones in the given category
 		$criteria = $criteria . ' AND c.category = ' . $params['category_id'];
@@ -796,25 +796,21 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	}
 	$this_month = date('Ym');
 	foreach ($db_ret as $row) {
-		if (substr($row->shortname, 6, 1) == ' ' ) { // old eCSIS format
+		$pos = strpos($row->shortname, ' ');
+		if ($pos == 6) { // Old eCSIS 6 character code
 			$module_type = substr($row->shortname, 0, 1);
-		} else if (substr($row->shortname, 4, 1) < '7') {
+		} else if (substr($row->shortname, ($pos - 4), 1) < '7') { //  Banner 7 or 8 character codes
 			$module_type = 'U';
 		} else {
 			$module_type = 'P';
 		}
 		if ((!$type || ($module_type == $type)) && ($this_month <= date('Ym', $row->enddate))) { // Must be the required type and not already ended
 			if ($user_id == 0) { // Just need the module code for validation purposes
-				$split_pos = strpos($row->shortname, ' ');
-				if ($split_pos !== false) {
-					$modules[$row->course_id] = substr($row->shortname, 0, $split_pos);
-				} else {
-					$modules[$row->course_id] = '';
-				}
+				$modules[$row->course_id] = substr($row->shortname, 0, $pos);
 			} else { // Need the full name
-				$split_pos = strpos($row->fullname, ' (');
-				if ($split_pos !== false) {
-					$modules[$row->course_id] = substr($row->fullname, 0, $split_pos);
+				$pos = strpos($row->fullname, ' (');
+				if ($pos !== false) {
+					$modules[$row->course_id] = substr($row->fullname, 0, $pos);
 				} else {
 					$modules[$row->course_id] = $row->fullname;
 				}

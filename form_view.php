@@ -372,7 +372,18 @@ class form_view extends moodleform {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
 						}
-					} else if (strlen($value) == 8) { // Should be in Banner format
+					} else if (strlen($value) == 7) { // Shorter Banner format
+						$subject = strtoupper(substr($value, 0, 3));
+						$code = substr($value, 3);
+						if (is_numeric($subject) || !is_numeric($code)) {
+							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
+						} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
+							$current_modules = get_current_modules();
+							if (!in_array($subject . $code, $current_modules, true)) {
+								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
+							}
+						}
+					} else if (strlen($value) == 8) { // Longer Banner format
 						$subject = strtoupper(substr($value, 0, 4));
 						$code = substr($value, 4);
 						if (is_numeric($subject) || !is_numeric($code)) {

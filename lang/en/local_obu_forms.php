@@ -213,3 +213,5 @@ $string['uploadcustomfields_help'] = 'Custom fields may be uploaded via text fil
 $string['uploadcustomfieldspreview'] = 'Upload custom fields preview';
 $string['uploadcustomfieldsresult'] = 'Upload custom fields results';
 
+$string['invalidshortname'] = 'Invalid shortname';
+

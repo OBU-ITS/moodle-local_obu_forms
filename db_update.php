@@ -633,7 +633,7 @@ function is_staff($username = null) {
 	return $is_staff;
 }
 
-// Check 'quickly' if the user is officially enrolled as a student on any SRS-based course
+// Check 'quickly' if the user is officially enrolled as a student on any course
 function is_student($user_id = 0, $type = null) {
 	global $DB;
 	
@@ -649,15 +649,15 @@ function is_student($user_id = 0, $type = null) {
 		. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
 		. ' JOIN {course} c ON c.id = e.courseid'
 		. ' WHERE ue.userid = ?'
-			. ' AND (e.enrol = "database" OR e.enrol = "databaseextended" OR e.enrol = "ethos" OR e.enrol = "lmb")'
+			. ' AND e.enrol = "database"'
 			. ' AND ct.contextlevel = 50'
 			. ' AND ra.userid = ue.userid'
 			. ' AND ra.roleid = ?'
-			. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__--%")';
-	if ($type == 'UMP') { // Restrict the courses to a given student type
-		$sql .= ' AND c.idnumber LIKE "U%"';
+			. ' AND c.idnumber LIKE "%~%-%"';
+	if ($type == 'UMP') { // Restrict the courses to a given level
+		$sql .= ' AND c.idnumber LIKE "%~UG~%"';
 	} else if ($type == 'PG') {
-		$sql .= ' AND c.idnumber LIKE "P%"';
+		$sql .= ' AND c.idnumber LIKE "%~PG~%"';
 	}
 	$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 	if (empty($db_ret)) {
@@ -672,7 +672,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
-		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__--%")';
+		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "%~%-%"';
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
 
@@ -686,26 +686,12 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 				continue;
 			}
 
-			$pos = strpos($row->idnumber, '--'); // Banner format
-			if ($pos === false) {
-				$pos = strpos($row->idnumber, '~'); // eCSIS format
+			$first_tilde = strpos($row->idnumber, '~');
+			$second_tilde = strpos($row->idnumber, '~', ($first_tilde + 1));
+			if ($second_tilde === false) { // Shouldn't be!
+				$course_code = substr($row->idnumber, ($first_tilde + 1));
 			} else {
-				$pos++;
-			}
-			if ($pos === false) {
-				$course_type = '';
-				$course_subtype = '';
-				$course_code = $row->idnumber;
-			} else {
-				$course_type = substr($row->idnumber, 0, $pos);
-				$course_code = substr($row->idnumber, ($pos + 1));
-				$pos = strpos($course_code, '~');
-				if ($pos === false) {
-					$course_subtype = '';
-				} else {
-					$course_subtype = substr($course_code, 0, $pos);
-					$course_code = substr($course_code, ($pos + 1));
-				}
+				$course_code = substr($row->idnumber, ($second_tilde + 1));
 			}
 			if (!$names) {
 				$courses[$row->id] = $course_code;
@@ -736,11 +722,11 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 			. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
 			. ' JOIN {course} c ON c.id = e.courseid'
 			. ' WHERE ue.userid = ?'
-				. ' AND (e.enrol = "database" OR e.enrol = "databaseextended" OR e.enrol = "ethos" OR e.enrol = "lmb")'
+				. ' AND e.enrol = "database"'
 				. ' AND ct.contextlevel = 50'
 				. ' AND ra.userid = ue.userid'
 				. ' AND ra.roleid = ?'
-				. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "__--%")'
+				. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "%~%-%")'
 				. ' ORDER BY c.fullname';
 		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 		foreach ($db_ret as $row) {
@@ -763,7 +749,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	global $DB;
 	
 	// Establish the initial selection criteria to apply
-	$criteria = 'c.idnumber LIKE "%.%" AND ((substr(c.shortname, 7, 1) = " " AND substr(c.shortname, 13, 1) = "-") OR substr(c.shortname, 8, 2) = " (" OR substr(c.shortname, 9, 2) = " (")';
+	$criteria = 'c.idnumber LIKE "%.%" AND (substr(c.shortname, 8, 2) = " (" OR substr(c.shortname, 9, 2) = " (")';
 	if ($category_id > 0) {
 		// Restrict modules to ones in the given category
 		$criteria = $criteria . ' AND c.category = ' . $params['category_id'];
@@ -796,10 +782,8 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	}
 	$this_month = date('Ym');
 	foreach ($db_ret as $row) {
-		$pos = strpos($row->shortname, ' ');
-		if ($pos == 6) { // Old eCSIS 6 character code
-			$module_type = substr($row->shortname, 0, 1);
-		} else if (substr($row->shortname, ($pos - 4), 1) < '7') { //  Banner 7 or 8 character codes
+		$pos = strpos($row->shortname, ' '); //  We have 7 or 8 character module codes
+		if (substr($row->shortname, ($pos - 4), 1) < '7') {
 			$module_type = 'U';
 		} else {
 			$module_type = 'P';
@@ -867,7 +851,7 @@ function get_programme_lead($course_id = 0) {
 	$programme_lead = 0;
 	$external = false;
 	foreach ($db_ret as $row) {
-		if (($row->enrol == 'database') || ($row->enrol == 'databaseextended') || ($row->enrol == 'ethos') || ($row->enrol == 'lmb')) {
+		if ($row->enrol == 'database') {
 			$programme_lead = $row->userid;
 			$external = true;
 		} else if (!$external) {
@@ -900,14 +884,14 @@ function get_module_leader($module_id = 0) {
 		. ' ORDER BY ue.timecreated';
 	$db_ret = $DB->get_records_sql($sql, array($module_id, $context->id));
 		
-	// Find the latest ML enrollment (giving precedence to external ones)
+	// Find the latest ML enrollment (giving precedence to 'external database' ones)
 	$module_leader = 0;
-	$external = false;
+	$external_database = false;
 	foreach ($db_ret as $row) {
-		if (($row->enrol == 'database') || ($row->enrol == 'databaseextended') || ($row->enrol == 'ethos') || ($row->enrol == 'lmb')) {
+		if ($row->enrol == 'database') {
 			$module_leader = $row->userid;
-			$external = true;
-		} else if (!$external) {
+			$external_database = true;
+		} else if (!$external_database) {
 			$module_leader = $row->userid;
 		}
 	}

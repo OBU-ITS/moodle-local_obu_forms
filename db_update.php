@@ -653,11 +653,11 @@ function is_student($user_id = 0, $type = null) {
 			. ' AND ct.contextlevel = 50'
 			. ' AND ra.userid = ue.userid'
 			. ' AND ra.roleid = ?'
-			. ' AND c.idnumber LIKE "%~%-%"';
+			. ' AND c.idnumber LIKE "%#%"';
 	if ($type == 'UMP') { // Restrict the courses to a given level
-		$sql .= ' AND c.idnumber LIKE "%~UG~%"';
+		$sql .= ' AND c.idnumber LIKE "%~UG%"';
 	} else if ($type == 'PG') {
-		$sql .= ' AND c.idnumber LIKE "%~PG~%"';
+		$sql .= ' AND c.idnumber LIKE "%~PG%"';
 	}
 	$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 	if (empty($db_ret)) {
@@ -672,7 +672,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
-		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "%~%-%"';
+		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "%#%"';
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
 
@@ -686,13 +686,8 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 				continue;
 			}
 
-			$first_tilde = strpos($row->idnumber, '~');
-			$second_tilde = strpos($row->idnumber, '~', ($first_tilde + 1));
-			if ($second_tilde === false) { // Shouldn't be!
-				$course_code = substr($row->idnumber, ($first_tilde + 1));
-			} else {
-				$course_code = substr($row->idnumber, ($second_tilde + 1));
-			}
+			$hash = strpos($row->idnumber, '#');
+			$course_code = substr($row->idnumber, ($hash + 1));
 			if (!$names) {
 				$courses[$row->id] = $course_code;
 			} else {
@@ -726,7 +721,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 				. ' AND ct.contextlevel = 50'
 				. ' AND ra.userid = ue.userid'
 				. ' AND ra.roleid = ?'
-				. ' AND (c.idnumber LIKE "_~%" OR c.idnumber LIKE "%~%-%")'
+				. ' AND c.idnumber LIKE "%#%"'
 				. ' ORDER BY c.fullname';
 		$db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
 		foreach ($db_ret as $row) {

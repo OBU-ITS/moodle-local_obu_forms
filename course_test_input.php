@@ -14,7 +14,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * OBU Forms - version
+ * OBU Forms - Course Test input form
  *
  * @package    local_obu_forms
  * @author     Peter Welham
@@ -23,9 +23,18 @@
  *
  */
 
-$plugin->component = 'local_obu_forms'; // Full name of the plugin (used for diagnostics): plugintype_pluginname
-$plugin->version  = 2019090200;   // The (date) version of this module + 2 extra digital for daily versions
-$plugin->requires = 2015111604;   // Requires this Moodle version - at least 3.0.4
-$plugin->cron     = 0;
-$plugin->release = 'v1.13.4';
-$plugin->maturity = MATURITY_STABLE;
+require_once("{$CFG->libdir}/formslib.php");
+
+class course_test_input extends moodleform {
+
+    function definition() {
+        $mform =& $this->_form;
+
+		$mform->addElement('text', 'modular', get_string('modular', 'local_obu_forms'), 'size="4" maxlength="4"');
+		$mform->addElement('text', 'user_id', get_string('user_id', 'local_obu_forms'), 'size="4" maxlength="4"');
+		$mform->addElement('text', 'names', get_string('names', 'local_obu_forms'), 'size="4" maxlength="4"');
+		$mform->addElement('text', 'joint', get_string('joint', 'local_obu_forms'), 'size="4" maxlength="4"');
+
+		$this->add_action_buttons(true, get_string('submit', 'local_obu_forms'));
+    }
+}

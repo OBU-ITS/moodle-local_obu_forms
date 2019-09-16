@@ -115,6 +115,11 @@ $string['draft'] = 'Draft';
 $string['published'] = 'Published';
 $string['date_test'] = 'Date Test';
 $string['date_input'] = 'Date (MMYY)';
+$string['course_test'] = 'Course Test';
+$string['modular'] = 'Modular';
+$string['user_id'] = 'User ID';
+$string['names'] = 'Names';
+$string['joint'] = 'Joint';
 
 $string['auths_title'] = 'Form Authorisations';
 $string['auths_nav'] = 'Form authorisations';

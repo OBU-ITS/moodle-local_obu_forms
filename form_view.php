@@ -352,8 +352,12 @@ class form_view extends moodleform {
 				$errors[$key] = get_string('value_required', 'local_obu_forms');
 			} else if ($key == 'course') { // Exact match - should be a current course (programme) code
 				if ($value != '') { // Might not be mandatory
+					$course_code = strtoupper($value);
+					if (strpos($course_code, '[') === false) {
+						$course_code = $course_code . '[OBU]'; // Default campus
+					}
 					$current_courses = get_current_courses($this->_customdata['modular']);
-					if (!in_array(strtoupper($value), $current_courses, true)) {
+					if (!in_array($course_code, $current_courses, true)) {
 						$errors[$key] = get_string('course_not_found', 'local_obu_forms');
 					}
 				}

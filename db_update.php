@@ -511,8 +511,12 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser_id = get_module_leader($module_id);
 	} else if ($role == 3) { // Subject Coordinator
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
+			$course_code = strtoupper($fields['course']);
+			if (strpos($course_code, '[') === false) {
+				$course_code = $course_code . '[OBU]'; // Default campus
+			}
 			$courses = get_current_courses($modular);
-			$course_id = array_search(strtoupper($fields['course']), $courses, true);
+			$course_id = array_search($course_code, $courses, true);
 		} else { // Get the student's current course (programme)
 			$courses = get_current_courses($modular, $student_id);
 			$course_id = key($courses);
@@ -603,23 +607,17 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	return $authoriser_id;
 }
 
-function get_course_id($course, $modular) { // Course could just be the course code or the title with the code in square (priority) or round brackets
+function get_course_id($course, $modular) { // Course could just be the course code or the title with the code in round brackets
 	$last_bracket = -1;
-	while (($pos = strpos($course, '[', ($last_bracket + 1))) !== false) {
+	while (($pos = strpos($course, '(', ($last_bracket + 1))) !== false) {
 		$last_bracket = $pos;
 	}
-	if (($last_bracket > -1) && (($pos = strpos($course, ']', ($last_bracket + 1))) !== false)) {
+	if (($last_bracket > -1) && (($pos = strpos($course, ')', ($last_bracket + 1))) !== false)) {
 		$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
+	} else if (strpos($course, '[') === false) {
+		$course_code = $course . '[OBU]'; // Default campus
 	} else {
-		$last_bracket = -1;
-		while (($pos = strpos($course, '(', ($last_bracket + 1))) !== false) {
-			$last_bracket = $pos;
-		}
-		if (($last_bracket > -1) && (($pos = strpos($course, ')', ($last_bracket + 1))) !== false)) {
-			$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
-		} else {
-			$course_code = $course;
-		}
+		$course_code = $course;
 	}
 	$courses = get_current_courses($modular);
 	
@@ -672,7 +670,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
-		$sql = 'SELECT c.id, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "%#%"';
+		$sql = 'SELECT c.id, c.shortname, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "%#%"';
 		$db_ret = $DB->get_records_sql($sql, array());
 		foreach ($db_ret as $row) {
 
@@ -686,25 +684,10 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 				continue;
 			}
 
-			$hash = strpos($row->idnumber, '#');
-			$course_code = substr($row->idnumber, ($hash + 1));
 			if (!$names) {
-				$courses[$row->id] = $course_code;
+				$courses[$row->id] = $row->shortname;
 			} else {
-				$last_bracket = -1;
-				while (($pos = strpos($row->fullname, '(', ($last_bracket + 1))) !== false) {
-					$last_bracket = $pos;
-				}
-				if (($last_bracket < 0) || (($pos = strpos($row->fullname, ')', ($last_bracket + 1))) === false)) {
-					$given_code = '';
-				} else {
-					$given_code = substr($row->fullname, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
-				}
-				if ($given_code == $course_code) {
-					$courses[$row->id] = $row->fullname;
-				} else { 
-					$courses[$row->id] = $row->fullname . '  [' . $course_code . ']';
-				} 
+				$courses[$row->id] = $row->fullname . '  (' . $row->shortname . ')';
 			}
 		}
 		asort($courses);

@@ -59,8 +59,8 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
 if ($mform_data = (array)$mform->get_data()) {
-//	$courses = get_current_courses($mform_data->modular, $mform_data->user_id, $mform_data->names, $mform_data->joint);
-	$courses = get_current_courses(false, 0, true, false);
+	$courses = get_current_courses(false, 0, true, false); // modular?, user_id, names?, joint?);
+
 	foreach ($courses as $id => $text) {
 		echo $text . '<br>'; 
 	}

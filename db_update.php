@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2019, Oxford Brookes University
+ * @copyright  2020, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -489,6 +489,24 @@ function get_supervisors($user_id) { // In this iterration, at least, a supervis
 
 	return $supervisor;
 }
+
+function get_campuses() {
+	global $DB;
+	
+	$campus = array();
+	   
+	$sql = 'SELECT DISTINCT SUBSTRING(idnumber, 1, LOCATE("~", idnumber) - 1) AS campus'
+		. ' FROM {course}'
+		. ' WHERE idnumber LIKE "%#%"'
+		. ' ORDER BY campus';
+
+	$db_ret = $DB->get_records_sql($sql);
+	foreach ($db_ret as $rec) {
+		$campus[$rec->campus] = $rec->campus;
+	}
+
+	return $campus;
+}
 	
 function get_authoriser($author_id, $modular, $role, $fields) {
 	global $DB;
@@ -506,14 +524,19 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser = get_complete_user_data('username', 'csa');
 		$authoriser_id = $authoriser->id;
 	} else if ($role == 2) { // Module Leader
+		if (!$fields['campus']) {
+			$campus = 'OBO'; // The default
+		} else {
+			$campus = $fields['campus'];
+		}
 		$modules = get_current_modules();
-		$module_id = array_search(strtoupper($fields['module']), $modules, true);
+		$module_id = array_search(strtoupper($fields['module'] . ' [' . $campus . ']'), $modules, true);
 		$authoriser_id = get_module_leader($module_id);
 	} else if ($role == 3) { // Subject Coordinator
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
 			$course_code = strtoupper($fields['course']);
 			if (strpos($course_code, '[') === false) {
-				$course_code = $course_code . '[OBU]'; // Default campus
+				$course_code = $course_code . '[OBO]'; // Default campus
 			}
 			$courses = get_current_courses($modular);
 			$course_id = array_search($course_code, $courses, true);
@@ -546,8 +569,13 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	} else if ($role == 7) { // Programme Lead (Joint Honours) - only present for joint honours students (will skip step otherwise)
 		$authoriser_id = get_programme_leads($student_id, $modular, 1);
 	} else if (($role == 8) && $fields['module_2']) { // Module Leader (2) - second module must be present (will skip step otherwise)
+		if (!$fields['campus_2']) {
+			$campus = 'OBO'; // The default
+		} else {
+			$campus = $fields['campus_2'];
+		}
 		$modules = get_current_modules();
-		$module_id = array_search(strtoupper($fields['module_2']), $modules, true);
+		$module_id = array_search(strtoupper($fields['module_2'] . ' [' . $campus . ']'), $modules, true);
 		$authoriser_id = get_module_leader($module_id);
 	} else if ($role == 9) { // Exchanges Office
 		$authoriser = get_complete_user_data('username', 'exchanges');
@@ -615,7 +643,7 @@ function get_course_id($course, $modular) { // Course could just be the course c
 	if (($last_bracket > -1) && (($pos = strpos($course, ')', ($last_bracket + 1))) !== false)) {
 		$course_code = substr($course, ($last_bracket + 1), ($pos - ($last_bracket + 1)));
 	} else if (strpos($course, '[') === false) {
-		$course_code = $course . '[OBU]'; // Default campus
+		$course_code = $course . '[OBO]'; // Default campus
 	} else {
 		$course_code = $course;
 	}
@@ -743,11 +771,13 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 			. 'FROM {course} c '
 			. 'JOIN {enrol} e ON e.courseid = c.id '
 			. 'JOIN {user_enrolments} ue ON ue.enrolid = e.id '
-			. 'WHERE ' . $criteria;
+			. 'WHERE ' . $criteria . ' '
+			. 'ORDER BY c.shortname';
 	} else {
 		$sql = 'SELECT c.id AS course_id, c.fullname, c.shortname, c.enddate '
 			. 'FROM {course} c '
-			. 'WHERE ' . $criteria;
+			. 'WHERE ' . $criteria . ' '
+			. 'ORDER BY c.shortname';
 	}
 	
 	// Read the course (module) records that match our chosen criteria
@@ -767,8 +797,22 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 			$module_type = 'P';
 		}
 		if ((!$type || ($module_type == $type)) && ($this_month <= date('Ym', $row->enddate))) { // Must be the required type and not already ended
-			if ($user_id == 0) { // Just need the module code for validation purposes
-				$modules[$row->course_id] = substr($row->shortname, 0, $pos);
+			if ($user_id == 0) { // Just need the module codes and associated campus codes for validation purposes
+				$module_code = substr($row->shortname, 0, $pos);
+				$campus_code = 'OBO'; // The default
+				$pos = strpos($row->fullname, '[');
+				if ($pos !== false) {
+					$tail = substr($row->fullname, $pos + 1);
+					$pos = strpos($tail, '])');
+					if ($pos !== false) {
+						$campus_code = substr($tail, 0, $pos);
+					}
+				}
+				
+				$module = $module_code . ' [' . $campus_code . ']';
+				if (!in_array($module, $modules, true)) {
+					$modules[$row->course_id] = $module;
+				}
 			} else { // Need the full name
 				$pos = strpos($row->fullname, ' (');
 				if ($pos !== false) {

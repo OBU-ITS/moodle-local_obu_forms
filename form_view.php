@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2019, Oxford Brookes University
+ * @copyright  2020, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -55,6 +55,7 @@ class form_view extends moodleform {
         $data->course_joint = $this->_customdata['course_joint'];
         $data->not_enroled = $this->_customdata['not_enroled'];
         $data->enroled = $this->_customdata['enroled'];
+        $data->campus = $this->_customdata['campus'];
         $data->study_mode = $this->_customdata['study_mode'];
         $data->reason = $this->_customdata['reason'];
         $data->addition_reason = $this->_customdata['addition_reason'];
@@ -192,6 +193,9 @@ class form_view extends moodleform {
 							case 'enroled':
 								$options = $data->enroled;
 								break;
+							case 'campus':
+								$options = $data->campus;
+								break;
 							case 'study_mode':
 								$options = $data->study_mode;
 								break;
@@ -208,14 +212,13 @@ class form_view extends moodleform {
 						}
 						$select = $mform->addElement('select', $element['id'], $element['value'], $options, null);
 						if (array_key_exists('selected', $element)) {
-							switch ($element['selected']) {
-								case 'start_selected':
-									$select->setSelected($data->start_selected);
-									break;
-								default:
+							if ($element['selected'] == 'start_selected') {
+								$select->setSelected($data->start_selected);
+							} else {
+								$select->setSelected($element['selected']); // Use the form field's default
 							}
 						} else if ($element['name'] == 'start_dates') {
-							$select->setSelected($data->start_selected); // Use the default
+							$select->setSelected($data->start_selected); // Use the default given
 						}
 						break;
 					case 'static':
@@ -354,7 +357,7 @@ class form_view extends moodleform {
 				if ($value != '') { // Might not be mandatory
 					$course_code = strtoupper($value);
 					if (strpos($course_code, '[') === false) {
-						$course_code = $course_code . '[OBU]'; // Default campus
+						$course_code = $course_code . '[OBO]'; // Default campus
 					}
 					$current_courses = get_current_courses($this->_customdata['modular']);
 					if (!in_array($course_code, $current_courses, true)) {
@@ -381,9 +384,24 @@ class form_view extends moodleform {
 						$code = substr($value, 3);
 						if (is_numeric($subject) || !is_numeric($code)) {
 							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
-						} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
+						} else if ($key == 'module') { // Exact match - should be a current module
+							if (!array_key_exists('campus', $data)) {
+								$campus = 'OBO'; // The default
+							} else {
+								$campus = $data['campus'];
+							}
 							$current_modules = get_current_modules();
-							if (!in_array($subject . $code, $current_modules, true)) {
+							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
+								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
+							}
+						} else if ($key == 'module_2') { // Exact match - should be a current module
+							if (!array_key_exists('campus_2', $data)) {
+								$campus = 'OBO'; // The default
+							} else {
+								$campus = $data['campus_2'];
+							}
+							$current_modules = get_current_modules();
+							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
 						}
@@ -392,9 +410,24 @@ class form_view extends moodleform {
 						$code = substr($value, 4);
 						if (is_numeric($subject) || !is_numeric($code)) {
 							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
-						} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
+						} else if ($key == 'module') { // Exact match - should be a current module
+							if (!array_key_exists('campus', $data)) {
+								$campus = 'OBO'; // The default
+							} else {
+								$campus = $data['campus'];
+							}
 							$current_modules = get_current_modules();
-							if (!in_array($subject . $code, $current_modules, true)) {
+							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
+								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
+							}
+						} else if ($key == 'module_2') { // Exact match - should be a current module
+							if (!array_key_exists('campus_2', $data)) {
+								$campus = 'OBO'; // The default
+							} else {
+								$campus = $data['campus_2'];
+							}
+							$current_modules = get_current_modules();
+							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
 						}

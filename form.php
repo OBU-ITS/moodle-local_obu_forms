@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2018, Oxford Brookes University
+ * @copyright  2020, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -131,6 +131,7 @@ $course = array();
 $course_joint = array();
 $not_enroled = array();
 $enroled = array();
+$campus = array();
 $study_mode = array();
 $reason = array();
 $addition_reason = array();
@@ -182,6 +183,11 @@ foreach ($selects as $select) {
 				$enroled = get_current_modules(0, null, $USER->id, true);
 			}
 			break;
+		case 'campus':
+			if (empty($campus)) {
+				$campus = get_campuses();
+			}
+			break;
 		case 'study_mode':
 			if (empty($study_mode)) {
 				$study_mode = get_study_modes();
@@ -222,6 +228,7 @@ $parameters = [
 	'course_joint' => $course_joint,
 	'not_enroled' => $not_enroled,
 	'enroled' => $enroled,
+	'campus' => $campus,
 	'study_mode' => $study_mode,
 	'reason' => $reason,
 	'addition_reason' => $addition_reason,
@@ -283,6 +290,9 @@ if ($mform_data = (array)$mform->get_data()) {
 					break;
 				case 'enroled':
 					$value = $enroled[$value];
+					break;
+				case 'campus':
+					$value = $campus[$value];
 					break;
 				case 'study_mode':
 					$value = $study_mode[$value];

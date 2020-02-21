@@ -18,14 +18,14 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2019, Oxford Brookes University
+ * @copyright  2020, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
 
 $plugin->component = 'local_obu_forms'; // Full name of the plugin (used for diagnostics): plugintype_pluginname
-$plugin->version  = 2019120100;   // The (date) version of this module + 2 extra digital for daily versions
+$plugin->version  = 2019120200;   // The (date) version of this module + 2 extra digital for daily versions
 $plugin->requires = 2015111604;   // Requires this Moodle version - at least 3.0.4
 $plugin->cron     = 0;
-$plugin->release = 'v1.13.5';
+$plugin->release = 'v1.13.6';
 $plugin->maturity = MATURITY_STABLE;

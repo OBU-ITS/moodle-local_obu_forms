@@ -60,6 +60,7 @@ class form_view extends moodleform {
         $data->reason = $this->_customdata['reason'];
         $data->addition_reason = $this->_customdata['addition_reason'];
         $data->deletion_reason = $this->_customdata['deletion_reason'];
+        $data->assessment_type = $this->_customdata['assessment_type'];
         $data->auth_state = $this->_customdata['auth_state'];
         $data->auth_level = $this->_customdata['auth_level'];
         $data->notes = $this->_customdata['notes'];
@@ -207,6 +208,9 @@ class form_view extends moodleform {
 								break;
 							case 'deletion_reason':
 								$options = $data->deletion_reason;
+								break;
+							case 'assessment_type':
+								$options = $data->assessment_type;
 								break;
 							default:
 						}

@@ -136,6 +136,7 @@ $study_mode = array();
 $reason = array();
 $addition_reason = array();
 $deletion_reason = array();
+$assessment_type = array();
 $selects = template_selects($template->data);
 
 foreach ($selects as $select) {
@@ -208,6 +209,11 @@ foreach ($selects as $select) {
 				$deletion_reason = get_deletion_reasons();
 			}
 			break;
+		case 'assessment_type':
+			if (empty($assessment_type)) {
+				$assessment_type = get_assessment_types();
+			}
+			break;
 		default:
 	}
 }
@@ -233,6 +239,7 @@ $parameters = [
 	'reason' => $reason,
 	'addition_reason' => $addition_reason,
 	'deletion_reason' => $deletion_reason,
+	'assessment_type' => $assessment_type,
 	'fields' => $fields,
 	'auth_state' => null,
 	'auth_level' => null,
@@ -305,6 +312,9 @@ if ($mform_data = (array)$mform->get_data()) {
 					break;
 				case 'deletion_reason':
 					$value = $deletion_reason[$value];
+					break;
+				case 'assessment_type':
+					$value = $assessment_type[$value];
 					break;
 				default:
 			}

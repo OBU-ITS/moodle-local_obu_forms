@@ -214,6 +214,26 @@ function get_deletion_reasons() {
 	return $reason;
 }
 
+function get_assessment_types() {
+	$assessment_type = array(
+		'Written assignment (individual)',
+		'Written assignment (group)',
+		'Dissertation',
+		'Project work (Individual)',
+		'Project work (Group)',
+		'Portfolio (Individual)',
+		'Portfolio (Group)',
+		'Oral assessment / presentation (Group)',
+		'Oral assessment / presentation (Individual)',
+		'Practical skills assessment (Group)',
+		'Practical skills assessment (Individual)',
+		'Set exercise',
+		'Examination'
+	);
+	
+	return $assessment_type;
+}
+
 function encode_xml($string) {
 	return(htmlentities($string, ENT_NOQUOTES | ENT_XML1, 'UTF-8'));
 }

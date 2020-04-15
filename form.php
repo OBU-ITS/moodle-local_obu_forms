@@ -137,6 +137,7 @@ $reason = array();
 $addition_reason = array();
 $deletion_reason = array();
 $assessment_type = array();
+$component_comment = array();
 $selects = template_selects($template->data);
 
 foreach ($selects as $select) {
@@ -214,6 +215,11 @@ foreach ($selects as $select) {
 				$assessment_type = get_assessment_types();
 			}
 			break;
+		case 'component_comment':
+			if (empty($component_comment)) {
+				$component_comment = get_component_comments();
+			}
+			break;
 		default:
 	}
 }
@@ -240,6 +246,7 @@ $parameters = [
 	'addition_reason' => $addition_reason,
 	'deletion_reason' => $deletion_reason,
 	'assessment_type' => $assessment_type,
+	'component_comment' => $component_comment,
 	'fields' => $fields,
 	'auth_state' => null,
 	'auth_level' => null,
@@ -315,6 +322,9 @@ if ($mform_data = (array)$mform->get_data()) {
 					break;
 				case 'assessment_type':
 					$value = $assessment_type[$value];
+					break;
+				case 'component_comment':
+					$value = $component_comment[$value];
 					break;
 				default:
 			}

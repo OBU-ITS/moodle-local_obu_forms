@@ -234,6 +234,17 @@ function get_assessment_types() {
 	return $assessment_type;
 }
 
+function get_component_comments() {
+	$component_comment = array(
+		'',
+		'Not Attempted',
+		'Deferred Disciplinary',
+		'Exceptional Circumstances'
+	);
+	
+	return $component_comment;
+}
+
 function encode_xml($string) {
 	return(htmlentities($string, ENT_NOQUOTES | ENT_XML1, 'UTF-8'));
 }

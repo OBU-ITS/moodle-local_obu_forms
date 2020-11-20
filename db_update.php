@@ -414,16 +414,27 @@ function get_form_forwarders() {
 
 function get_academic_adviser($user_id) {
 	global $DB;
-	   
+
 	// Get any Academic Advisers for the user
-	$context = context_user::instance($user_id);
-	$role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
-	$advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
-	if (empty($advisers)) { // Shouldn't happen, of course
+	$adviser = array();
+	$sql = 'SELECT u.id'
+		. ' FROM {user_enrolments} ue'
+		. ' JOIN {enrol} e ON e.id = ue.enrolid AND e.enrol = "database"'
+		. ' JOIN {context} ct ON ct.instanceid = e.courseid AND ct.contextlevel = 50'
+		. ' JOIN {role_assignments} ra ON ra.userid = ue.userid AND ra.contextid = ct.id AND ra.roleid = 5'
+		. ' JOIN {course} c ON c.id = e.courseid AND c.idnumber LIKE "%$virtual_office"'
+		. ' JOIN {user} u ON u.username = SUBSTRING(c.idnumber, 1, 8)'
+		. ' WHERE ue.userid = ?';
+	$db_ret = $DB->get_records_sql($sql, array($user_id));
+	foreach ($db_ret as $rec) {
+		$adviser[] = $rec->id;
+	}
+	   
+	if (empty($adviser)) { // Shouldn't happen, of course
 		return 0;
 	}
 	
-	return $advisers[0]->id; // We assume only one (or that the first is most relevant)
+	return $adviser[0]; // We assume only one (or that the first is most relevant)
 }
 
 function get_advisers($modular, $user_id) {
@@ -432,13 +443,11 @@ function get_advisers($modular, $user_id) {
 	$adviser = array();
 	$adviser[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
 	
-	// Get any Academic Advisers for the user
-	$context = context_user::instance($user_id);
-	$role = $DB->get_record('role', array('shortname' => 'academic_adviser'), 'id', MUST_EXIST);
-	$advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
-	foreach ($advisers as $a) {
-		$user = get_complete_user_data('id', $a->id);
-		$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+	// Get any Academic Adviser for the user
+	$adviser_id = get_academic_adviser($user_id);
+	if ($adviser_id != 0) {
+		$user = get_complete_user_data('id', $adviser_id);
+		$adviser[$user->id] = $user->firstname . ' ' . $user->lastname;
 	}
 	
 	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads for the user's course

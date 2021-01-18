@@ -450,7 +450,7 @@ function get_advisers($modular, $user_id) {
 		$adviser[$user->id] = $user->firstname . ' ' . $user->lastname;
 	}
 	
-	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads for the user's course
+	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads/Programme Administrators for the user's course
 	$courses = get_current_courses($modular, $user_id); // Should only be one
 	$course_id = key($courses);
 	if ($course_id) {
@@ -468,6 +468,12 @@ function get_advisers($modular, $user_id) {
 			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
 		}
 		$role = $DB->get_record('role', array('shortname' => 'programme_lead'), 'id', MUST_EXIST); // Programme Lead
+		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
+		foreach ($advisers as $a) {
+			$user = get_complete_user_data('id', $a->id);
+			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+		}
+		$role = $DB->get_record('role', array('shortname' => 'programme_admin'), 'id', MUST_EXIST); // Programme Administrator
 		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
 		foreach ($advisers as $a) {
 			$user = get_complete_user_data('id', $a->id);

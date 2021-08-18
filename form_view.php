@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2020, Oxford Brookes University
+ * @copyright  2021, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -55,6 +55,7 @@ class form_view extends moodleform {
         $data->course_joint = $this->_customdata['course_joint'];
         $data->not_enroled = $this->_customdata['not_enroled'];
         $data->enroled = $this->_customdata['enroled'];
+        $data->free_language = $this->_customdata['free_language'];
         $data->campus = $this->_customdata['campus'];
         $data->study_mode = $this->_customdata['study_mode'];
         $data->reason = $this->_customdata['reason'];
@@ -194,6 +195,9 @@ class form_view extends moodleform {
 								break;
 							case 'enroled':
 								$options = $data->enroled;
+								break;
+							case 'free_language':
+								$options = $data->free_language;
 								break;
 							case 'campus':
 								$options = $data->campus;

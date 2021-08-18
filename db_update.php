@@ -18,7 +18,7 @@
  *
  * @package    local_obu_forms
  * @author     Peter Welham
- * @copyright  2020, Oxford Brookes University
+ * @copyright  2021, Oxford Brookes University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
@@ -542,11 +542,26 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		if (!$fields['campus']) {
 			$campus = 'OBO'; // The default
 		} else {
-			$campus = $fields['campus'];
+			$campus = strtoupper($fields['campus']);
 		}
-		$modules = get_current_modules();
-		$module_id = array_search(strtoupper($fields['module'] . ' [' . $campus . ']'), $modules, true);
-		$authoriser_id = get_module_leader($module_id);
+		if ($fields['module']) {
+			$module = strtoupper($fields['module']);
+		} else if ($fields['free_language']) {
+			$module = $fields['free_language'];
+			$pos = strpos($module, ': ');
+			if (Spos !== false) {
+				$module = substr($module, 0, $pos);
+			}
+		} else {
+			$module = '';
+		}
+		if ($module != '') {
+			$modules = get_current_modules();
+			$module_id = array_search($module . ' [' . $campus . ']', $modules, true);
+			if ($module_id > 0) {
+				$authoriser_id = get_module_leader($module_id);
+			}
+		}
 	} else if ($role == 3) { // Subject Coordinator
 		if ($fields['course']) { // Might not be present (or might not be mandatory)
 			$course_code = strtoupper($fields['course']);
@@ -766,7 +781,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	return $courses;
 }
 
-function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enroled = true) {
+function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enroled = true, $free_language = false) {
 	global $DB;
 	
 	// Establish the initial selection criteria to apply
@@ -812,7 +827,17 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 			$module_type = 'P';
 		}
 		if ((!$type || ($module_type == $type)) && ($this_month <= date('Ym', $row->enddate))) { // Must be the required type and not already ended
-			if ($user_id == 0) { // Just need the module codes and associated campus codes for validation purposes
+
+			// Restrict to free language modules only?
+			if ($free_language) {
+				$handler = core_course\customfield\course_handler::create();
+				$custom_fields = $handler->export_instance_data_object($row->course_id, true);
+				if ($custom_fields->free_language_module != 'Yes') {
+					continue;
+				}
+			}
+			
+			if (!$free_language && ($user_id == 0)) { // Just need the module codes and associated campus codes for validation purposes
 				$module_code = substr($row->shortname, 0, $pos);
 				$campus_code = 'OBO'; // The default
 				$pos = strpos($row->fullname, '[');
@@ -823,18 +848,18 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 						$campus_code = substr($tail, 0, $pos);
 					}
 				}
-				
 				$module = $module_code . ' [' . $campus_code . ']';
-				if (!in_array($module, $modules, true)) {
-					$modules[$row->course_id] = $module;
-				}
 			} else { // Need the full name
 				$pos = strpos($row->fullname, ' (');
 				if ($pos !== false) {
-					$modules[$row->course_id] = substr($row->fullname, 0, $pos);
+					$module = substr($row->fullname, 0, $pos);
 				} else {
-					$modules[$row->course_id] = $row->fullname;
+					$module = $row->fullname;
 				}
+			}
+
+			if (!in_array($module, $modules, true)) {
+				$modules[$row->course_id] = $module;
 			}
 		}
 	}

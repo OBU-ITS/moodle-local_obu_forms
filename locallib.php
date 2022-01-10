@@ -178,6 +178,7 @@ function get_reasons() {
 		'Going into Employment',
 		'Course Unsuitable',
 		'Course Unsatisfactory',
+		'Deferred Entry to a later date',
 		'Transferring to Another Institution',
 		'Transferring to Another OBU Course',
 		'Other (please give details below)'

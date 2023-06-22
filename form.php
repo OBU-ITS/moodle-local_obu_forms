@@ -58,7 +58,7 @@ $message = '';
 $data_id = 0;
 $fields = array();
 
-$staff = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1)));
+$staff = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->username, 0, 1) == 'd')) && is_numeric(substr($USER->username, 1)));
 
 if (isset($_REQUEST['ref'])) { // A request for a brand new form
 	$form = read_form_settings_by_ref($_REQUEST['ref']);
@@ -66,7 +66,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		echo(get_string('invalid_data', 'local_obu_forms'));
 		die;
 	}
-	
+
 	if (!is_manager($form) && ((!$form->student && !$staff) || !$form->visible)) { // User hasn't the capability to view a non-student or hidden form
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
@@ -261,7 +261,7 @@ $parameters = [
 	'notes' => null,
 	'button_text' => $button_text
 ];
-	
+
 $mform = new form_view(null, $parameters);
 
 if ($mform->is_cancelled() || !has_capability('local/obu_forms:update', context_system::instance())) {
@@ -275,7 +275,7 @@ if ($mform_data = (array)$mform->get_data()) {
 		if (($key == 'id') || ($key == 'ref') || ($key == 'version') || ($key == 'submitbutton')) {
 			continue;
 		}
-		
+
 		// select from the options if required
 		if (array_key_exists($key, $selects)) {
 			switch ($selects[$key]) {
@@ -339,10 +339,10 @@ if ($mform_data = (array)$mform->get_data()) {
 				default:
 			}
 		}
-		
+
 		$fields[$key] = $value;
 	}
-	
+
     $record = new stdClass();
     $record->id = $data_id;
     $record->author = $USER->id;
@@ -357,7 +357,7 @@ if ($mform_data = (array)$mform->get_data()) {
 echo $OUTPUT->header();
 
 if ($message) {
-    notice($message, $home);    
+    notice($message, $home);
 }
 else {
     $mform->display();

@@ -22,10 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
- 
+
 function get_forms_course() {
 	global $DB;
-	
+
 	$course = $DB->get_record('course', array('idnumber' => 'SUBS_FORMS'), 'id', MUST_EXIST);
 	return $course->id;
 }
@@ -33,11 +33,11 @@ function get_forms_course() {
 // Check if the given user has the given role in the forms management course
 function has_forms_role($user_id = 0, $role_id_1 = 0, $role_id_2 = 0, $role_id_3 = 0) {
 	global $DB;
-	
+
 	if (($user_id == 0) || ($role_id_1 == 0)) { // Both mandatory
 		return false;
 	}
-	
+
 	$sql = 'SELECT ue.id'
 		. ' FROM {user_enrolments} ue'
 		. ' JOIN {enrol} e ON e.id = ue.enrolid'
@@ -60,7 +60,7 @@ function has_forms_role($user_id = 0, $role_id_1 = 0, $role_id_2 = 0, $role_id_3
 
 function write_form_settings($author, $form_data) {
 	global $DB;
-	
+
     $record = new stdClass();
     $record->formref = strtoupper($form_data->formref);
     $record->author = $author;
@@ -88,36 +88,36 @@ function write_form_settings($author, $form_data) {
 		$id = $settings->id;
 		$record->id = $id;
 		$DB->update_record('local_obu_forms', $record);
-	} else {		
+	} else {
 		$id = $DB->insert_record('local_obu_forms', $record);
 	}
-	
+
 	return $id;
 }
 
 function read_form_settings($form_id) {
     global $DB;
-    
+
 	$settings = $DB->get_record('local_obu_forms', array('id' => $form_id), '*', MUST_EXIST);
-	
-	return $settings;	
+
+	return $settings;
 }
 
 function read_form_settings_by_ref($formref) {
     global $DB;
-    
+
 	$settings = $DB->get_record('local_obu_forms', array('formref' => strtoupper($formref)), '*', IGNORE_MISSING);
-	
-	return $settings;	
+
+	return $settings;
 }
 
 function get_forms($manager, $staff, $pg_student, $ump_student) {
     global $DB;
-	
+
 	if (!$manager && !$staff && !$pg_student && !$ump_student) { // Nothing for you here...
 		return array();
 	}
-	
+
 	// Firstly, get all the forms of the correct type
 	$conditions = array();
 	if (!$manager) {
@@ -133,10 +133,10 @@ function get_forms($manager, $staff, $pg_student, $ump_student) {
 			if (!$staff) { // Just student forms
 				$conditions['student'] = 1;
 			}
-		}			
+		}
 	}
 	$forms = $DB->get_records('local_obu_forms', $conditions);
-	
+
 	// Now, include and index those forms that have published templates
 	$valid = array();
 	$index = array();
@@ -149,14 +149,14 @@ function get_forms($manager, $staff, $pg_student, $ump_student) {
 			}
 		}
 	}
-	
+
 	// Sort the index and create an array of the valid forms
 	natcasesort($index);
 	$forms = array();
 	foreach ($index as $key => $ref) {
 		$forms[] = $valid[$key];
-	}	
-	
+	}
+
 	return $forms;
 }
 
@@ -202,7 +202,7 @@ function get_withdrawals($date_from, $date_to) {
 
 function write_form_template($author, $form_data) {
 	global $DB;
-	
+
 	$settings = read_form_settings_by_ref($form_data->formref);
 	if ($settings === false) {
 		return 0;
@@ -228,40 +228,40 @@ function write_form_template($author, $form_data) {
 		$id = $template->id;
 		$record->id = $id;
 		$DB->update_record('local_obu_forms_templates', $record);
-	} else {		
+	} else {
 		$id = $DB->insert_record('local_obu_forms_templates', $record);
 	}
-	
+
 	return $id;
 }
 
 function read_form_templates($form_id) {
 	global $DB;
-	
+
 	$templates = $DB->get_records('local_obu_forms_templates', array('form_id' => $form_id), 'version', '*');
-	
+
 	return $templates;
 }
-	
+
 function read_form_template($form_id, $version) {
     global $DB;
-    
+
 	$template = $DB->get_record('local_obu_forms_templates', array('form_id' => $form_id, 'version' => strtoupper($version)), '*', IGNORE_MISSING);
-	
-	return $template;	
+
+	return $template;
 }
 
 function read_form_template_by_id($template_id) {
     global $DB;
-    
+
 	$template = $DB->get_record('local_obu_forms_templates', array('id' => $template_id), '*', MUST_EXIST);
-	
-	return $template;	
+
+	return $template;
 }
 
 function get_form_template($form_id, $include_unpublished = false) { // return the latest version of the template for the given form
     global $DB;
-    
+
     // return the latest version
 	$template = null;
 	$templates = read_form_templates($form_id);
@@ -270,7 +270,7 @@ function get_form_template($form_id, $include_unpublished = false) { // return t
 			$template = $t;
 		}
 	}
-	
+
 	if ($template) {
 		return $template;
 	}
@@ -279,7 +279,7 @@ function get_form_template($form_id, $include_unpublished = false) { // return t
 
 function write_form_data($record) {
     global $DB;
-    
+
 	if ($record->id == 0) {
 		$id = $DB->insert_record('local_obu_forms_data', $record);
 	} else {
@@ -287,49 +287,49 @@ function write_form_data($record) {
 		$form = $DB->get_record('local_obu_forms_data', array('id' => $id), '*', MUST_EXIST);
 		$DB->update_record('local_obu_forms_data', $record);
 	}
-	
+
 	return $id;
 }
 
 function read_form_data($data_id, &$record) {
     global $DB;
-    
+
 	$record = $DB->get_record('local_obu_forms_data', array('id' => $data_id), '*');
 	if (!$record) {
 		return false;
 	}
-	
+
 	return true;
 }
 
 function get_form_data($user_id = 0) {
     global $DB;
-	
+
 	$conditions = array();
 	if ($user_id > 0) {
 		$conditions['author'] = $user_id;
 	}
 	$data = $DB->get_records('local_obu_forms_data', $conditions, 'date DESC');
-	
+
 	return $data;
 }
 
 function write_form_auths($record) {
     global $DB;
-    
+
 	if ($record->id == 0) {
 		$id = $DB->insert_record('local_obu_forms_auths', $record);
 	} else {
 		$id = $record->id;
 		$DB->update_record('local_obu_forms_auths', $record);
 	}
-	
+
 	return $id;
 }
 
 function read_form_auths($data_id, &$record) {
     global $DB;
-    
+
 	$record = $DB->get_record('local_obu_forms_auths', array('data_id' => $data_id), '*', IGNORE_MISSING);
 	if ($record === false) {
 		$record = new stdClass();
@@ -342,7 +342,7 @@ function read_form_auths($data_id, &$record) {
 
 function delete_form_auths($record) {
     global $DB;
-    
+
 	if ($record->id != 0) {
 		$DB->delete_records('local_obu_forms_auths', array('id' => $record->id));
 	}
@@ -350,19 +350,19 @@ function delete_form_auths($record) {
 
 function get_form_auths($authoriser) {
     global $DB;
-	
+
 	$conditions = array();
 	if ($authoriser) {
 		$conditions['authoriser'] = $authoriser;
 	}
 	$auths = $DB->get_records('local_obu_forms_auths', $conditions, 'request_date');
-	
+
 	return $auths;
 }
 
 function write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
     global $DB, $USER;
-    
+
 	$record = read_form_forwarder($from_id);
 	$record->to_id = $to_id;
 	$record->start_date = $start_date;
@@ -375,13 +375,13 @@ function write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
 	} else {
 		$DB->update_record('local_obu_forms_forwarders', $record);
 	}
-	
+
 	return;
 }
 
 function read_form_forwarder($from_id) {
     global $DB;
-    
+
 	$record = $DB->get_record('local_obu_forms_forwarders', array('from_id' => $from_id), '*', IGNORE_MISSING);
 	if ($record === false) {
 		$record = new stdClass();
@@ -397,7 +397,7 @@ function read_form_forwarder($from_id) {
 
 function delete_form_forwarder($from_id) {
     global $DB;
-    
+
 	$record = read_form_forwarder($from_id);
 	if ($record->id != 0) {
 		$DB->delete_records('local_obu_forms_forwarders', array('id' => $record->id));
@@ -408,7 +408,7 @@ function delete_form_forwarder($from_id) {
 
 function get_form_forwarders() {
     global $DB;
-	
+
 	return $DB->get_records('local_obu_forms_forwarders');
 }
 
@@ -429,27 +429,27 @@ function get_academic_adviser($user_id) {
 	foreach ($db_ret as $rec) {
 		$adviser[] = $rec->id;
 	}
-	   
+
 	if (empty($adviser)) { // Shouldn't happen, of course
 		return 0;
 	}
-	
+
 	return $adviser[0]; // We assume only one (or that the first is most relevant)
 }
 
 function get_advisers($modular, $user_id) {
 	global $DB;
-	   
+
 	$adviser = array();
 	$adviser[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
-	
+
 	// Get any Academic Adviser for the user
 	$adviser_id = get_academic_adviser($user_id);
 	if ($adviser_id != 0) {
 		$user = get_complete_user_data('id', $adviser_id);
 		$adviser[$user->id] = $user->firstname . ' ' . $user->lastname;
 	}
-	
+
 	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads/Programme Administrators for the user's course
 	$courses = get_current_courses($modular, $user_id); // Should only be one
 	$course_id = key($courses);
@@ -487,10 +487,10 @@ function get_advisers($modular, $user_id) {
 
 function get_supervisors($user_id) { // In this iterration, at least, a supervisor can be any member of staff!
 	global $DB;
-	   
+
 	$supervisor = array();
 	$supervisor[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
-	
+
 	$sql = 'SELECT u.id, u.username, u.firstname, u.lastname'
 		. ' FROM {user} u'
 		. ' WHERE u.username REGEXP "^p[0-9]+$"'
@@ -507,9 +507,9 @@ function get_supervisors($user_id) { // In this iterration, at least, a supervis
 
 function get_campuses() {
 	global $DB;
-	
+
 	$campus = array();
-	   
+
 	$sql = 'SELECT DISTINCT SUBSTRING(idnumber, 1, LOCATE("~", idnumber) - 1) AS campus'
 		. ' FROM {course}'
 		. ' WHERE idnumber LIKE "%#%"'
@@ -522,10 +522,10 @@ function get_campuses() {
 
 	return $campus;
 }
-	
+
 function get_authoriser($author_id, $modular, $role, $fields) {
 	global $DB;
-	
+
 	// Determine if the student is the author or the subject
 	if (!$fields['student_number']) {
 		$student_id = $author_id;
@@ -533,7 +533,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$student = get_complete_user_data('username', $fields['student_number']);
 		$student_id = $student->id;
 	}
-		
+
 	$authoriser_id = 0;
 	if ($role == 1) { // CSA/SC
 		$authoriser = get_complete_user_data('username', 'csa');
@@ -585,7 +585,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	} else if (($role == 4) && $fields['supervisor']) { // Supervisor (field must be present)
 		$start_pos = strpos($fields['supervisor'], '(') + 1;
 		$end_pos = strpos($fields['supervisor'], ')', $start_pos);
-		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);		
+		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);
 		$authoriser_id = $supervisor->id;
 	} else if ($role == 5) { // Academic Adviser
 		$context = context_user::instance($student_id);
@@ -615,7 +615,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	} else if (($role == 11) && $fields['supervisor_2']) { // Supervisor (2) - second supervisor must be present (will skip step otherwise)
 		$start_pos = strpos($fields['supervisor_2'], '(') + 1;
 		$end_pos = strpos($fields['supervisor_2'], ')', $start_pos);
-		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor_2'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);		
+		$supervisor = $DB->get_record('user', array('username' => substr($fields['supervisor_2'], $start_pos, ($end_pos - $start_pos))), 'id', MUST_EXIST);
 		$authoriser_id = $supervisor->id;
 	} else if ($role == 12) { // Admissions
 		$authoriser = get_complete_user_data('username', 'admissions');
@@ -647,12 +647,12 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			}
 		}
 	}
-	
+
 	if (($authoriser_id == 0) && ($role != 7) && ($role != 8) && ($role != 11) && ($role != 16)) { // Don't leave them hanging...
 		$authoriser = get_complete_user_data('username', 'csa-tbd'); // Default ('TO BE DETERMINED')
 		$authoriser_id = $authoriser->id;
 	}
-	
+
 	// Finally, check if all forms for the determined authoriser should be forwarded (temporarily)
 	$forwarder = read_form_forwarder($authoriser_id);
 	if ($forwarder->id != 0) { // There is a forwarder - action it if it's active today
@@ -661,7 +661,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			$authoriser_id = $forwarder->to_id;
 		}
 	}
-	
+
 	return $authoriser_id;
 }
 
@@ -678,25 +678,25 @@ function get_course_id($course, $modular) { // Course could just be the course c
 		$course_code = $course;
 	}
 	$courses = get_current_courses($modular);
-	
+
 	return(array_search(strtoupper($course_code), $courses, true));
 }
 
 // Check if the given user is a member of staff
 function is_staff($username = null) {
-	$is_staff = ((strlen($username) == 8) && (substr($username, 0, 1) == 'p') && is_numeric(substr($username, 1)));
-	
+	$is_staff = ((strlen($username) == 8) && ((substr($username, 0, 1) == 'p') || (substr($username, 0, 1) == 'd')) && is_numeric(substr($username, 1)));
+
 	return $is_staff;
 }
 
 // Check 'quickly' if the user is officially enrolled as a student on any course
 function is_student($user_id = 0, $type = null) {
 	global $DB;
-	
+
 	if ($user_id == 0) { // Mandatory
 		return false;
 	}
-	
+
 	$role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
 	$sql = 'SELECT c.id'
 		. ' FROM {user_enrolments} ue'
@@ -725,7 +725,7 @@ function is_student($user_id = 0, $type = null) {
 
 function get_current_courses($modular = false, $user_id = 0, $names = false, $joint = false) {
 	global $DB;
-	
+
 	$courses = array();
 	if ($user_id == 0) { // Just need all the course codes or names (for input/validation purposes)
 		$sql = 'SELECT c.id, c.shortname, c.idnumber, c.fullname FROM {course} c WHERE c.idnumber LIKE "%#%"';
@@ -783,7 +783,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 
 function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enroled = true, $free_language = false) {
 	global $DB;
-	
+
 	// Establish the initial selection criteria to apply
 	$criteria = 'c.idnumber LIKE "%.%" AND (substr(c.shortname, 8, 2) = " (" OR substr(c.shortname, 9, 2) = " (")';
 	if ($category_id > 0) {
@@ -809,10 +809,10 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 			. 'WHERE ' . $criteria . ' '
 			. 'ORDER BY c.shortname';
 	}
-	
+
 	// Read the course (module) records that match our chosen criteria
 	$db_ret = $DB->get_records_sql($sql, array());
-	
+
 	// Create an array of the current modules with the required type (if given)
 	$modules = array();
 	if ($user_id) {
@@ -836,7 +836,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 					continue;
 				}
 			}
-			
+
 			if (!$free_language && ($user_id == 0)) { // Just need the module codes and associated campus codes for validation purposes
 				$module_code = substr($row->shortname, 0, $pos);
 				$campus_code = 'OBO'; // The default
@@ -869,7 +869,7 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 
 function get_programme_leads($student_id = 0, $modular = false, $index = 0) {
 	global $DB;
-	
+
 	// Get all courses for this student (normally 1 but 2 for joint honours students)
 	$courses = get_current_courses($modular, $student_id);
 	if (empty($courses)) {
@@ -887,13 +887,13 @@ function get_programme_leads($student_id = 0, $modular = false, $index = 0) {
 	if (empty($programme_leads[$index])) {
 		return 0;
 	}
-	
+
 	return $programme_leads[$index];
 }
 
 function get_programme_lead($course_id = 0) {
 	global $DB;
-	
+
 	$context = context_course::instance($course_id);
 	if ($context == null) {
 		return 0;
@@ -920,13 +920,13 @@ function get_programme_lead($course_id = 0) {
 			$programme_lead = $row->userid;
 		}
 	}
-	
+
 	return $programme_lead;
 }
 
 function get_module_leader($module_id = 0) {
 	global $DB;
-	
+
 	// Validate the module ID
 	if ($module_id == 0) {
 		return 0;
@@ -935,7 +935,7 @@ function get_module_leader($module_id = 0) {
 	if ($context == null) {
 		return 0;
 	}
-	
+
 	// Get all the users enrolled on the module (with their enrollment methods) that have the Module Leader role
 	$sql = 'SELECT DISTINCT ue.id, ue.userid, e.enrol'
 		. ' FROM {enrol} e'
@@ -945,7 +945,7 @@ function get_module_leader($module_id = 0) {
 		. ' WHERE e.courseid = ? AND ra.contextid = ? AND r.shortname = "course_leader"'
 		. ' ORDER BY ue.timecreated';
 	$db_ret = $DB->get_records_sql($sql, array($module_id, $context->id));
-		
+
 	// Find the latest ML enrollment (giving precedence to 'external database' ones)
 	$module_leader = 0;
 	$external_database = false;
@@ -957,6 +957,6 @@ function get_module_leader($module_id = 0) {
 			$module_leader = $row->userid;
 		}
 	}
-	
+
 	return $module_leader;
 }

@@ -61,7 +61,7 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->navbar->add($heading);
 
-$staff_forms = ((substr($USER->username, 0, 1) == 'p') && is_numeric(substr($USER->username, 1))); // Can view staff forms
+$staff_forms = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->username, 0, 1) == 'd')) && is_numeric(substr($USER->username, 1))); // Can view staff forms
 $pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student forms
 $ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP student forms
 

@@ -65,17 +65,16 @@ $staff_forms = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->userna
 $pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student forms
 $ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP student forms
 
-//check if program and then retrieve campus from here, diplay forms based on campus
+//check if program and then retrieve campus from here, display forms based on campus
 $courses = get_current_courses($USER->id);
 foreach ($courses as $course){
     if(strpos($course->id, "#") !== false){
-        $campus = substr($course->id, 0, 3);
-    } else {
-        $campus = null;
+        $campusCode = strtok($course->id, "~");
     }
 }
 
-if ($campus == ("AW" || "SH" || "SW" || "AL" || "BR" || "BW" || "WT" || "OCE" || "SB" || "DM" || "GBB" || "GBE" || "GBL" || "GBM" || "GBW")){
+$partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
+if ($type == 'student' && !empty($campusCode) && in_array($campusCode, $partnershipCampusCodes)){
     $pg_forms = false;
     $ump_forms = false;
 }

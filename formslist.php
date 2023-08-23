@@ -66,7 +66,7 @@ $pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student 
 $ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP student forms
 
 //check if program and then retrieve campus from here, display forms based on campus
-$courses = get_current_courses($USER->id);
+$courses = get_current_courses(false, $USER->id);
 foreach ($courses as $course){
     if(strpos($course->id, "#") !== false){
         $campusCode = strtok($course->id, "~");

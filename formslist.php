@@ -70,8 +70,6 @@ $courses = get_current_courses($USER->id);
 $course = current($courses);
 $campusCode = strtok($course->idnumber, "~");
 
-
-
 $partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
 if ($type == 'student' && !empty($campusCode) && in_array($campusCode, $partnershipCampusCodes)){
     $pg_forms = false;

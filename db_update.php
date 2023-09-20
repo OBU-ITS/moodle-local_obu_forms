@@ -786,7 +786,7 @@ function get_current_course_id_number($modular = false, $user_id = 0, $names = f
     $courses = array();
 
     $role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
-    $sql = 'SELECT c.id, c.fullname'
+    $sql = 'SELECT c.id, c.idnumber'
         . ' FROM {user_enrolments} ue'
         . ' JOIN {enrol} e ON e.id = ue.enrolid'
         . ' JOIN {context} ct ON ct.instanceid = e.courseid'

@@ -68,7 +68,7 @@ $ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP stude
 //check if program and then retrieve campus from here, display forms based on campus
 $courses = get_current_courses(true, $USER->id);
 //$courseId = key($courses);
-$courseId = "AE~UG~N~S#BAH-BMP";
+$courseId = "SW~UG~N~S#BAH-BMP";
 $campusCode = strtok($courseId, "~");
 $partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
 

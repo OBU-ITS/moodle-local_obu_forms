@@ -4,11 +4,11 @@ require_once('./locallib.php');
 require_once('./db_update.php');
 
 
-$courses = get_current_courses(false, $USER->id);
+$courses = get_current_course_id_number(false, $USER->id);
 var_dump($courses);
 echo ("\n\n");
 
-$courseId = key($courses);
+$courseId = current($courses);
 var_dump($courseId);
 echo ("\n\n");
 

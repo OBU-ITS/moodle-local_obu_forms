@@ -782,6 +782,9 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 }
 
 function get_current_course_id_number($modular = false, $user_id = 0, $names = false, $joint = false){
+    global $DB;
+    $courses = array();
+
     $role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
     $sql = 'SELECT c.id, c.fullname'
         . ' FROM {user_enrolments} ue'

@@ -741,7 +741,6 @@ function update_authoriser($form, $data, $authoriser_id) {
 		$sc_contact = get_complete_user_data('username', 'scat');
 		$sc_notifications = get_complete_user_data('username', 'scat_notifications');
 //	}
-	
     // Add email headers to help prevent auto-responders
     $author->customheaders = array (
 		'Precedence: Bulk',

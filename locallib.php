@@ -734,13 +734,9 @@ function update_authoriser($form, $data, $authoriser_id) {
 	$author = get_complete_user_data('id', $data->author);
 	$sc = get_complete_user_data('username', 'csa');
 	$sc_id = $sc->id;
-//	if (!$form->modular) { // Use the default CSA Team contact and notification details (PG)
-//		$sc_contact = $sc;
-//		$sc_notifications = $sc;
-//	} else { // Use the SCAT contact and notification details (UMP)
-		$sc_contact = get_complete_user_data('username', 'scat');
-		$sc_notifications = get_complete_user_data('username', 'scat_notifications');
-//	}
+	$sc_contact = get_complete_user_data('username', 'scat');
+	$sc_notifications = get_complete_user_data('username', 'scat');
+
     // Add email headers to help prevent auto-responders
     $author->customheaders = array (
 		'Precedence: Bulk',

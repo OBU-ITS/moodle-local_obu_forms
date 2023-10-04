@@ -781,6 +781,39 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	return $courses;
 }
 
+function get_current_course_id_number($modular = false, $user_id = 0, $names = false, $joint = false){
+    global $DB;
+    $courses = array();
+
+    $role = $DB->get_record('role', array('shortname' => 'student'), 'id', MUST_EXIST);
+    $sql = 'SELECT c.id, c.idnumber'
+        . ' FROM {user_enrolments} ue'
+        . ' JOIN {enrol} e ON e.id = ue.enrolid'
+        . ' JOIN {context} ct ON ct.instanceid = e.courseid'
+        . ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
+        . ' JOIN {course} c ON c.id = e.courseid'
+        . ' WHERE ue.userid = ?'
+        . ' AND e.enrol = "database"'
+        . ' AND ct.contextlevel = 50'
+        . ' AND ra.userid = ue.userid'
+        . ' AND ra.roleid = ?'
+        . ' AND c.idnumber LIKE "%#%"'
+        . ' ORDER BY c.fullname';
+    $db_ret = $DB->get_records_sql($sql, array($user_id, $role->id));
+    foreach ($db_ret as $row) {
+
+        // Restrict the courses to a given type?
+        $handler = core_course\customfield\course_handler::create();
+        $custom_fields = $handler->export_instance_data_object($row->id, true);
+        if (($modular !== false) && (($modular && ($custom_fields->modular_course != 'Yes')) || (!$modular && ($custom_fields->modular_course == 'Yes')))) {
+            continue;
+        }
+
+        $courses[$row->id] = $row->idnumber;
+    }
+    return $courses;
+}
+
 function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enroled = true, $free_language = false) {
 	global $DB;
 

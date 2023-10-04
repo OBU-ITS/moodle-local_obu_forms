@@ -734,14 +734,14 @@ function update_authoriser($form, $data, $authoriser_id) {
 	$author = get_complete_user_data('id', $data->author);
 	$sc = get_complete_user_data('username', 'csa');
 	$sc_id = $sc->id;
-//	if (!$form->modular) { // Use the default CSA Team contact and notification details (PG)
-//		$sc_contact = $sc;
-//		$sc_notifications = $sc;
-//	} else { // Use the SCAT contact and notification details (UMP)
+	if (!$form->modular) { // Use the default CSA Team contact and notification details (PG)
+		$sc_contact = $sc;
+		$sc_notifications = $sc;
+	} else { // Use the SCAT contact and notification details (UMP)
 		$sc_contact = get_complete_user_data('username', 'scat');
 		$sc_notifications = get_complete_user_data('username', 'scat_notifications');
-//	}
-	
+	}
+
     // Add email headers to help prevent auto-responders
     $author->customheaders = array (
 		'Precedence: Bulk',
@@ -795,7 +795,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 			$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
 			$email_link = '<a href="mailto:' . $sc_contact->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $sc_contact->email . '</a>';
 			$html = get_string('request_authorisation', 'local_obu_forms',
-				array('form' => $form_link, 'role' => $authoriser_role[$role_id], 'name' => $sc_contact->alternatename, 'email' => $email_link));
+				array('form' => $form_link, 'role' => $authoriser_role[$role_id], 'name' => $sc_contact->alternatename, 'phone' => $sc_contact->phone1, 'email' => $email_link));
 			email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
 		}
 	}

@@ -65,6 +65,17 @@ $staff_forms = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->userna
 $pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student forms
 $ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP student forms
 
+//check if program and then retrieve campus from here, display forms based on campus
+$courses = get_current_course_id_number(false, $USER->id);
+$courseId = current($courses);
+$campusCode = strtok($courseId, "~");
+$partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
+
+if ($type == 'student' && !empty($campusCode) && in_array($campusCode, $partnershipCampusCodes)){
+    $pg_forms = false;
+    $ump_forms = false;
+}
+
 if ($type == 'student') { // Exclude staff forms
 	$staff_forms = false;
 }

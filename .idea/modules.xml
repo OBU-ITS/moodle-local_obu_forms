@@ -2,7 +2,11 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+<<<<<<< HEAD
       <module fileurl="file://$PROJECT_DIR$/.idea/obu_forms.iml" filepath="$PROJECT_DIR$/.idea/obu_forms.iml" />
+=======
+      <module fileurl="file://$PROJECT_DIR$/.idea/moodle-local_obu_forms.iml" filepath="$PROJECT_DIR$/.idea/moodle-local_obu_forms.iml" />
+>>>>>>> 6b20a530614ae015b81e18a11750ca8e3ffeb952
     </modules>
   </component>
 </project>

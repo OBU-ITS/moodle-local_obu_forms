@@ -734,7 +734,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 	$author = get_complete_user_data('id', $data->author);
 	$sc = get_complete_user_data('username', 'csa');
 	$sc_id = $sc->id;
-	if (!$form->modular) { // Use the default CSA Team contact and notification details (PG)
+	if ($form->formref !== "M100EX" && $form->formref !== "M100") { // Use the default CSA Team contact and notification details (PG)
 		$sc_contact = $sc;
 		$sc_notifications = $sc;
 	} else { // Use the SCAT contact and notification details (UMP)

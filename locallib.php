@@ -229,7 +229,8 @@ function get_assessment_types() {
 		'Practical skills assessment (Group)',
 		'Practical skills assessment (Individual)',
 		'Set exercise',
-		'Examination'
+		'Examination',
+		'Class test'
 	);
 	
 	return $assessment_type;

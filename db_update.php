@@ -259,6 +259,18 @@ function read_form_template_by_id($template_id) {
 	return $template;
 }
 
+function read_all_form_settings_with_template_id() {
+    global $DB;
+
+    $sql = "SELECT DISTINCT 
+        t.id as 'template_id', 
+        f.*
+    FROM {local_obu_forms_templates} t 
+    INNER JOIN {local_obu_forms} f ON t.form_id = f.id";
+
+    return $DB->get_records_sql($sql);
+}
+
 function get_form_template($form_id, $include_unpublished = false) { // return the latest version of the template for the given form
     global $DB;
 

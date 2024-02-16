@@ -74,17 +74,19 @@ $PAGE->set_heading($title);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-$forms_data = get_form_data(); // get all forms data [*** NEEDS ATTENTION IN FUTURE ***]
-
-$form_definitions = read_all_form_settings_with_template_id();
 $forms = [];
+$form_definitions = read_all_form_settings_with_template_id();
 foreach($form_definitions as $form_definition) {
     $forms[$form_definition->template_id] = $form_definition;
 }
 
+$is_manager_of_pg_form = is_manager_of_pg_form();
+$is_manager_of_ump_form = is_manager_of_ump_form();
+
+$forms_data = get_form_data(); // get all forms data [*** NEEDS ATTENTION IN FUTURE ***]
 foreach ($forms_data as $data) {
     $form = $forms[$data->template_id];
-    $is_manager_of_form = is_manager($form);
+    $is_manager_of_form = ($form->modular == '0') ? $is_manager_of_pg_form : $is_manager_of_ump_form;
 
 	// Extract any module codes from a student form or (if a forms manager) any student number from a staff one
 	$student = '';

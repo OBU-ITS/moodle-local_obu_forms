@@ -20,6 +20,8 @@
  *
  */
 
+$start=hrtime(true);
+
 require_once('../../config.php');
 require_once('./locallib.php');
 
@@ -74,6 +76,10 @@ $PAGE->set_heading($title);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
+$now=hrtime(true);
+$eta=$now-$start;
+echo 'Start' .$eta/1e+6;
+
 $forms = [];
 $form_definitions = read_all_form_settings_with_template_id();
 foreach($form_definitions as $form_definition) {
@@ -83,7 +89,18 @@ foreach($form_definitions as $form_definition) {
 $is_manager_of_pg_form = is_manager_of_pg_form();
 $is_manager_of_ump_form = is_manager_of_ump_form();
 
+
+$now=hrtime(true);
+$eta=$now-$start;
+echo 'Post get forms / manager' .$eta/1e+6;
+
 $forms_data = get_form_data(); // get all forms data [*** NEEDS ATTENTION IN FUTURE ***]
+
+
+$now=hrtime(true);
+$eta=$now-$start;
+echo 'post get data' .$eta/1e+6;
+
 foreach ($forms_data as $data) {
     $form = $forms[$data->template_id];
     $is_manager_of_form = ($form->modular == '0') ? $is_manager_of_pg_form : $is_manager_of_ump_form;
@@ -135,5 +152,9 @@ foreach ($forms_data as $data) {
         echo '<p><a href="' . $redirect_form . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
     }
 }
+
+$now=hrtime(true);
+$eta=$now-$start;
+echo 'End' . $eta/1e+6;
 
 echo $OUTPUT->footer();

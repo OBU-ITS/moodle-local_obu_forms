@@ -96,42 +96,44 @@ foreach ($forms_data as $data) {
 		$student = $fields['student_number'];
 		$subject .= ' [' . $student . ']';
 	}
-	if ($is_manager_of_form || $form->student) {
-		$modules = '';
-		foreach ($fields as $key => $value) {
-			if ((strpos($key, 'module') !== false) && ($value != '')) {
-				if ($modules != '') {
-					$modules .= ', ';
-				}
-				$modules .= strtoupper($value);
-			}
-		}
-		if ($modules != '') {
-			$subject .= ' [' . $modules . ']';
-		}
-	}
 
-	if (($data->author == $user->id) || ($student == $user->username)) {
+	if (($data->author != $user->id) && ($student != $user->username)) {
+        continue;
+    }
 
-		get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+    if ($is_manager_of_form || $form->student) {
+        $modules = '';
+        foreach ($fields as $key => $value) {
+            if ((strpos($key, 'module') !== false) && ($value != '')) {
+                if ($modules != '') {
+                    $modules .= ', ';
+                }
+                $modules .= strtoupper($value);
+            }
+        }
+        if ($modules != '') {
+            $subject .= ' [' . $modules . ']';
+        }
+    }
 
-		$url = '';
-		if ($button == 'submit') {
-			if ($currentuser) {
-				echo '<h4><a href="' . $dir . 'form.php?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
-			}
-		} else if ($currentuser || $is_manager_of_form || $button == 'authorise') { // Owner, manager or next authoriser
-			echo '<h4><a href="' . $dir . 'process.php?source=' . urlencode('index.php?userid=' . $user_id) . '&id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
-		} else {
-			echo '<h4>' . $form->formref . ': ' . $form->name . $subject . '</h4>';
-		}
-		echo $text;
+    get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 
-		// Allow form to be redirected if possible
-		if ($is_manager_of_form && ($data->authorisation_state == 0) && has_capability('local/obu_forms:update', context_system::instance())) { // Not yet finally approved or rejected
-			echo '<p><a href="' . $redirect_form . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
-		}
-	}
+    $url = '';
+    if ($button == 'submit') {
+        if ($currentuser) {
+            echo '<h4><a href="' . $dir . 'form.php?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
+        }
+    } else if ($currentuser || $is_manager_of_form || $button == 'authorise') { // Owner, manager or next authoriser
+        echo '<h4><a href="' . $dir . 'process.php?source=' . urlencode('index.php?userid=' . $user_id) . '&id=' . $data->id . '">' . $form->formref . ': ' . $form->name . $subject . '</a></h4>';
+    } else {
+        echo '<h4>' . $form->formref . ': ' . $form->name . $subject . '</h4>';
+    }
+    echo $text;
+
+    // Allow form to be redirected if possible
+    if ($is_manager_of_form && ($data->authorisation_state == 0) && has_capability('local/obu_forms:update', context_system::instance())) { // Not yet finally approved or rejected
+        echo '<p><a href="' . $redirect_form . '?id=' . $data->id . '">' . get_string('redirect_form', 'local_obu_forms') . '</a></p>';
+    }
 }
 
 echo $OUTPUT->footer();

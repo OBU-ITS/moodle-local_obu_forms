@@ -22,30 +22,30 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  */
- 
+
 require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 
 // Determine the possible menu options for this user
 function get_menu_options() {
 	global $USER;
-	
+
 	$options = array();
 	$update = has_capability('local/obu_forms:update', context_system::instance());
 	$accommodation = ($USER->username == 'accommodation');
 	$staff = is_staff($USER->username); // Has a 'p' number?
 	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
-	
+
 	// Add the 'My Forms' option
 	if ($staff || $student || !empty(get_form_data($USER->id))) {
 		$options[get_string('myforms', 'local_obu_forms')] = '/local/obu_forms/index.php?userid=' . $USER->id;
 	}
-	
+
 	if (!$accommodation && !$staff) {
 		if (!$student || !$update) { // Move on now please, nothing more to see here...
 			return $options;
 		}
 	}
-	 
+
 	if ($accommodation) {
 			$options[get_string('student_withdrawals', 'local_obu_forms')] = '/local/obu_forms/withdrawals.php';
 	} else { // For other users, add the option(s) to list all the relevant forms
@@ -59,27 +59,47 @@ function get_menu_options() {
 			$options[get_string('list_users_forms', 'local_obu_forms')] = '/local/obu_forms/list.php';
 		}
 	}
-	
+
 	return $options;
 }
 
 // Check if the user is a forms manager (or a manager of a given form)
 function is_manager($form = null) {
 	global $USER;
-	
+
+	if ($form == null) {
+		if (is_siteadmin()) {
+			return true;
+		}
+
+		$is_manager = has_forms_role($USER->id, 4, 5);
+	} else if ($form->modular == '0') { // PG form
+		$is_manager = is_manager_of_pg_form();
+	} else { // UMP form
+		$is_manager = is_manager_of_ump_form();
+	}
+
+	return $is_manager;
+}
+
+function is_manager_of_pg_form() {
+	global $USER;
+
 	if (is_siteadmin()) {
 		return true;
 	}
-	
-	if ($form == null) {
-		$is_manager = has_forms_role($USER->id, 4, 5);
-	} else if ($form->modular == '0') { // PG form
-		$is_manager = has_forms_role($USER->id, 4);
-	} else { // UMP form
-		$is_manager = has_forms_role($USER->id, 5);
+
+	return has_forms_role($USER->id, 4);
+}
+
+function is_manager_of_ump_form() {
+	global $USER;
+
+	if (is_siteadmin()) {
+		return true;
 	}
-	
-	return $is_manager;
+
+	return has_forms_role($USER->id, 5);
 }
 
 function get_dates($month, $year, $back = 0, $forward = 0) {
@@ -87,7 +107,7 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 
 	$dates = array();
 	$dates[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
-	
+
 	if (($back == 0) && ($forward == 0)) { // Modular form so show semesters in the last AY, this AY and the next two
 		if ($month >= 8) { // AY moves forward in August
 			$y = $year;
@@ -120,7 +140,7 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 			$y--;
 			$m += 12;
 		}
-	
+
 		for ($i = 0; $i <= ($back + $forward); $i++) {
 			$dates[] = $months[$m - 1] . $y;
 			if ($m < 12) {
@@ -131,7 +151,7 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 			}
 		}
 	}
-	
+
 	return $dates;
 }
 
@@ -155,7 +175,7 @@ function get_authorisers() {
 		'Subject Coordinator (Course Change)',
 		'Subject Coordinator (Course Change, Joint Honours)'
 	);
-	
+
 	return $authoriser;
 }
 
@@ -166,7 +186,7 @@ function get_study_modes() {
 		'Sandwich',
 		'Distance Learning'
 	);
-	
+
 	return $study_mode;
 }
 
@@ -183,7 +203,7 @@ function get_reasons() {
 		'Transferring to Another OBU Course',
 		'Other (please give details below)'
 	);
-	
+
 	return $reason;
 }
 
@@ -197,7 +217,7 @@ function get_addition_reasons() {
 		'My subject change request was accepted after the Monday, Week 10 Module Addition Deadline',
 		'Other (please give details below)'
 	);
-	
+
 	return $reason;
 }
 
@@ -211,7 +231,7 @@ function get_deletion_reasons() {
 		'My subject change request was accepted after the Monday, Week 10 Module Addition Deadline',
 		'Other (please give details below)'
 	);
-	
+
 	return $reason;
 }
 
@@ -229,9 +249,10 @@ function get_assessment_types() {
 		'Practical skills assessment (Group)',
 		'Practical skills assessment (Individual)',
 		'Set exercise',
-		'Examination'
+		'Examination',
+		'Class test'
 	);
-	
+
 	return $assessment_type;
 }
 
@@ -242,7 +263,7 @@ function get_component_comments() {
 		'Deferred Disciplinary',
 		'Exceptional Circumstances'
 	);
-	
+
 	return $component_comment;
 }
 
@@ -256,7 +277,7 @@ function decode_xml($string) {
 
 function template_fields($template) {
 	$fields = array();
-	
+
 	$fld_start = '<input ';
 	$fld_start_len = strlen($fld_start);
 	$fld_end = '>';
@@ -276,13 +297,13 @@ function template_fields($template) {
 		$fields[] = $element;
 		$offset = $pos + $fld_end_len;
 	} while(true);
-	
+
 	return $fields;
 }
 
 function template_selects($template) {
 	$selects = array();
-	
+
 	$fld_start = '<input ';
 	$fld_start_len = strlen($fld_start);
 	$fld_end = '>';
@@ -304,7 +325,7 @@ function template_selects($template) {
 			$selects[$element['id']] = $element['name'];
 		}
 	} while(true);
-	
+
 	return $selects;
 }
 
@@ -316,12 +337,12 @@ function split_input_field($input_field) {
 	foreach ($parts as $part) {
 		$pos = strpos($part, '="');
 		$key = substr($part, 0, $pos);
-		
+
 		// We were forced to use 'maxlength' so map it
 		if (array_key_exists('type', $params) && ($params['type'] == 'select') && ($key == 'maxlength')) {
 			$key = 'selected';
 		}
-		
+
 		if (($key == 'size') || ($key == 'maxlength')) {
 			if ($options != '') {
 				$options .= ' ';
@@ -331,7 +352,7 @@ function split_input_field($input_field) {
 			$pos += 2;
 			$value = substr($part, $pos, (strlen($part) - 1 - $pos));
 			$value = str_replace('"', '', $value);
-			
+
 			// If the 'value' parameter is suffixed then the field (or one of the required group) must be completed
 			if ($key == 'value') {
 				$suffix = substr($value, (strlen($value) - 1));
@@ -350,7 +371,7 @@ function split_input_field($input_field) {
 					}
 				}
 			}
-			
+
 			$params[$key] = $value;
 		}
 	}
@@ -362,7 +383,7 @@ function split_input_field($input_field) {
 		}
 		$params['options'] = $options;
 	}
-	
+
 	return $params;
 }
 
@@ -375,7 +396,7 @@ function split_name($fullname, $prefix = true) {
 		$parts[] = substr($fullname, 1, $split_pos); // Number (omit the prefix)
 	}
 	$parts[] = substr($fullname, ($split_pos + 2)); // Name
-	
+
 	return $parts;
 }
 
@@ -385,17 +406,17 @@ function merge_xml($form, $fields) {
 	if ($xml === false) {
 		return false;
 	}
-	
+
 	$i = 0;
 	foreach ($fields as $field) {
 		$search = '@@' . $i++ . '@';
 		$xml = str_replace($search, encode_xml($field), $xml);
 	}
-		
+
 	header('Content-Disposition: attachment; filename=' . $form . '.xml');
 	header('Content-Type: application/xml');
 	echo $xml;
-	
+
 	return true;
 }
 
@@ -405,7 +426,7 @@ function save_form_data($record, $fields) {
 		$xml->addChild($key, encode_xml($value));
 	}
     $record->data = $xml->asXML();
-	
+
 	return write_form_data($record);
 }
 
@@ -414,7 +435,7 @@ function load_form_data($data_id, &$record, &$fields) {
 		return false;
 	}
 	load_form_fields($record, $fields);
-	
+
 	return true;
 }
 
@@ -431,7 +452,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 	$text = '';
 	$button = '';
 	$context = context_system::instance();
-	
+
 	// Get the Student Central ID and relevant name
 	$sc = get_complete_user_data('username', 'csa'); // Student Central (CSA/SC)
 	$sc_id = $sc->id;
@@ -439,7 +460,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 		$sc = get_complete_user_data('username', 'scat');
 	}
 	$sc_name = $sc->alternatename;
-	
+
 	$authoriser_role = get_authorisers();
 
 	// Prepare the submission/authorisation trail
@@ -458,7 +479,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 		}
 		$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('submitted', 'local_obu_forms'), 'by' => $name));
 		$text .= '<br />';
-		
+
 		// Authorisation level 1
 		if (($data->authorisation_level == 1) && ($data->authorisation_state > 0)) { // The workflow ended here
 			date_timestamp_set($date, $data->auth_1_date);
@@ -492,7 +513,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 				$text .= ' ' . $data->auth_1_notes . '<br />';
 			}
-			
+
 			// Authorisation level 2
 			if (($data->authorisation_level == 2) && ($data->authorisation_state > 0)) { // The workflow ended here
 				date_timestamp_set($date, $data->auth_2_date);
@@ -526,7 +547,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 					$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 					$text .= ' ' . $data->auth_2_notes . '<br />';
 				}
-				
+
 				// Authorisation level 3
 				if (($data->authorisation_level == 3) && ($data->authorisation_state > 0)) { // The workflow ended here
 					date_timestamp_set($date, $data->auth_3_date);
@@ -560,7 +581,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 						$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 						$text .= ' ' . $data->auth_3_notes . '<br />';
 					}
-					
+
 					// Authorisation level 4
 					if (($data->authorisation_level == 4) && ($data->authorisation_state > 0)) { // The workflow ended here
 						date_timestamp_set($date, $data->auth_4_date);
@@ -594,7 +615,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 							$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 							$text .= ' ' . $data->auth_4_notes . '<br />';
 						}
-					
+
 						// Authorisation level 5
 						if (($data->authorisation_level == 5) && ($data->authorisation_state > 0)) { // The workflow ended here
 							date_timestamp_set($date, $data->auth_5_date);
@@ -628,7 +649,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 								$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 								$text .= ' ' . $data->auth_5_notes . '<br />';
 							}
-						
+
 							// Authorisation level 6 (the last possible one)
 							if ($data->authorisation_state > 0) { // The workflow ended here
 								date_timestamp_set($date, $data->auth_6_date);
@@ -655,7 +676,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 		}
 	}
 
-	// If the state is zero, display the next action required.  Otherwise, the form has already been rejected or processed 
+	// If the state is zero, display the next action required.  Otherwise, the form has already been rejected or processed
 	if ($data->authorisation_state == 0) { // Awaiting submission/rejection/authorisation from someone
 		if ($data->authorisation_level == 0) { // Author hasn't submitted the form
 			if ($data->author == $user_id) {
@@ -726,7 +747,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 		$auth->request_date = time();
 		write_form_auths($auth);
 	}
-	
+
 	// Determine the URL to use to link to the form
 	$program = new moodle_url('/local/obu_forms/process.php') . '?id=' . $data->id;
 
@@ -755,7 +776,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 	);
 
 	get_form_status($author->id, $form, $data, $text, $button_text); // get the status from the author's perspective
-	
+
 	// If a staff form, extract any given student number
 	$student_number = '';
 	if (!$form->student) {
@@ -764,7 +785,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 			$student_number = ' [' . $fields['student_number'] . ']';
 		}
 	}
-	
+
 	$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
 	email_to_user($author, $sc_contact, 'The Status of Your Form ' . $form->formref . $student_number, html_to_text($html), $html);
 	if ($authoriser_id != $sc_id) {
@@ -772,7 +793,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 		$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
 		email_to_user($sc_notifications, $author, 'Form ' . $form->formref . $student_number . ' Status Update (' . $author->username . ')', html_to_text($html), $html);
 	}
-	
+
 	// Notify the next authoriser (if there is one)
 	if ($authoriser_id) {
 		if ($authoriser_id == $sc_id) {

@@ -71,7 +71,7 @@ $courseId = current($courses);
 $campusCode = strtok($courseId, "~");
 $partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
 
-if ($type == 'student' && !empty($campusCode) && in_array($campusCode, $partnershipCampusCodes)){
+if (empty($campusCode) || in_array($campusCode, $partnershipCampusCodes)){
     $pg_forms = false;
     $ump_forms = false;
 }

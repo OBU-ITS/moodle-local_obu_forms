@@ -58,6 +58,12 @@ $message = '';
 $data_id = 0;
 $fields = array();
 
+//check if program and then retrieve campus from here, display forms based on campus
+$courses = get_current_course_id_number(false, $USER->id);
+$courseId = current($courses);
+$campusCode = strtok($courseId, "~");
+$partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
+
 $staff = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->username, 0, 1) == 'd')) && is_numeric(substr($USER->username, 1)));
 
 if (isset($_REQUEST['ref'])) { // A request for a brand new form
@@ -67,7 +73,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		die;
 	}
 
-	if (!is_manager($form) && ((!$form->student && !$staff) || !$form->visible)) { // User hasn't the capability to view a non-student or hidden form
+	if (!is_manager($form) && ((!$form->student && !$staff) || !$form->visible || in_array($campusCode, $partnershipCampusCodes))) { // User hasn't the capability to view a non-student or hidden form
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	if (isset($_REQUEST['version'])) {

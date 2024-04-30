@@ -31,11 +31,11 @@ require_once('./forms_input.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -62,16 +62,16 @@ $student_indicator = 0;
 
 if (isset($_REQUEST['formref'])) {
 	$formref = strtoupper($_REQUEST['formref']);
-	$record = read_form_settings_by_ref($formref);
-	if (($record !== false) && !is_manager($record)) {
+	$record = local_obu_forms_read_form_settings_by_ref($formref);
+	if (($record !== false) && !local_obu_forms_is_manager($record)) {
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	} else {
 		if ($formref != '') {
 			$PAGE->navbar->add(get_string('form', 'local_obu_forms') . ' ' . $formref);
 		}
-		if (!is_siteadmin() && !has_forms_role($USER->id, 4)) {
+		if (!is_siteadmin() && !local_obu_forms_has_forms_role($USER->id, 4)) {
 			$form_indicator = 1; // Can only set UMP flag to false
-		} else if (!is_siteadmin() && !has_forms_role($USER->id, 3)) {
+		} else if (!is_siteadmin() && !local_obu_forms_has_forms_role($USER->id, 3)) {
 			$form_indicator = 2; // Can only set UMP flag to true
 		}
 	}
@@ -95,7 +95,7 @@ if ($mform->is_cancelled()) {
 } 
 else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {
-		write_form_settings($USER->id, $mform_data);
+        local_obu_forms_write_form_settings($USER->id, $mform_data);
 		redirect($url);
     }
 }	

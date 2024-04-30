@@ -23,7 +23,7 @@
  *
  */
 
-function get_forms_course() {
+function local_obu_forms_get_forms_course() {
 	global $DB;
 
 	$course = $DB->get_record('course', array('idnumber' => 'SUBS_FORMS'), 'id', MUST_EXIST);
@@ -31,7 +31,7 @@ function get_forms_course() {
 }
 
 // Check if the given user has the given role in the forms management course
-function has_forms_role($user_id = 0, $role_id_1 = 0, $role_id_2 = 0, $role_id_3 = 0) {
+function local_obu_forms_has_forms_role($user_id = 0, $role_id_1 = 0, $role_id_2 = 0, $role_id_3 = 0) {
 	global $DB;
 
 	if (($user_id == 0) || ($role_id_1 == 0)) { // Both mandatory
@@ -58,7 +58,7 @@ function has_forms_role($user_id = 0, $role_id_1 = 0, $role_id_2 = 0, $role_id_3
 	}
 }
 
-function write_form_settings($author, $form_data) {
+function local_obu_forms_write_form_settings($author, $form_data) {
 	global $DB;
 
     $record = new stdClass();
@@ -83,7 +83,7 @@ function write_form_settings($author, $form_data) {
 	$record->auth_6_role = $form_data->auth_6_role;
 	$record->auth_6_notes = $form_data->auth_6_notes;
 
-	$settings = read_form_settings_by_ref($record->formref);
+	$settings = local_obu_forms_read_form_settings_by_ref($record->formref);
 	if ($settings !== false) {
 		$id = $settings->id;
 		$record->id = $id;
@@ -95,7 +95,7 @@ function write_form_settings($author, $form_data) {
 	return $id;
 }
 
-function read_form_settings($form_id) {
+function local_obu_forms_read_form_settings($form_id) {
     global $DB;
 
 	$settings = $DB->get_record('local_obu_forms', array('id' => $form_id), '*', MUST_EXIST);
@@ -103,7 +103,7 @@ function read_form_settings($form_id) {
 	return $settings;
 }
 
-function read_form_settings_by_ref($formref) {
+function local_obu_forms_read_form_settings_by_ref($formref) {
     global $DB;
 
 	$settings = $DB->get_record('local_obu_forms', array('formref' => strtoupper($formref)), '*', IGNORE_MISSING);
@@ -111,7 +111,7 @@ function read_form_settings_by_ref($formref) {
 	return $settings;
 }
 
-function get_forms($manager, $staff, $pg_student, $ump_student) {
+function local_obu_forms_get_forms($manager, $staff, $pg_student, $ump_student) {
     global $DB;
 
 	if (!$manager && !$staff && !$pg_student && !$ump_student) { // Nothing for you here...
@@ -141,9 +141,9 @@ function get_forms($manager, $staff, $pg_student, $ump_student) {
 	$valid = array();
 	$index = array();
 	foreach ($forms as $form) {
-		if ($manager || (get_form_template($form->id) !== false)) { // Only include unpublished forms for managers
+		if ($manager || (local_obu_forms_get_form_template($form->id) !== false)) { // Only include unpublished forms for managers
 			// If a forms manager, only include forms that they manage
-			if (!$manager || is_manager($form)) {
+			if (!$manager || local_obu_forms_is_manager($form)) {
 				$valid[] = $form;
 				$index[] = $form->formref;
 			}
@@ -160,14 +160,14 @@ function get_forms($manager, $staff, $pg_student, $ump_student) {
 	return $forms;
 }
 
-function get_forms_data($formref, $date_from, $date_to) {
+function local_obu_forms_get_forms_data($formref, $date_from, $date_to) {
     global $DB;
 
 	// Get the selected form data records for each published template of this form type
 	$time_to = $date_to + 86399; // Take up to midnight on the last day
 	$forms_data = array();
-	$settings = read_form_settings_by_ref($formref);
-	$templates = read_form_templates($settings->id);
+	$settings = local_obu_forms_read_form_settings_by_ref($formref);
+	$templates = local_obu_forms_read_form_templates($settings->id);
 	foreach ($templates as $template) {
 		if ($template->published) {
 			$where = 'template_id = ' . $template->id . ' and date >= ' . $date_from . ' and date <= ' . $time_to;
@@ -181,7 +181,7 @@ function get_forms_data($formref, $date_from, $date_to) {
 	return $forms_data;
 }
 
-function get_withdrawals($date_from, $date_to) {
+function local_obu_forms_get_withdrawals($date_from, $date_to) {
     global $DB;
 
 	$time_to = $date_to + 86399; // Take up to midnight on the last day
@@ -200,10 +200,10 @@ function get_withdrawals($date_from, $date_to) {
 	return $DB->get_records_sql($sql);
 }
 
-function write_form_template($author, $form_data) {
+function local_obu_forms_write_form_template($author, $form_data) {
 	global $DB;
 
-	$settings = read_form_settings_by_ref($form_data->formref);
+	$settings = local_obu_forms_read_form_settings_by_ref($form_data->formref);
 	if ($settings === false) {
 		return 0;
 	}
@@ -223,7 +223,7 @@ function write_form_template($author, $form_data) {
 	$record->published = $form_data->published;
 	$record->data = $form_data->data['text'];
 
-	$template = read_form_template($record->form_id, $current_version);
+	$template = local_obu_forms_read_form_template($record->form_id, $current_version);
 	if ($template !== false) {
 		$id = $template->id;
 		$record->id = $id;
@@ -235,7 +235,7 @@ function write_form_template($author, $form_data) {
 	return $id;
 }
 
-function read_form_templates($form_id) {
+function local_obu_forms_read_form_templates($form_id) {
 	global $DB;
 
 	$templates = $DB->get_records('local_obu_forms_templates', array('form_id' => $form_id), 'version', '*');
@@ -243,7 +243,7 @@ function read_form_templates($form_id) {
 	return $templates;
 }
 
-function read_form_template($form_id, $version) {
+function local_obu_forms_read_form_template($form_id, $version) {
     global $DB;
 
 	$template = $DB->get_record('local_obu_forms_templates', array('form_id' => $form_id, 'version' => strtoupper($version)), '*', IGNORE_MISSING);
@@ -251,7 +251,7 @@ function read_form_template($form_id, $version) {
 	return $template;
 }
 
-function read_form_template_by_id($template_id) {
+function local_obu_forms_read_form_template_by_id($template_id) {
     global $DB;
 
 	$template = $DB->get_record('local_obu_forms_templates', array('id' => $template_id), '*', MUST_EXIST);
@@ -259,7 +259,7 @@ function read_form_template_by_id($template_id) {
 	return $template;
 }
 
-function read_all_form_settings_with_template_id() {
+function local_obu_forms_read_all_form_settings_with_template_id() {
     global $DB;
 
     $sql = "SELECT DISTINCT 
@@ -271,12 +271,12 @@ function read_all_form_settings_with_template_id() {
     return $DB->get_records_sql($sql);
 }
 
-function get_form_template($form_id, $include_unpublished = false) { // return the latest version of the template for the given form
+function local_obu_forms_get_form_template($form_id, $include_unpublished = false) { // return the latest version of the template for the given form
     global $DB;
 
     // return the latest version
 	$template = null;
-	$templates = read_form_templates($form_id);
+	$templates = local_obu_forms_read_form_templates($form_id);
 	foreach ($templates as $t) {
 		if ($t->published || $include_unpublished) {
 			$template = $t;
@@ -289,7 +289,7 @@ function get_form_template($form_id, $include_unpublished = false) { // return t
 	return false;
 }
 
-function write_form_data($record) {
+function local_obu_forms_write_form_data($record) {
     global $DB;
 
 	if ($record->id == 0) {
@@ -303,7 +303,7 @@ function write_form_data($record) {
 	return $id;
 }
 
-function read_form_data($data_id, &$record) {
+function local_obu_forms_read_form_data($data_id, &$record) {
     global $DB;
 
 	$record = $DB->get_record('local_obu_forms_data', array('id' => $data_id), '*');
@@ -314,7 +314,7 @@ function read_form_data($data_id, &$record) {
 	return true;
 }
 
-function get_form_data($user_id = 0) {
+function local_obu_forms_get_form_data($user_id = 0) {
     global $DB;
 
 	$conditions = array();
@@ -326,7 +326,7 @@ function get_form_data($user_id = 0) {
 	return $data;
 }
 
-function write_form_auths($record) {
+function local_obu_forms_write_form_auths($record) {
     global $DB;
 
 	if ($record->id == 0) {
@@ -339,7 +339,7 @@ function write_form_auths($record) {
 	return $id;
 }
 
-function read_form_auths($data_id, &$record) {
+function local_obu_forms_read_form_auths($data_id, &$record) {
     global $DB;
 
 	$record = $DB->get_record('local_obu_forms_auths', array('data_id' => $data_id), '*', IGNORE_MISSING);
@@ -352,7 +352,7 @@ function read_form_auths($data_id, &$record) {
 	}
 }
 
-function delete_form_auths($record) {
+function local_obu_forms_delete_form_auths($record) {
     global $DB;
 
 	if ($record->id != 0) {
@@ -360,7 +360,7 @@ function delete_form_auths($record) {
 	}
 }
 
-function get_form_auths($authoriser) {
+function local_obu_forms_get_form_auths($authoriser) {
     global $DB;
 
 	$conditions = array();
@@ -372,10 +372,10 @@ function get_form_auths($authoriser) {
 	return $auths;
 }
 
-function write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
+function local_obu_forms_write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
     global $DB, $USER;
 
-	$record = read_form_forwarder($from_id);
+	$record = local_obu_forms_read_form_forwarder($from_id);
 	$record->to_id = $to_id;
 	$record->start_date = $start_date;
 	$record->stop_date = $stop_date;
@@ -391,7 +391,7 @@ function write_form_forwarder($from_id, $to_id, $start_date, $stop_date) {
 	return;
 }
 
-function read_form_forwarder($from_id) {
+function local_obu_forms_read_form_forwarder($from_id) {
     global $DB;
 
 	$record = $DB->get_record('local_obu_forms_forwarders', array('from_id' => $from_id), '*', IGNORE_MISSING);
@@ -407,10 +407,10 @@ function read_form_forwarder($from_id) {
 	return $record;
 }
 
-function delete_form_forwarder($from_id) {
+function local_obu_forms_delete_form_forwarder($from_id) {
     global $DB;
 
-	$record = read_form_forwarder($from_id);
+	$record = local_obu_forms_read_form_forwarder($from_id);
 	if ($record->id != 0) {
 		$DB->delete_records('local_obu_forms_forwarders', array('id' => $record->id));
 	}
@@ -418,13 +418,13 @@ function delete_form_forwarder($from_id) {
 	return;
 }
 
-function get_form_forwarders() {
+function local_obu_forms_get_form_forwarders() {
     global $DB;
 
 	return $DB->get_records('local_obu_forms_forwarders');
 }
 
-function get_academic_adviser($user_id) {
+function local_obu_forms_get_academic_adviser($user_id) {
 	global $DB;
 
 	// Get any Academic Advisers for the user
@@ -449,21 +449,21 @@ function get_academic_adviser($user_id) {
 	return $adviser[0]; // We assume only one (or that the first is most relevant)
 }
 
-function get_advisers($modular, $user_id) {
+function local_obu_forms_get_advisers($modular, $user_id) {
 	global $DB;
 
 	$adviser = array();
 	$adviser[0] = get_string('select', 'local_obu_forms'); // The 'Please select' default
 
 	// Get any Academic Adviser for the user
-	$adviser_id = get_academic_adviser($user_id);
+	$adviser_id = local_obu_forms_get_academic_adviser($user_id);
 	if ($adviser_id != 0) {
 		$user = get_complete_user_data('id', $adviser_id);
 		$adviser[$user->id] = $user->firstname . ' ' . $user->lastname;
 	}
 
 	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads/Programme Administrators for the user's course
-	$courses = get_current_courses($modular, $user_id); // Should only be one
+	$courses = local_obu_forms_get_current_courses($modular, $user_id); // Should only be one
 	$course_id = key($courses);
 	if ($course_id) {
 		$context = context_course::instance($course_id);
@@ -497,7 +497,7 @@ function get_advisers($modular, $user_id) {
 	return $adviser;
 }
 
-function get_supervisors($user_id) { // In this iterration, at least, a supervisor can be any member of staff!
+function local_obu_forms_get_supervisors($user_id) { // In this iterration, at least, a supervisor can be any member of staff!
 	global $DB;
 
 	$supervisor = array();
@@ -517,7 +517,7 @@ function get_supervisors($user_id) { // In this iterration, at least, a supervis
 	return $supervisor;
 }
 
-function get_campuses() {
+function local_obu_forms_get_campuses() {
 	global $DB;
 
 	$campus = array();
@@ -535,7 +535,7 @@ function get_campuses() {
 	return $campus;
 }
 
-function get_authoriser($author_id, $modular, $role, $fields) {
+function local_obu_forms_get_authoriser($author_id, $modular, $role, $fields) {
 	global $DB;
 
 	// Determine if the student is the author or the subject
@@ -568,10 +568,10 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			$module = '';
 		}
 		if ($module != '') {
-			$modules = get_current_modules();
+			$modules = local_obu_forms_get_current_modules();
 			$module_id = array_search($module . ' [' . $campus . ']', $modules, true);
 			if ($module_id > 0) {
-				$authoriser_id = get_module_leader($module_id);
+				$authoriser_id = local_obu_forms_get_module_leader($module_id);
 			}
 		}
 	} else if ($role == 3) { // Subject Coordinator
@@ -580,10 +580,10 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			if (strpos($course_code, '[') === false) {
 				$course_code = $course_code . '[OBO]'; // Default campus
 			}
-			$courses = get_current_courses($modular);
+			$courses = local_obu_forms_get_current_courses($modular);
 			$course_id = array_search($course_code, $courses, true);
 		} else { // Get the student's current course (programme)
-			$courses = get_current_courses($modular, $student_id);
+			$courses = local_obu_forms_get_current_courses($modular, $student_id);
 			$course_id = key($courses);
 		}
 		if ($course_id) {
@@ -607,18 +607,18 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			$authoriser_id = $academic_adviser->id;
 		}
 	} else if ($role == 6) { // Programme Lead
-		$authoriser_id = get_programme_leads($student_id, $modular, 0);
+		$authoriser_id = local_obu_forms_get_programme_leads($student_id, $modular, 0);
 	} else if ($role == 7) { // Programme Lead (Joint Honours) - only present for joint honours students (will skip step otherwise)
-		$authoriser_id = get_programme_leads($student_id, $modular, 1);
+		$authoriser_id = local_obu_forms_get_programme_leads($student_id, $modular, 1);
 	} else if (($role == 8) && $fields['module_2']) { // Module Leader (2) - second module must be present (will skip step otherwise)
 		if (!$fields['campus_2']) {
 			$campus = 'OBO'; // The default
 		} else {
 			$campus = $fields['campus_2'];
 		}
-		$modules = get_current_modules();
+		$modules = local_obu_forms_get_current_modules();
 		$module_id = array_search(strtoupper($fields['module_2'] . ' [' . $campus . ']'), $modules, true);
-		$authoriser_id = get_module_leader($module_id);
+		$authoriser_id = local_obu_forms_get_module_leader($module_id);
 	} else if ($role == 9) { // Exchanges Office
 		$authoriser = get_complete_user_data('username', 'exchanges');
 		$authoriser_id = $authoriser->id;
@@ -636,10 +636,10 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 		$authoriser = get_complete_user_data('username', 'isat');
 		$authoriser_id = $authoriser->id;
 	} else if (($role == 14) && $fields['course_change']) { // Programme Lead (Course Change)
-		$course_id = get_course_id($fields['course_change'], $modular);
-		$authoriser_id = get_programme_lead($course_id);
+		$course_id = local_obu_forms_get_course_id($fields['course_change'], $modular);
+		$authoriser_id = local_obu_forms_get_programme_lead($course_id);
 	} else if (($role == 15) && $fields['course_change']) { // Subject Coordinator (Course Change)
-		$course_id = get_course_id($fields['course_change'], $modular);
+		$course_id = local_obu_forms_get_course_id($fields['course_change'], $modular);
 		if ($course_id) {
 			$context = context_course::instance($course_id);
 			$sc_role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST);
@@ -649,7 +649,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 			}
 		}
 	} else if (($role == 16) && $fields['course_change_joint']) { // Subject Coordinator (Course Change, Joint Honours)
-		$course_id = get_course_id($fields['course_change_joint'], $modular);
+		$course_id = local_obu_forms_get_course_id($fields['course_change_joint'], $modular);
 		if ($course_id) {
 			$context = context_course::instance($course_id);
 			$sc_role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST);
@@ -666,7 +666,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	}
 
 	// Finally, check if all forms for the determined authoriser should be forwarded (temporarily)
-	$forwarder = read_form_forwarder($authoriser_id);
+	$forwarder = local_obu_forms_read_form_forwarder($authoriser_id);
 	if ($forwarder->id != 0) { // There is a forwarder - action it if it's active today
 		$today = strtotime('today midnight');
 		if (($today >= $forwarder->start_date) && ($today <= $forwarder->stop_date)) {
@@ -677,7 +677,7 @@ function get_authoriser($author_id, $modular, $role, $fields) {
 	return $authoriser_id;
 }
 
-function get_course_id($course, $modular) { // Course could just be the course code or the title with the code in round brackets
+function local_obu_forms_get_course_id($course, $modular) { // Course could just be the course code or the title with the code in round brackets
 	$last_bracket = -1;
 	while (($pos = strpos($course, '(', ($last_bracket + 1))) !== false) {
 		$last_bracket = $pos;
@@ -689,20 +689,20 @@ function get_course_id($course, $modular) { // Course could just be the course c
 	} else {
 		$course_code = $course;
 	}
-	$courses = get_current_courses($modular);
+	$courses = local_obu_forms_get_current_courses($modular);
 
 	return(array_search(strtoupper($course_code), $courses, true));
 }
 
 // Check if the given user is a member of staff
-function is_staff($username = null) {
+function local_obu_forms_is_staff($username = null) {
 	$is_staff = ((strlen($username) == 8) && ((substr($username, 0, 1) == 'p') || (substr($username, 0, 1) == 'd')) && is_numeric(substr($username, 1)));
 
 	return $is_staff;
 }
 
 // Check 'quickly' if the user is officially enrolled as a student on any course
-function is_student($user_id = 0, $type = null) {
+function local_obu_forms_is_student($user_id = 0, $type = null) {
 	global $DB;
 
 	if ($user_id == 0) { // Mandatory
@@ -735,7 +735,7 @@ function is_student($user_id = 0, $type = null) {
 	}
 }
 
-function get_current_courses($modular = false, $user_id = 0, $names = false, $joint = false) {
+function local_obu_forms_get_current_courses($modular = false, $user_id = 0, $names = false, $joint = false) {
 	global $DB;
 
 	$courses = array();
@@ -793,7 +793,7 @@ function get_current_courses($modular = false, $user_id = 0, $names = false, $jo
 	return $courses;
 }
 
-function get_current_course_id_number($modular = false, $user_id = 0, $names = false, $joint = false){
+function local_obu_forms_get_current_course_id_number($modular = false, $user_id = 0, $names = false, $joint = false){
     global $DB;
     $courses = array();
 
@@ -826,7 +826,7 @@ function get_current_course_id_number($modular = false, $user_id = 0, $names = f
     return $courses;
 }
 
-function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enroled = true, $free_language = false) {
+function local_obu_forms_get_current_modules($category_id = 0, $type = null, $user_id = 0, $enroled = true, $free_language = false) {
 	global $DB;
 
 	// Establish the initial selection criteria to apply
@@ -912,18 +912,18 @@ function get_current_modules($category_id = 0, $type = null, $user_id = 0, $enro
 	return $modules;
 }
 
-function get_programme_leads($student_id = 0, $modular = false, $index = 0) {
+function local_obu_forms_get_programme_leads($student_id = 0, $modular = false, $index = 0) {
 	global $DB;
 
 	// Get all courses for this student (normally 1 but 2 for joint honours students)
-	$courses = get_current_courses($modular, $student_id);
+	$courses = local_obu_forms_get_current_courses($modular, $student_id);
 	if (empty($courses)) {
 		return 0;
 	}
 
 	$programme_leads = array();
 	foreach ($courses as $course_id => $course_name) {
-		$programme_lead = get_programme_lead($course_id);
+		$programme_lead = local_obu_forms_get_programme_lead($course_id);
 		if (($programme_lead > 0) && !in_array($programme_lead, $programme_leads, true)) {
 			$programme_leads[] = $programme_lead;
 		}
@@ -936,7 +936,7 @@ function get_programme_leads($student_id = 0, $modular = false, $index = 0) {
 	return $programme_leads[$index];
 }
 
-function get_programme_lead($course_id = 0) {
+function local_obu_forms_get_programme_lead($course_id = 0) {
 	global $DB;
 
 	$context = context_course::instance($course_id);
@@ -969,7 +969,7 @@ function get_programme_lead($course_id = 0) {
 	return $programme_lead;
 }
 
-function get_module_leader($module_id = 0) {
+function local_obu_forms_get_module_leader($module_id = 0) {
 	global $DB;
 
 	// Validate the module ID

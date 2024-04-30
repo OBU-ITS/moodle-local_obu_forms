@@ -30,11 +30,11 @@ require_once('./redirect_input.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -73,20 +73,20 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->navbar->add($heading);
 
-read_form_data($data_id, $data);
-$template = read_form_template_by_id($data->template_id);
-$form = read_form_settings($template->form_id);
+local_obu_forms_read_form_data($data_id, $data);
+$template = local_obu_forms_read_form_template_by_id($data->template_id);
+$form = local_obu_forms_read_form_settings($template->form_id);
 
 // If a staff form, extract any given student number
 $student_number = '';
 if (!$form->student) {
-	load_form_fields($data, $fields);
+    local_obu_forms_load_form_fields($data, $fields);
 	if (array_key_exists('student_number', $fields)) {
 		$student_number = ' [' . $fields['student_number'] . ']';
 	}
 }
 
-get_form_status($USER->id, $form, $data, $text, $button); // get the authorisation trail and the next action (from the user's perspective)
+local_obu_forms_get_form_status($USER->id, $form, $data, $text, $button); // get the authorisation trail and the next action (from the user's perspective)
 $form_status = '<h4>' . $form->formref . ': ' . $form->name . $student_number . '</h4>' . $text;
 
 $parameters = [
@@ -97,7 +97,7 @@ $parameters = [
 ];
 
 // Check that they have both the authority and the ability to redirect this form
-if (!is_manager($form) || ($data->authorisation_state > 0)) { // Already finally approved or rejected?
+if (!local_obu_forms_is_manager($form) || ($data->authorisation_state > 0)) { // Already finally approved or rejected?
 	$message = get_string('form_unavailable', 'local_obu_forms');
 } else {
 	$message = '';
@@ -126,8 +126,8 @@ else if ($mform_data = $mform->get_data()) {
 		}
 		$data->redirector_id = $USER->id;
 		$data->redirection_date = time();
-		write_form_data($data); // Update the form data record
-		update_authoriser($form, $data, $authoriser_id); // Update the authorisations and send notification emails
+        local_obu_forms_write_form_data($data); // Update the form data record
+        local_obu_forms_update_authoriser($form, $data, $authoriser_id); // Update the authorisations and send notification emails
 		
 		redirect($back);
 	}

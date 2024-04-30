@@ -30,12 +30,12 @@ require_once('./course_test_input.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 $dir = $home . 'local/obu_forms/';
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -59,7 +59,7 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
 if ($mform_data = (array)$mform->get_data()) {
-	$courses = get_current_courses(false, 0, true, false); // modular?, user_id, names?, joint?);
+	$courses = local_obu_forms_get_current_courses(false, 0, true, false); // modular?, user_id, names?, joint?);
 
 	foreach ($courses as $id => $text) {
 		echo $text . '<br>'; 

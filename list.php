@@ -34,13 +34,13 @@ $home = new moodle_url('/');
 $dir = $home . 'local/obu_forms/';
 
 // Can only list someone else's forms if we are a form manager or a member of staff
-if (is_manager()) {
-	$forms_course = get_forms_course();
+if (local_obu_forms_is_manager()) {
+	$forms_course = local_obu_forms_get_forms_course();
 	require_login($forms_course);
 	$back = $home . 'course/view.php?id=' . $forms_course;
 } else {
 	$back = $dir . 'menu.php';
-	if (!is_staff($USER->username)) {
+	if (!local_obu_forms_is_staff($USER->username)) {
 		redirect($back);
 	}
 }

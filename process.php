@@ -33,8 +33,8 @@ require_login();
 $home = new moodle_url('/');
 $dir = $home . 'local/obu_forms/';
 $source = '';
-if (is_manager()) {
-	$forms_course = get_forms_course();
+if (local_obu_forms_is_manager()) {
+	$forms_course = local_obu_forms_get_forms_course();
 	require_login($forms_course);
 	if (isset($_REQUEST['source'])) {
 		$source = $_REQUEST['source'];
@@ -60,7 +60,7 @@ if (!isset($_REQUEST['id'])) {
 }
 
 $data_id = $_REQUEST['id'];
-if (!load_form_data($data_id, $record, $fields)) {
+if (!local_obu_forms_load_form_data($data_id, $record, $fields)) {
 	echo(get_string('invalid_data', 'local_obu_forms'));
 	die;
 }
@@ -75,8 +75,8 @@ $PAGE->set_pagelayout('standard');
 $PAGE->set_title($title);
 $PAGE->set_heading($title);
 
-$template = read_form_template_by_id($record->template_id);
-$form = read_form_settings($template->form_id);
+$template = local_obu_forms_read_form_template_by_id($record->template_id);
+$form = local_obu_forms_read_form_settings($template->form_id);
 
 $PAGE->navbar->add(get_string('form', 'local_obu_forms') . ' ' . $form->formref);
 
@@ -90,7 +90,7 @@ if (($record->authorisation_state == 0) && ($record->authorisation_level == 0)) 
 	$status_text = get_string('status_not_submitted', 'local_obu_forms');
 	
 	// For the time being, we auto-submit the form to avoid a two-stage process for the author (might change?)
-	update_workflow(true);
+    local_obu_forms_update_workflow(true);
 	$status_text = '';
 	
 } else if ($record->authorisation_state == 1) { // Form rejected
@@ -104,11 +104,11 @@ if ($status_text) {
 	$status_text = '<h3>' . $status_text . '</h3>';
 }
 
-get_form_status($USER->id, $form, $record, $text, $button_text); // get the authorisation trail and the next action (from the user's perspective)
+local_obu_forms_get_form_status($USER->id, $form, $record, $text, $button_text); // get the authorisation trail and the next action (from the user's perspective)
 $status_text .= $text;
 
 if ($button_text != 'authorise') { // If not the next authoriser, check that this user can view the form
-	if (!is_manager($form) && ($USER->id != $record->author)) {
+	if (!local_obu_forms_is_manager($form) && ($USER->id != $record->author)) {
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 } else { // Display any notes prepared for the authoriser
@@ -168,19 +168,19 @@ if ($mform->is_cancelled()) {
 
 if ($mform_data = $mform->get_data()) {
 	if (($mform_data->auth_state == $record->authorisation_state) && ($mform_data->auth_level == $record->authorisation_level)) { // Check nothing happened while we were away (or they clicked twice)
-		if (is_manager($form) && ($mform_data->redirectbutton == get_string('redirect', 'local_obu_forms')) && ($record->authorisation_state == 0)) { // They want to redirect the form
-			save_notes($mform_data->notes);
+		if (local_obu_forms_is_manager($form) && ($mform_data->redirectbutton == get_string('redirect', 'local_obu_forms')) && ($record->authorisation_state == 0)) { // They want to redirect the form
+            local_obu_forms_save_notes($mform_data->notes);
 			redirect($redirect_form);
-		} else if (is_manager($form) && ($mform_data->savebutton == get_string('save', 'local_obu_forms'))) { // They just want to save the notes
-			save_notes($mform_data->notes);
+		} else if (local_obu_forms_is_manager($form) && ($mform_data->savebutton == get_string('save', 'local_obu_forms'))) { // They just want to save the notes
+            local_obu_forms_save_notes($mform_data->notes);
 		} else if (($button_text == 'authorise') && ($mform_data->submitbutton != get_string('continue', 'local_obu_forms'))) { // They can do something (and they want to)
-			if (is_manager($form)) { // A forms manager
-				save_notes($mform_data->notes);
+			if (local_obu_forms_is_manager($form)) { // A forms manager
+                local_obu_forms_save_notes($mform_data->notes);
 			}
 			if ($mform_data->rejectbutton != get_string('reject', 'local_obu_forms')) {
-				update_workflow(true, $mform_data->comment);
+                local_obu_forms_update_workflow(true, $mform_data->comment);
 			} else {
-				update_workflow(false, $mform_data->comment);
+                local_obu_forms_update_workflow(false, $mform_data->comment);
 			}
 		}
 	}
@@ -203,26 +203,26 @@ else {
 
 echo $OUTPUT->footer();
 
-function save_notes($notes) {
+function local_obu_forms_save_notes($notes) {
 	global $record, $fields;
 	
 	// Update the form data record
 	$record->notes = $notes;
-	save_form_data($record, $fields);
+    local_obu_forms_save_form_data($record, $fields);
 }
 
-function update_workflow($authorised = true, $comment = null) {
+function local_obu_forms_update_workflow($authorised = true, $comment = null) {
 	global $form, $record, $fields;
 	
 	// Update the form data record
 	$authoriser_id = 0;
 	if ($record->authorisation_level == 0) { // Being submitted
-		$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_1_role, $fields);
+		$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_1_role, $fields);
 		$record->auth_1_id = $authoriser_id;
 		if ($authoriser_id != 0) {
 			$record->authorisation_level = 1;
 		} else { // Skip the level (OK for some roles)
-			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_2_role, $fields);
+			$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_2_role, $fields);
 			$record->auth_2_id = $authoriser_id;
 			$record->authorisation_level = 2;
 		}
@@ -234,12 +234,12 @@ function update_workflow($authorised = true, $comment = null) {
 		} else if ($form->auth_2_role == 0) {
 			$record->authorisation_state = 2; // It ends here
 		} else {
-			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_2_role, $fields);
+			$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_2_role, $fields);
 			$record->auth_2_id = $authoriser_id;
 			if ($authoriser_id != 0) {
 				$record->authorisation_level = 2;
 			} else { // Skip the level (OK for some roles)
-				$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_3_role, $fields);
+				$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_3_role, $fields);
 				$record->auth_3_id = $authoriser_id;
 				$record->authorisation_level = 3;
 			}
@@ -252,12 +252,12 @@ function update_workflow($authorised = true, $comment = null) {
 		} else if ($form->auth_3_role == 0) {
 			$record->authorisation_state = 2; // It ends here
 		} else {
-			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_3_role, $fields);
+			$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_3_role, $fields);
 			$record->auth_3_id = $authoriser_id;
 			if ($authoriser_id != 0) {
 				$record->authorisation_level = 3;
 			} else { // Skip the level (OK for some roles)
-				$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_4_role, $fields);
+				$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_4_role, $fields);
 				$record->auth_4_id = $authoriser_id;
 				$record->authorisation_level = 4;
 			}
@@ -270,12 +270,12 @@ function update_workflow($authorised = true, $comment = null) {
 		} else if ($form->auth_4_role == 0) {
 			$record->authorisation_state = 2; // It ends here
 		} else {
-			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_4_role, $fields);
+			$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_4_role, $fields);
 			$record->auth_4_id = $authoriser_id;
 			if ($authoriser_id != 0) {
 				$record->authorisation_level = 4;
 			} else { // Skip the level (OK for some roles)
-				$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_5_role, $fields);
+				$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_5_role, $fields);
 				$record->auth_5_id = $authoriser_id;
 				$record->authorisation_level = 5;
 			}
@@ -288,12 +288,12 @@ function update_workflow($authorised = true, $comment = null) {
 		} else if ($form->auth_5_role == 0) {
 			$record->authorisation_state = 2; // It ends here
 		} else {
-			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_5_role, $fields);
+			$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_5_role, $fields);
 			$record->auth_5_id = $authoriser_id;
 			if ($authoriser_id != 0) {
 				$record->authorisation_level = 5;
 			} else { // Skip the level (OK for some roles)
-				$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_6_role, $fields);
+				$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_6_role, $fields);
 				$record->auth_6_id = $authoriser_id;
 				$record->authorisation_level = 6;
 			}
@@ -306,7 +306,7 @@ function update_workflow($authorised = true, $comment = null) {
 		} else if ($form->auth_6_role == 0) {
 			$record->authorisation_state = 2; // It ends here
 		} else {
-			$authoriser_id = get_authoriser($record->author, $form->modular, $form->auth_6_role, $fields);
+			$authoriser_id = local_obu_forms_get_authoriser($record->author, $form->modular, $form->auth_6_role, $fields);
 			$record->auth_6_id = $authoriser_id;
 			$record->authorisation_level = 6;
 		}
@@ -320,8 +320,8 @@ function update_workflow($authorised = true, $comment = null) {
 		}
 	}
 
-	save_form_data($record, $fields);
+    local_obu_forms_save_form_data($record, $fields);
 	
 	// Update the stored authorisation requests and send notification emails
-	update_authoriser($form, $record, $authoriser_id);
+    local_obu_forms_update_authoriser($form, $record, $authoriser_id);
 }

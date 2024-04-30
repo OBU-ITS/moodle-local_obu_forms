@@ -30,8 +30,8 @@ require_once('./db_update.php');
 require_login();
 
 $home = new moodle_url('/');
-if (is_manager()) {
-	$forms_course = get_forms_course();
+if (local_obu_forms_is_manager()) {
+	$forms_course = local_obu_forms_get_forms_course();
 	require_login($forms_course);
 	$back = $home . 'course/view.php?id=' . $forms_course;
 } else {
@@ -62,11 +62,11 @@ $PAGE->set_heading($title);
 $PAGE->navbar->add($heading);
 
 $staff_forms = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->username, 0, 1) == 'd')) && is_numeric(substr($USER->username, 1))); // Can view staff forms
-$pg_forms = $staff_forms || is_student($USER->id, 'PG'); // Can view PG student forms
-$ump_forms = $staff_forms || is_student($USER->id, 'UMP'); // Can view UMP student forms
+$pg_forms = $staff_forms || local_obu_forms_is_student($USER->id, 'PG'); // Can view PG student forms
+$ump_forms = $staff_forms || local_obu_forms_is_student($USER->id, 'UMP'); // Can view UMP student forms
 
 //check if program and then retrieve campus from here, display forms based on campus
-$courses = get_current_course_id_number(false, $USER->id);
+$courses = local_obu_forms_get_current_course_id_number(false, $USER->id);
 $courseId = current($courses);
 $campusCode = strtok($courseId, "~");
 $partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
@@ -89,7 +89,7 @@ if ($type == 'staff') { // Exclude student forms
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-$forms = get_forms(is_manager(), $staff_forms, $pg_forms, $ump_forms);
+$forms = local_obu_forms_get_forms(local_obu_forms_is_manager(), $staff_forms, $pg_forms, $ump_forms);
 
 $url = new moodle_url('/local/obu_forms/form.php');
 foreach ($forms as $form) {

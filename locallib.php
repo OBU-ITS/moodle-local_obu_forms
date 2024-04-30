@@ -26,17 +26,17 @@
 require_once($CFG->dirroot . '/local/obu_forms/db_update.php');
 
 // Determine the possible menu options for this user
-function get_menu_options() {
+function local_obu_forms_get_menu_options() {
 	global $USER;
 
 	$options = array();
 	$update = has_capability('local/obu_forms:update', context_system::instance());
 	$accommodation = ($USER->username == 'accommodation');
-	$staff = is_staff($USER->username); // Has a 'p' number?
-	$student = is_student($USER->id); // Enrolled on a PIP-based course (programme)?
+	$staff = local_obu_forms_is_staff($USER->username); // Has a 'p' number?
+	$student = local_obu_forms_is_student($USER->id); // Enrolled on a PIP-based course (programme)?
 
 	// Add the 'My Forms' option
-	if ($staff || $student || !empty(get_form_data($USER->id))) {
+	if ($staff || $student || !empty(local_obu_forms_get_form_data($USER->id))) {
 		$options[get_string('myforms', 'local_obu_forms')] = '/local/obu_forms/index.php?userid=' . $USER->id;
 	}
 
@@ -64,7 +64,7 @@ function get_menu_options() {
 }
 
 // Check if the user is a forms manager (or a manager of a given form)
-function is_manager($form = null) {
+function local_obu_forms_is_manager($form = null) {
 	global $USER;
 
 	if ($form == null) {
@@ -72,37 +72,37 @@ function is_manager($form = null) {
 			return true;
 		}
 
-		$is_manager = has_forms_role($USER->id, 4, 5);
+		$is_manager = local_obu_forms_has_forms_role($USER->id, 4, 5);
 	} else if ($form->modular == '0') { // PG form
-		$is_manager = is_manager_of_pg_form();
+		$is_manager = local_obu_forms_is_manager_of_pg_form();
 	} else { // UMP form
-		$is_manager = is_manager_of_ump_form();
+		$is_manager = local_obu_forms_is_manager_of_ump_form();
 	}
 
 	return $is_manager;
 }
 
-function is_manager_of_pg_form() {
+function local_obu_forms_is_manager_of_pg_form() {
 	global $USER;
 
 	if (is_siteadmin()) {
 		return true;
 	}
 
-	return has_forms_role($USER->id, 4);
+	return local_obu_forms_has_forms_role($USER->id, 4);
 }
 
-function is_manager_of_ump_form() {
+function local_obu_forms_is_manager_of_ump_form() {
 	global $USER;
 
 	if (is_siteadmin()) {
 		return true;
 	}
 
-	return has_forms_role($USER->id, 5);
+	return local_obu_forms_has_forms_role($USER->id, 5);
 }
 
-function get_dates($month, $year, $back = 0, $forward = 0) {
+function local_obu_forms_get_dates($month, $year, $back = 0, $forward = 0) {
 	$months = [ 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC' ];
 
 	$dates = array();
@@ -155,7 +155,7 @@ function get_dates($month, $year, $back = 0, $forward = 0) {
 	return $dates;
 }
 
-function get_authorisers() {
+function local_obu_forms_get_authorisers() {
 	$authoriser = array(
 		'None',
 		'CSA/SC',
@@ -179,7 +179,7 @@ function get_authorisers() {
 	return $authoriser;
 }
 
-function get_study_modes() {
+function local_obu_forms_get_study_modes() {
 	$study_mode = array(
 		'Full-time',
 		'Part-time',
@@ -190,7 +190,7 @@ function get_study_modes() {
 	return $study_mode;
 }
 
-function get_reasons() {
+function local_obu_forms_get_reasons() {
 	$reason = array(
 		'Health Reasons',
 		'Financial Reasons',
@@ -207,7 +207,7 @@ function get_reasons() {
 	return $reason;
 }
 
-function get_addition_reasons() {
+function local_obu_forms_get_addition_reasons() {
 	$reason = array(
 		'I have failed or need to re-sit a module and subsequently need to make programme changes',
 		'The module I had selected was cancelled so I need to add a replacement module',
@@ -221,7 +221,7 @@ function get_addition_reasons() {
 	return $reason;
 }
 
-function get_deletion_reasons() {
+function local_obu_forms_get_deletion_reasons() {
 	$reason = array(
 		'I have failed or need to re-sit a module and subsequently need to make programme changes',
 		'The module I had selected was cancelled so I need to add a replacement module',
@@ -235,7 +235,7 @@ function get_deletion_reasons() {
 	return $reason;
 }
 
-function get_assessment_types() {
+function local_obu_forms_get_assessment_types() {
 	$assessment_type = array(
 		'Written assignment (individual)',
 		'Written assignment (group)',
@@ -256,7 +256,7 @@ function get_assessment_types() {
 	return $assessment_type;
 }
 
-function get_component_comments() {
+function local_obu_forms_get_component_comments() {
 	$component_comment = array(
 		'',
 		'Not Attempted',
@@ -267,15 +267,15 @@ function get_component_comments() {
 	return $component_comment;
 }
 
-function encode_xml($string) {
+function local_obu_forms_encode_xml($string) {
 	return(htmlentities($string, ENT_NOQUOTES | ENT_XML1, 'UTF-8'));
 }
 
-function decode_xml($string) {
+function local_obu_forms_decode_xml($string) {
 	return(html_entity_decode($string, ENT_NOQUOTES | ENT_XML1, 'UTF-8'));
 }
 
-function template_fields($template) {
+function local_obu_forms_template_fields($template) {
 	$fields = array();
 
 	$fld_start = '<input ';
@@ -293,7 +293,7 @@ function template_fields($template) {
 		if ($pos === false) {
 			break;
 		}
-		$element = split_input_field(substr($template, $offset, ($pos - $offset)));
+		$element = local_obu_forms_split_input_field(substr($template, $offset, ($pos - $offset)));
 		$fields[] = $element;
 		$offset = $pos + $fld_end_len;
 	} while(true);
@@ -301,7 +301,7 @@ function template_fields($template) {
 	return $fields;
 }
 
-function template_selects($template) {
+function local_obu_forms_template_selects($template) {
 	$selects = array();
 
 	$fld_start = '<input ';
@@ -319,7 +319,7 @@ function template_selects($template) {
 		if ($pos === false) {
 			break;
 		}
-		$element = split_input_field(substr($template, $offset, ($pos - $offset)));
+		$element = local_obu_forms_split_input_field(substr($template, $offset, ($pos - $offset)));
 		$offset = $pos + $fld_end_len;
 		if ($element['type'] == 'select') {
 			$selects[$element['id']] = $element['name'];
@@ -329,7 +329,7 @@ function template_selects($template) {
 	return $selects;
 }
 
-function split_input_field($input_field) {
+function local_obu_forms_split_input_field($input_field) {
 	$parts = str_replace('" ', '"|^|', $input_field);
 	$parts = explode('|^|', $parts);
 	$params = array();
@@ -387,7 +387,7 @@ function split_input_field($input_field) {
 	return $params;
 }
 
-function split_name($fullname, $prefix = true) {
+function local_obu_forms_split_name($fullname, $prefix = true) {
 	$parts = array();
 	$split_pos = strpos($fullname, ': ');
 	if ($prefix) {
@@ -400,7 +400,7 @@ function split_name($fullname, $prefix = true) {
 	return $parts;
 }
 
-function merge_xml($form, $fields) {
+function local_obu_forms_merge_xml($form, $fields) {
 	$file = './xml/' . $form . '_merge.xml';
 	$xml = file_get_contents($file);
 	if ($xml === false) {
@@ -410,7 +410,7 @@ function merge_xml($form, $fields) {
 	$i = 0;
 	foreach ($fields as $field) {
 		$search = '@@' . $i++ . '@';
-		$xml = str_replace($search, encode_xml($field), $xml);
+		$xml = str_replace($search, local_obu_forms_encode_xml($field), $xml);
 	}
 
 	header('Content-Disposition: attachment; filename=' . $form . '.xml');
@@ -420,26 +420,26 @@ function merge_xml($form, $fields) {
 	return true;
 }
 
-function save_form_data($record, $fields) {
+function local_obu_forms_save_form_data($record, $fields) {
 	$xml = new SimpleXMLElement('<form_data/>');
 	foreach ($fields as $key => $value) {
-		$xml->addChild($key, encode_xml($value));
+		$xml->addChild($key, local_obu_forms_encode_xml($value));
 	}
     $record->data = $xml->asXML();
 
-	return write_form_data($record);
+	return local_obu_forms_write_form_data($record);
 }
 
-function load_form_data($data_id, &$record, &$fields) {
-	if (!read_form_data($data_id, $record)) {
+function local_obu_forms_load_form_data($data_id, &$record, &$fields) {
+	if (!local_obu_forms_read_form_data($data_id, $record)) {
 		return false;
 	}
-	load_form_fields($record, $fields);
+	local_obu_forms_load_form_fields($record, $fields);
 
 	return true;
 }
 
-function load_form_fields($record, &$fields) {
+function local_obu_forms_load_form_fields($record, &$fields) {
 	$xml = new SimpleXMLElement($record->data);
 	$fields = array();
 	foreach ($xml as $key => $value) {
@@ -447,7 +447,7 @@ function load_form_fields($record, &$fields) {
 	}
 }
 
-function get_form_status($user_id, $form, $data, &$text, &$button) {
+function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$button) {
 
 	$text = '';
 	$button = '';
@@ -461,7 +461,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 	}
 	$sc_name = $sc->alternatename;
 
-	$authoriser_role = get_authorisers();
+	$authoriser_role = local_obu_forms_get_authorisers();
 
 	// Prepare the submission/authorisation trail
 	$date = date_create();
@@ -712,7 +712,7 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 				$authoriser_id = $data->auth_6_id;
 				$role_id = $form->auth_6_role;
 			}
-			if (($authoriser_id == $user_id) || (($authoriser_id == $sc_id) && is_manager($form))) {
+			if (($authoriser_id == $user_id) || (($authoriser_id == $sc_id) && local_obu_forms_is_manager($form))) {
 				$name = 'you as ' . $authoriser_role[$role_id];
 				$button = 'authorise';
 			} else {
@@ -734,18 +734,18 @@ function get_form_status($user_id, $form, $data, &$text, &$button) {
 	}
 }
 
-function update_authoriser($form, $data, $authoriser_id) {
+function local_obu_forms_update_authoriser($form, $data, $authoriser_id) {
 
-	$authoriser_role = get_authorisers();
+	$authoriser_role = local_obu_forms_get_authorisers();
 
 	// Update the stored authorisation requests
-	read_form_auths($data->id, $auth);
+	local_obu_forms_read_form_auths($data->id, $auth);
 	if ($authoriser_id == 0) {
-		delete_form_auths($auth);
+		local_obu_forms_delete_form_auths($auth);
 	} else {
 		$auth->authoriser = $authoriser_id;
 		$auth->request_date = time();
-		write_form_auths($auth);
+		local_obu_forms_write_form_auths($auth);
 	}
 
 	// Determine the URL to use to link to the form
@@ -775,12 +775,12 @@ function update_authoriser($form, $data, $authoriser_id) {
 		'Auto-Submitted: auto-generated'
 	);
 
-	get_form_status($author->id, $form, $data, $text, $button_text); // get the status from the author's perspective
+	local_obu_forms_get_form_status($author->id, $form, $data, $text, $button_text); // get the status from the author's perspective
 
 	// If a staff form, extract any given student number
 	$student_number = '';
 	if (!$form->student) {
-		load_form_fields($data, $fields);
+		local_obu_forms_load_form_fields($data, $fields);
 		if (array_key_exists('student_number', $fields)) {
 			$student_number = ' [' . $fields['student_number'] . ']';
 		}
@@ -789,7 +789,7 @@ function update_authoriser($form, $data, $authoriser_id) {
 	$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
 	email_to_user($author, $sc_contact, 'The Status of Your Form ' . $form->formref . $student_number, html_to_text($html), $html);
 	if ($authoriser_id != $sc_id) {
-		get_form_status($sc_id, $form, $data, $text, $button_text); // get the status from the perspective of Student Central
+		local_obu_forms_get_form_status($sc_id, $form, $data, $text, $button_text); // get the status from the perspective of Student Central
 		$html = '<h4><a href="' . $program . '">' . $form->formref . ': ' . $form->name . $student_number . '</a></h4>' . $text;
 		email_to_user($sc_notifications, $author, 'Form ' . $form->formref . $student_number . ' Status Update (' . $author->username . ')', html_to_text($html), $html);
 	}

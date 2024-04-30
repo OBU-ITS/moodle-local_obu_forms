@@ -33,7 +33,7 @@ function local_obu_forms_extend_navigation($navigation) {
 		return;
 	}
 	
-	if (($USER->username != 'accommodation') && !is_staff($USER->username) && !is_student($USER->id) && empty(get_form_data($USER->id))) {
+	if (($USER->username != 'accommodation') && !local_obu_forms_is_staff($USER->username) && !local_obu_forms_is_student($USER->id) && empty(local_obu_forms_get_form_data($USER->id))) {
 		return;
 	}
 	 

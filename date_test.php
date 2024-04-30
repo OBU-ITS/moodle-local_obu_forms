@@ -32,12 +32,12 @@ $months = [ 'JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT'
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 $dir = $home . 'local/obu_forms/';
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -58,7 +58,7 @@ if (isset($_REQUEST['date'])) {
 	$month = substr($_REQUEST['date'], 0, 2);
 	$year = substr($_REQUEST['date'], 2);
 	$date = $months[$month - 1] . ' ' . $year;
-	$dates = get_dates($month, $year);
+	$dates = local_obu_forms_get_dates($month, $year);
 }
 
 $parameters = [
@@ -77,7 +77,7 @@ if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('submit', 'local_obu_forms')) {
 		$month = substr($data['date'], 0, 2);
 		$year = 2000 + substr($data['date'], 2);
-		$dates = get_dates($month, $year);
+		$dates = local_obu_forms_get_dates($month, $year);
 		echo $months[$month] + ' ' + $year;
 		foreach($dates as $date) {
 			echo $date;

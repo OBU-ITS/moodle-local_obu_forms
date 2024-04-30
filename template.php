@@ -31,11 +31,11 @@ require_once('./template_input.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -66,10 +66,10 @@ $is_published = 0;
 
 if (isset($_REQUEST['formref'])) {
 	$formref = strtoupper($_REQUEST['formref']);
-	$settings = read_form_settings_by_ref($formref);
+	$settings = local_obu_forms_read_form_settings_by_ref($formref);
 	if ($settings === false) {
 		$message = get_string('invalid_data', 'local_obu_forms');
-	} else if (!is_manager($settings)) { // Not a manager of this type of form
+	} else if (!local_obu_forms_is_manager($settings)) { // Not a manager of this type of form
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	} else {
 		if ($formref != '') {
@@ -81,7 +81,7 @@ if (isset($_REQUEST['formref'])) {
 			$version = strtoupper($_REQUEST['version']);
 		} else {
 			if (!isset($_REQUEST['versions']) || (isset($_REQUEST['versions']) && $_REQUEST['versions'] != 0)) {
-				$templates = read_form_templates($form_id);
+				$templates = local_obu_forms_read_form_templates($form_id);
 				if ($templates) {
 					$versions[0] = get_string('new_version', 'local_obu_forms'); // The 'New Version' option
 					foreach ($templates as $template) {
@@ -89,7 +89,7 @@ if (isset($_REQUEST['formref'])) {
 					}
 					if (isset($_REQUEST['versions'])) {
 						$version = $versions[$_REQUEST['versions']];
-						$record = read_form_template($form_id, $version);
+						$record = local_obu_forms_read_form_template($form_id, $version);
 					}
 				}
 			}
@@ -117,7 +117,7 @@ if ($mform->is_cancelled()) {
 else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {
 		if (!$mform_data->already_published || is_siteadmin()) {
-			write_form_template($USER->id, $mform_data);
+            local_obu_forms_write_form_template($USER->id, $mform_data);
 		}
 		redirect($url);
     }

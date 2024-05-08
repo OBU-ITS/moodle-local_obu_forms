@@ -6,29 +6,6 @@
   <component name="ChangeListManager">
     <list default="true" id="42baa167-5e5b-408c-9458-9894b3152c63" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auths.php" beforeDir="false" afterPath="$PROJECT_DIR$/auths.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/course_test.php" beforeDir="false" afterPath="$PROJECT_DIR$/course_test.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/date_test.php" beforeDir="false" afterPath="$PROJECT_DIR$/date_test.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/db_update.php" beforeDir="false" afterPath="$PROJECT_DIR$/db_update.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/download.php" beforeDir="false" afterPath="$PROJECT_DIR$/download.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/download_form.php" beforeDir="false" afterPath="$PROJECT_DIR$/download_form.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/form.php" beforeDir="false" afterPath="$PROJECT_DIR$/form.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/form_view.php" beforeDir="false" afterPath="$PROJECT_DIR$/form_view.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms.php" beforeDir="false" afterPath="$PROJECT_DIR$/forms.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forms_input.php" beforeDir="false" afterPath="$PROJECT_DIR$/forms_input.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/formslist.php" beforeDir="false" afterPath="$PROJECT_DIR$/formslist.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forward.php" beforeDir="false" afterPath="$PROJECT_DIR$/forward.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/forward_check.php" beforeDir="false" afterPath="$PROJECT_DIR$/forward_check.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/index.php" beforeDir="false" afterPath="$PROJECT_DIR$/index.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib.php" beforeDir="false" afterPath="$PROJECT_DIR$/lib.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/list.php" beforeDir="false" afterPath="$PROJECT_DIR$/list.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/locallib.php" beforeDir="false" afterPath="$PROJECT_DIR$/locallib.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/menu.php" beforeDir="false" afterPath="$PROJECT_DIR$/menu.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/process.php" beforeDir="false" afterPath="$PROJECT_DIR$/process.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/purge_auths.php" beforeDir="false" afterPath="$PROJECT_DIR$/purge_auths.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/redirect.php" beforeDir="false" afterPath="$PROJECT_DIR$/redirect.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/template.php" beforeDir="false" afterPath="$PROJECT_DIR$/template.php" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/withdrawals.php" beforeDir="false" afterPath="$PROJECT_DIR$/withdrawals.php" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,18 +31,18 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "feature/functionnames",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/functionnames&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -91,7 +68,8 @@
       <workItem from="1711104845074" duration="1085000" />
       <workItem from="1711360800133" duration="1433000" />
       <workItem from="1711365972701" duration="51000" />
-      <workItem from="1714472646501" duration="4389000" />
+      <workItem from="1714472646501" duration="5070000" />
+      <workItem from="1714556145804" duration="595000" />
     </task>
     <servers />
   </component>

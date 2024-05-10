@@ -27,5 +27,5 @@ $plugin->component = 'local_obu_forms'; // Full name of the plugin (used for dia
 $plugin->version  = 2024050800;   // The (date) version of this module + 2 extra digital for daily versions
 $plugin->requires = 2015111604;   // Requires this Moodle version - at least 3.0.4
 $plugin->cron     = 0;
-$plugin->release = 'v1.17.7';
+$plugin->release = 'v1.17.8';
 $plugin->maturity = MATURITY_STABLE;

@@ -23,10 +23,10 @@
 require_once('../../config.php');
 require_once('./locallib.php');
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 $dir = $home . 'local/obu_forms/';
@@ -66,13 +66,13 @@ echo $OUTPUT->heading($heading);
 
 $process = $dir . 'process.php';
 $redirect = $dir . 'redirect.php';
-$auths = get_form_auths($authoriser_id); // Get outstanding authorisation requests
+$auths = local_obu_forms_get_form_auths($authoriser_id); // Get outstanding authorisation requests
 
 foreach ($auths as $auth) {
 	if (($authoriser_id != 0) || ($auth->authoriser != $authoriser->id)) {
-		read_form_data($auth->data_id, $data);
-		$template = read_form_template_by_id($data->template_id);
-		$form = read_form_settings($template->form_id);
+        local_obu_forms_read_form_data($auth->data_id, $data);
+		$template = local_obu_forms_read_form_template_by_id($data->template_id);
+		$form = local_obu_forms_read_form_settings($template->form_id);
 		
 		// Check that the form type is correct for this report
 		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L') || ($form->formref == 'M300')) {
@@ -85,13 +85,13 @@ foreach ($auths as $auth) {
 		}
 		
 		// Check that the user is a manager of this type of form and that it hasn't already been finally approved or rejected
-		if (is_manager($form) && ($data->authorisation_state == 0)) {
-			get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+		if (local_obu_forms_is_manager($form) && ($data->authorisation_state == 0)) {
+            local_obu_forms_get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 
 			// If a staff form, extract any given student number
 			$student_number = '';
 			if (!$form->student) {
-				load_form_fields($data, $fields);
+                local_obu_forms_load_form_fields($data, $fields);
 				if (array_key_exists('student_number', $fields)) {
 					$student_number = ' [' . $fields['student_number'] . ']';
 				}

@@ -26,11 +26,11 @@ require_once('./locallib.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -49,7 +49,7 @@ $PAGE->navbar->add($heading);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-$forwarders = get_form_forwarders();
+$forwarders = local_obu_forms_get_form_forwarders();
 
 $url = new moodle_url('/local/obu_forms/forward.php');
 $date = date_create();

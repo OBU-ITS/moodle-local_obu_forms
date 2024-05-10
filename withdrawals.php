@@ -30,8 +30,8 @@ require_once('./withdrawals_form.php');
 require_login();
 
 $home = new moodle_url('/');
-if (is_manager()) {
-	$forms_course = get_forms_course();
+if (local_obu_forms_is_manager()) {
+	$forms_course = local_obu_forms_get_forms_course();
 	require_login($forms_course);
 	$back = $home . 'course/view.php?id=' . $forms_course;
 } else {
@@ -63,7 +63,7 @@ if ($mform->is_cancelled()) {
 } 
 else if ($mform_data = $mform->get_data()) {
 		
-	$withdrawals = get_withdrawals($mform_data->date_from, $mform_data->date_to); // Get withdrawals data
+	$withdrawals = local_obu_forms_get_withdrawals($mform_data->date_from, $mform_data->date_to); // Get withdrawals data
 	if (empty($withdrawals)) {
 		$message = get_string('no_forms', 'local_obu_forms');
 	} else {
@@ -114,7 +114,7 @@ else if ($mform_data = $mform->get_data()) {
 			$fields['Authorised'] = date('d/m/Y', $withdrawal->authorised);
 
 			// Copy the data fields that are required
-			load_form_fields($withdrawal, $data_fields);
+            local_obu_forms_load_form_fields($withdrawal, $data_fields);
 			foreach ($data_ids as $data_id) {
 				if (!array_key_exists($data_id, $data_fields)) {
 					$fields[$data_id] = '';

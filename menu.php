@@ -26,7 +26,7 @@ require_once('./locallib.php');
 require_login();
 
 $home = new moodle_url('/');
-$options = get_menu_options();
+$options = local_obu_forms_get_menu_options();
 if (count($options) === 0) {
 	redirect($home);
 }

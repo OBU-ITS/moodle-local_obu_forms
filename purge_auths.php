@@ -26,11 +26,11 @@ require_once('./locallib.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . '/course/view.php?id=' . $forms_course;
 
@@ -52,22 +52,22 @@ $PAGE->navbar->add($heading);
 echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
-$auths = get_form_auths($authoriser_id); // Get outstanding authorisation requests
+$auths = local_obu_forms_get_form_auths($authoriser_id); // Get outstanding authorisation requests
 
 foreach ($auths as $auth) {
-	read_form_data($auth->data_id, $data);
-	$template = read_form_template_by_id($data->template_id);
-	$form = read_form_settings($template->form_id);
+    local_obu_forms_read_form_data($auth->data_id, $data);
+	$template = local_obu_forms_read_form_template_by_id($data->template_id);
+	$form = local_obu_forms_read_form_settings($template->form_id);
 		
 	// Check first that the user is a manager of this type of form
-	if (is_manager($form)) {
-		get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+	if (local_obu_forms_is_manager($form)) {
+        local_obu_forms_get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 		echo '<h4><a href="' . $process . '?id=' . $data->id . '">' . $form->formref . ': ' . $form->name . '</a></h4>';
 		echo $text . '<' . $form->formref . '>';
 		if ($data->authorisation_state == 0) { // Not yet finally approved or rejected
 			echo '<p>VALID</p>';
 		} else {
-			delete_form_auths($auth);
+            local_obu_forms_delete_form_auths($auth);
 			echo '<p>*** PURGED ***</p>';
 		}
 	}

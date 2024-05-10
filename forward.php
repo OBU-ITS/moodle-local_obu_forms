@@ -30,11 +30,11 @@ require_once('./forward_form.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -61,7 +61,7 @@ $start_date = 0;
 $stop_date = 0;
 
 if (isset($_REQUEST['authoriser'])) {
-	$forwarder = read_form_forwarder($_REQUEST['authoriser']);
+	$forwarder = local_obu_forms_read_form_forwarder($_REQUEST['authoriser']);
 	if ($forwarder->id != 0) {
 		$user = get_complete_user_data('id', $forwarder->from_id);
 		$from = $user->username;
@@ -88,10 +88,10 @@ else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {
 		$from = get_complete_user_data('username', $mform_data->from);
 		if ($mform_data->to == '') { // Blank 'to' implies 'delete'
-			delete_form_forwarder($from->id);
+            local_obu_forms_delete_form_forwarder($from->id);
 		} else {
 			$to = get_complete_user_data('username', $mform_data->to);
-			write_form_forwarder($from->id, $to->id, $mform_data->start_date, $mform_data->stop_date);
+            local_obu_forms_write_form_forwarder($from->id, $to->id, $mform_data->start_date, $mform_data->stop_date);
 		}
 		redirect($check);
     }

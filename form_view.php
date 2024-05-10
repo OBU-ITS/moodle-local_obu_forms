@@ -116,7 +116,7 @@ class form_view extends moodleform {
 			if ($pos === false) {
 				break;
 			}
-			$element = split_input_field(substr($data->template->data, $offset, ($pos - $offset)));
+			$element = local_obu_forms_split_input_field(substr($data->template->data, $offset, ($pos - $offset)));
 			$offset = $pos + $fld_end_len;
 			if (!empty($data->fields)) { // simply display the field
 				$text = $data->fields[$element['id']];
@@ -296,7 +296,7 @@ class form_view extends moodleform {
 			$mform->addElement('html', '<p /><strong>' . $data->status_text . '</strong>'); // Output any status text
 		}
 
-		if (is_manager()) {
+		if (local_obu_forms_is_manager()) {
 			$mform->addElement('textarea', 'notes', get_string('notes', 'local_obu_forms'), 'cols="100" rows="10"');
 			$mform->setType('notes', PARAM_RAW);
 		}
@@ -314,15 +314,15 @@ class form_view extends moodleform {
 					$mform->addElement('text', 'comment', get_string('comment', 'local_obu_forms'));
 					$mform->setType('comment', PARAM_RAW);
 					$buttonarray[] = &$mform->createElement('submit', 'rejectbutton', get_string('reject', 'local_obu_forms'));
-					if (is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
+					if (local_obu_forms_is_manager() && ($data->auth_state == 0)) { // This user can redirect the form
 						$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
 					}
 				}
-				if (is_manager()) { // A forms manager can opt to just save the notes
+				if (local_obu_forms_is_manager()) { // A forms manager can opt to just save the notes
 					$buttonarray[] = &$mform->createElement('submit', 'savebutton', get_string('save', 'local_obu_forms'));
 				}
 				$buttonarray[] = &$mform->createElement('cancel');
-			} else if (is_manager()) { // A forms manager
+			} else if (local_obu_forms_is_manager()) { // A forms manager
 				if ($data->auth_state == 0) { // Can redirect the form
 					$buttonarray[] = &$mform->createElement('submit', 'redirectbutton', get_string('redirect', 'local_obu_forms'));
 				}
@@ -337,7 +337,7 @@ class form_view extends moodleform {
 		$errors = parent::validation($data, $files); // Ensure we don't miss errors from any higher-level validation
 		
 		// Get valid dates for +- 5 years (MMMYY format)
-		$start_dates = get_dates(date('m'), date('y'), 60, 60);
+		$start_dates = local_obu_forms_get_dates(date('m'), date('y'), 60, 60);
 		
 		// Check if at least one field in a required group has an entry
 		if (empty($this->required_group)) {
@@ -371,7 +371,7 @@ class form_view extends moodleform {
 					if (strpos($course_code, '[') === false) {
 						$course_code = $course_code . '[OBO]'; // Default campus
 					}
-					$current_courses = get_current_courses($this->_customdata['modular']);
+					$current_courses = local_obu_forms_get_current_courses($this->_customdata['modular']);
 					if (!in_array($course_code, $current_courses, true)) {
 						$errors[$key] = get_string('course_not_found', 'local_obu_forms');
 					}
@@ -386,7 +386,7 @@ class form_view extends moodleform {
 						} else if ($this->_customdata['modular'] && ($prefix != 'P') && ($prefix != 'U')) {
 							$errors[$key] = get_string('invalid_module_code', 'local_obu_forms');
 						} else if (($key == 'module') || ($key == 'module_2')) { // Exact match - should be a current module
-							$current_modules = get_current_modules();
+							$current_modules = local_obu_forms_get_current_modules();
 							if (!in_array($prefix . $suffix, $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
@@ -402,7 +402,7 @@ class form_view extends moodleform {
 							} else {
 								$campus = $data['campus'];
 							}
-							$current_modules = get_current_modules();
+							$current_modules = local_obu_forms_get_current_modules();
 							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
@@ -412,7 +412,7 @@ class form_view extends moodleform {
 							} else {
 								$campus = $data['campus_2'];
 							}
-							$current_modules = get_current_modules();
+							$current_modules = local_obu_forms_get_current_modules();
 							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
@@ -428,7 +428,7 @@ class form_view extends moodleform {
 							} else {
 								$campus = $data['campus'];
 							}
-							$current_modules = get_current_modules();
+							$current_modules = local_obu_forms_get_current_modules();
 							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}
@@ -438,7 +438,7 @@ class form_view extends moodleform {
 							} else {
 								$campus = $data['campus_2'];
 							}
-							$current_modules = get_current_modules();
+							$current_modules = local_obu_forms_get_current_modules();
 							if (!in_array($subject . $code . ' [' . $campus . ']', $current_modules, true)) {
 								$errors[$key] = get_string('module_not_found', 'local_obu_forms');
 							}

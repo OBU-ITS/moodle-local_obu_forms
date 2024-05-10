@@ -30,12 +30,12 @@ require_once('./download_form.php');
 require_login();
 
 $home = new moodle_url('/');
-if (!is_manager()) {
+if (!local_obu_forms_is_manager()) {
 	redirect($home);
 }
 $dir = $home . 'local/obu_forms/';
 
-$forms_course = get_forms_course();
+$forms_course = local_obu_forms_get_forms_course();
 require_login($forms_course);
 $back = $home . 'course/view.php?id=' . $forms_course;
 
@@ -59,11 +59,11 @@ if ($mform->is_cancelled()) {
 else if ($mform_data = $mform->get_data()) {
 		
 	$formref = strtoupper($mform_data->formref);
-	$forms_data = get_forms_data($formref, $mform_data->date_from, $mform_data->date_to); // Get all selected forms data
+	$forms_data = local_obu_forms_get_forms_data($formref, $mform_data->date_from, $mform_data->date_to); // Get all selected forms data
 	if (empty($forms_data)) {
 		$message = get_string('no_forms', 'local_obu_forms');
 	} else {
-		$settings = read_form_settings_by_ref($formref);
+		$settings = local_obu_forms_read_form_settings_by_ref($formref);
 
 		$headings = array('Submitted', 'Status');
 		if (!$settings->student) { // A staff form
@@ -88,8 +88,8 @@ else if ($mform_data = $mform->get_data()) {
 		$template_fields = array();
 		$data_ids = array();
 		foreach ($template_ids as $template_id) {
-			$template = read_form_template_by_id($template_id);
-			$template_fields[$template_id] = template_fields($template->data);
+			$template = local_obu_forms_read_form_template_by_id($template_id);
+			$template_fields[$template_id] = local_obu_forms_template_fields($template->data);
 			foreach ($template_fields[$template_id] as $element) {
 				if (!in_array($element['id'], $data_ids)) {
 					$data_ids[] = $element['id'];
@@ -162,7 +162,7 @@ else if ($mform_data = $mform->get_data()) {
 			}
 			
 			// Copy the data fields that are in this form's template
-			load_form_fields($form_data, $data_fields);
+            local_obu_forms_load_form_fields($form_data, $data_fields);
 			foreach ($template_fields[$form_data->template_id] as $element) {
 				if ($element['type'] == 'date') {
 					$fields[$element['id']] = date('d/m/Y', $data_fields[$element['id']]);

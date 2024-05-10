@@ -95,7 +95,7 @@ class settings_input extends moodleform {
 		$mform->disabledIf('student', 'student_indicator', 'neq', '0');
 		$mform->addElement('advcheckbox', 'visible', get_string('form_visible', 'local_obu_forms'), null, null, array(0, 1));
 		
-		$authorisers = get_authorisers();
+		$authorisers = local_obu_forms_get_authorisers();
 		
 		// Authoriser 1
 		$select = $mform->addElement('select', 'auth_1_role', get_string('auth_1_role', 'local_obu_forms'), $authorisers, null);

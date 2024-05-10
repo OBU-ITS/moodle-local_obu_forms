@@ -31,8 +31,8 @@ require_login();
 
 $home = new moodle_url('/');
 $dir = $home . 'local/obu_forms/';
-if (is_manager()) {
-	$forms_course = get_forms_course();
+if (local_obu_forms_is_manager()) {
+	$forms_course = local_obu_forms_get_forms_course();
 	require_login($forms_course);
 	$back = $home . 'course/view.php?id=' . $forms_course;
 } else {
@@ -59,7 +59,7 @@ $data_id = 0;
 $fields = array();
 
 //check if program and then retrieve campus from here, display forms based on campus
-$courses = get_current_course_id_number(false, $USER->id);
+$courses = local_obu_forms_get_current_course_id_number(false, $USER->id);
 $courseId = current($courses);
 $campusCode = strtok($courseId, "~");
 $partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
@@ -67,20 +67,20 @@ $partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE",
 $staff = (((substr($USER->username, 0, 1) == 'p') || (substr($USER->username, 0, 1) == 'd')) && is_numeric(substr($USER->username, 1)));
 
 if (isset($_REQUEST['ref'])) { // A request for a brand new form
-	$form = read_form_settings_by_ref($_REQUEST['ref']);
+	$form = local_obu_forms_read_form_settings_by_ref($_REQUEST['ref']);
 	if ($form === false) {
 		echo(get_string('invalid_data', 'local_obu_forms'));
 		die;
 	}
 
-	if (!is_manager($form) && ((!$form->student && !$staff) || !$form->visible || in_array($campusCode, $partnershipCampusCodes))) { // User hasn't the capability to view a non-student or hidden form
+	if (!local_obu_forms_is_manager($form) && ((!$form->student && !$staff) || !$form->visible || in_array($campusCode, $partnershipCampusCodes))) { // User hasn't the capability to view a non-student or hidden form
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	if (isset($_REQUEST['version'])) {
-		$template = read_form_template($form->id, $_REQUEST['version']);
+		$template = local_obu_forms_read_form_template($form->id, $_REQUEST['version']);
 	} else {
 		// Get the relevant form template (include draft templates if an administrator)
-		$template = get_form_template($form->id, is_siteadmin());
+		$template = local_obu_forms_get_form_template($form->id, is_siteadmin());
 	}
 	if (!$template) {
 		echo(get_string('invalid_data', 'local_obu_forms'));
@@ -91,22 +91,22 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 	if ($data_id == 0) {
 		redirect($home);
 	}
-	if (!load_form_data($data_id, $record, $fields)) {
+	if (!local_obu_forms_load_form_data($data_id, $record, $fields)) {
 		echo(get_string('invalid_data', 'local_obu_forms'));
 		die;
 	}
 	if ($USER->id != $record->author) { // no-one else can amend your forms
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
-	$template = read_form_template_by_id($record->template_id);
-	$form = read_form_settings($template->form_id);
+	$template = local_obu_forms_read_form_template_by_id($record->template_id);
+	$form = local_obu_forms_read_form_settings($template->form_id);
 } else if (isset($_REQUEST['template'])) { // A form being created/amended
 	$template_id = $_REQUEST['template'];
 	if ($template_id == 0) {
 		redirect($home);
 	}
-	$template = read_form_template_by_id($template_id);
-	$form = read_form_settings($template->form_id);
+	$template = local_obu_forms_read_form_template_by_id($template_id);
+	$form = local_obu_forms_read_form_settings($template->form_id);
 } else {
 	echo(get_string('invalid_data', 'local_obu_forms'));
 	die;
@@ -115,10 +115,10 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 $current_course = '';
 $button_text = 'submit';
 if ($form->student) { // A student form - the user must be enrolled in a current course (programme) of the right type in order to submit it
-	$course = get_current_courses($form->modular, $USER->id);
+	$course = local_obu_forms_get_current_courses($form->modular, $USER->id);
 	$current_course = current($course); // We're assuming only one
 	if ($current_course === false) {
-		if (is_manager($form) || $staff) { // Let them view, but not submit, the form
+		if (local_obu_forms_is_manager($form) || $staff) { // Let them view, but not submit, the form
 			$button_text = 'cancel';
 		} else {
 			$message = get_string('form_unavailable', 'local_obu_forms');
@@ -145,7 +145,7 @@ $addition_reason = array();
 $deletion_reason = array();
 $assessment_type = array();
 $component_comment = array();
-$selects = template_selects($template->data);
+$selects = local_obu_forms_template_selects($template->data);
 
 foreach ($selects as $select) {
 	switch ($select) {
@@ -153,10 +153,10 @@ foreach ($selects as $select) {
 			if (empty($start_dates)) {
 				// Get an array of possible module start dates
 				if ($form->modular) { // This academic year and next
-					$start_dates = get_dates(date('m'), date('y'));
+					$start_dates = local_obu_forms_get_dates(date('m'), date('y'));
 					$start_selected = 0; // Default to the start of the year
 				} else { // 6 months back and 12 months forward from today
-					$start_dates = get_dates(date('m'), date('y'), 6, 12);
+					$start_dates = local_obu_forms_get_dates(date('m'), date('y'), 6, 12);
 //					$start_selected = 6; // Default to this month
 					$start_selected = 0; // Now we say 'Please select'
 				}
@@ -164,72 +164,72 @@ foreach ($selects as $select) {
 			break;
 		case 'adviser':
 			if (empty($adviser)) {
-				$adviser = get_advisers($form->modular, $USER->id);
+				$adviser = local_obu_forms_get_advisers($form->modular, $USER->id);
 			}
 			break;
 		case 'supervisor':
 			if (empty($supervisor)) {
-				$supervisor = get_supervisors($USER->id);
+				$supervisor = local_obu_forms_get_supervisors($USER->id);
 			}
 			break;
 		case 'course':
 			if (empty($course)) {
-				$course = get_current_courses($form->modular, 0, true, false);
+				$course = local_obu_forms_get_current_courses($form->modular, 0, true, false);
 			}
 			break;
 		case 'course_joint':
 			if (empty($course_joint)) {
-				$course_joint = array_merge(array('0' => ''), get_current_courses($form->modular, 0, true, true));
+				$course_joint = array_merge(array('0' => ''), local_obu_forms_get_current_courses($form->modular, 0, true, true));
 			}
 			break;
 		case 'not_enroled':
 			if (empty($not_enroled)) {
-				$not_enroled = get_current_modules(0, null, $USER->id, false);
+				$not_enroled = local_obu_forms_get_current_modules(0, null, $USER->id, false);
 			}
 			break;
 		case 'enroled':
 			if (empty($enroled)) {
-				$enroled = get_current_modules(0, null, $USER->id, true);
+				$enroled = local_obu_forms_get_current_modules(0, null, $USER->id, true);
 			}
 			break;
 		case 'free_language':
 			if (empty($free_language)) {
-				$free_language = get_current_modules(0, null, 0, false, true);
+				$free_language = local_obu_forms_get_current_modules(0, null, 0, false, true);
 			}
 			break;
 		case 'campus':
 			if (empty($campus)) {
-				$campus = get_campuses();
+				$campus = local_obu_forms_get_campuses();
 			}
 			break;
 		case 'study_mode':
 			if (empty($study_mode)) {
-				$study_mode = get_study_modes();
+				$study_mode = local_obu_forms_get_study_modes();
 			}
 			break;
 		case 'reason':
 			if (empty($reason)) {
-				$reason = get_reasons();
+				$reason = local_obu_forms_get_reasons();
 			}
 			break;
 		case 'addition_reason':
 			if (empty($addition_reason)) {
-				$addition_reason = get_addition_reasons();
+				$addition_reason = local_obu_forms_get_addition_reasons();
 			}
 			break;
 		case 'deletion_reason':
 			if (empty($deletion_reason)) {
-				$deletion_reason = get_deletion_reasons();
+				$deletion_reason = local_obu_forms_get_deletion_reasons();
 			}
 			break;
 		case 'assessment_type':
 			if (empty($assessment_type)) {
-				$assessment_type = get_assessment_types();
+				$assessment_type = local_obu_forms_get_assessment_types();
 			}
 			break;
 		case 'component_comment':
 			if (empty($component_comment)) {
-				$component_comment = get_component_comments();
+				$component_comment = local_obu_forms_get_component_comments();
 			}
 			break;
 		default:
@@ -356,7 +356,7 @@ if ($mform_data = (array)$mform->get_data()) {
 	$record->date = time();
     $record->authorisation_state = 0; // Awaiting submission/authorisation...
     $record->authorisation_level = 0; // ...by author
-	$data_id = save_form_data($record, $fields);
+	$data_id = local_obu_forms_save_form_data($record, $fields);
 	redirect($process_url . '?id=' . $data_id); // Perform initial form processing
 }
 

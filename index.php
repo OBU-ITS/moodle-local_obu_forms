@@ -26,8 +26,8 @@ require_once('./locallib.php');
 require_login();
 
 // Determine if the user can list the requested forms
-$manager = is_manager();
-if (!$manager && !is_staff($USER->username)) { // Students can only see their own forms
+$manager = local_obu_forms_is_manager();
+if (!$manager && !local_obu_forms_is_staff($USER->username)) { // Students can only see their own forms
     $user = $USER;
 } else {
 	$user_id = optional_param('userid', 0, PARAM_INT);
@@ -38,7 +38,7 @@ if (!$manager && !is_staff($USER->username)) { // Students can only see their ow
 		if (!$user) {
 			print_error('invaliduserid');
 		}
-		if (is_staff($user->username) && !$manager) { // Only managers can view forms for other staff members
+		if (local_obu_forms_is_staff($user->username) && !$manager) { // Only managers can view forms for other staff members
 			$user = $USER;
 		}
 	}
@@ -59,7 +59,7 @@ if ($user->id == $USER->id) { // User
 	$heading = get_string('myforms', 'local_obu_forms');
 } else { // Forms management
 	if ($manager) {
-		require_login(get_forms_course());
+		require_login(local_obu_forms_get_forms_course());
 	}
     $currentuser = false;
 	$title = get_string('forms_management', 'local_obu_forms');
@@ -75,15 +75,15 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($heading);
 
 $forms = [];
-$form_definitions = read_all_form_settings_with_template_id();
+$form_definitions = local_obu_forms_read_all_form_settings_with_template_id();
 foreach($form_definitions as $form_definition) {
     $forms[$form_definition->template_id] = $form_definition;
 }
 
-$is_manager_of_pg_form = is_manager_of_pg_form();
-$is_manager_of_ump_form = is_manager_of_ump_form();
+$is_manager_of_pg_form = local_obu_forms_is_manager_of_pg_form();
+$is_manager_of_ump_form = local_obu_forms_is_manager_of_ump_form();
 
-$forms_data = get_form_data(); // get all forms data [*** NEEDS ATTENTION IN FUTURE ***]
+$forms_data = local_obu_forms_get_form_data(); // get all forms data [*** NEEDS ATTENTION IN FUTURE ***]
 foreach ($forms_data as $data) {
     $form = $forms[$data->template_id];
     $is_manager_of_form = ($form->modular == '0') ? $is_manager_of_pg_form : $is_manager_of_ump_form;
@@ -91,7 +91,7 @@ foreach ($forms_data as $data) {
 	// Extract any module codes from a student form or (if a forms manager) any student number from a staff one
 	$student = '';
 	$subject = '';
-	load_form_fields($data, $fields);
+    local_obu_forms_load_form_fields($data, $fields);
 	if ($is_manager_of_form && array_key_exists('student_number', $fields)) {
 		$student = $fields['student_number'];
 		$subject .= ' [' . $student . ']';
@@ -116,7 +116,7 @@ foreach ($forms_data as $data) {
         }
     }
 
-    get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
+    local_obu_forms_get_form_status($USER->id, $form, $data, $text, $button); // Get the authorisation trail and the next action (from the user's perspective)
 
     $url = '';
     if ($button == 'submit') {

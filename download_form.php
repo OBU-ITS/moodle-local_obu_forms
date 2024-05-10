@@ -45,8 +45,8 @@ class download_form extends moodleform {
 		// Do our own validation and add errors to array
 		foreach ($data as $key => $value) {
 			if ($key == 'formref') {
-				$form = read_form_settings_by_ref($value);
-				if (($form === false) || !is_manager($form)) {
+				$form = local_obu_forms_read_form_settings_by_ref($value);
+				if (($form === false) || !local_obu_forms_is_manager($form)) {
 					$errors['formref'] = get_string('invalid_data', 'local_obu_forms');
 				}
 			} else if (($key == 'date_from') && ($value > strtotime('today midnight'))) {

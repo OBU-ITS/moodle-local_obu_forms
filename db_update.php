@@ -462,39 +462,46 @@ function local_obu_forms_get_advisers($modular, $user_id) {
 		$adviser[$user->id] = $user->firstname . ' ' . $user->lastname;
 	}
 
-	// Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads/Programme Administrators for the user's course
-	$courses = local_obu_forms_get_current_courses($modular, $user_id); // Should only be one
-	$course_id = key($courses);
-	if ($course_id) {
-		$context = context_course::instance($course_id);
-		$role = $DB->get_record('role', array('shortname' => 'ssc'), 'id', MUST_EXIST); // Student Support Coordinator
-		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
-		foreach ($advisers as $a) {
-			$user = get_complete_user_data('id', $a->id);
-			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
-		}
-		$role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST); // Subject Co-ordinator
-		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
-		foreach ($advisers as $a) {
-			$user = get_complete_user_data('id', $a->id);
-			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
-		}
-		$role = $DB->get_record('role', array('shortname' => 'programme_lead'), 'id', MUST_EXIST); // Programme Lead
-		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
-		foreach ($advisers as $a) {
-			$user = get_complete_user_data('id', $a->id);
-			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
-		}
-		$role = $DB->get_record('role', array('shortname' => 'programme_admin'), 'id', MUST_EXIST); // Programme Administrator
-		$advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
-		foreach ($advisers as $a) {
-			$user = get_complete_user_data('id', $a->id);
-			$adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
-		}
-	}
-	$adviser[] = get_string('no_one', 'local_obu_forms'); // The 'I spoke to no-one' selection
+    // Get any Student Support Coordinators/Subject Co-ordinators/Programme Leads/Programme Administrators for the user's course
+    /*
+    (JC 20240626: I have removed the 'true' parameter from the get_role_users calls to exclude
+    inherited roles for the subject_coordinator, programme_lead and programme_admin roles) We /are
+     here only really looking for Student Support Coordinators which are not in Banner, these
+     other three roles are assigned in Banner and enrolled on the Program itself as database enrolments in Moodle. Biut a lot of other people are given these roles at category level and they should not be included in the list of people the student could have seen. It is left in for the student support coordinators as they are generally manually enrolled in a category that covers all the programmes they are responsible for
+    */
 
-	return $adviser;
+    $courses = local_obu_forms_get_current_courses($modular, $user_id); // Should only be one
+    $course_id = key($courses);
+    if ($course_id) {
+        $context = context_course::instance($course_id);
+        $role = $DB->get_record('role', array('shortname' => 'ssc'), 'id', MUST_EXIST); // Student Support Coordinator
+        $advisers = get_role_users($role->id, $context, true, 'u.id'); // Include inherited roles
+        foreach ($advisers as $a) {
+            $user = get_complete_user_data('id', $a->id);
+            $adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+        }
+        $role = $DB->get_record('role', array('shortname' => 'subject_coordinator'), 'id', MUST_EXIST); // Subject Co-ordinator
+        $advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
+        foreach ($advisers as $a) {
+            $user = get_complete_user_data('id', $a->id);
+            $adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+        }
+        $role = $DB->get_record('role', array('shortname' => 'programme_lead'), 'id', MUST_EXIST); // Programme Lead
+        $advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
+        foreach ($advisers as $a) {
+            $user = get_complete_user_data('id', $a->id);
+            $adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+        }
+        $role = $DB->get_record('role', array('shortname' => 'programme_admin'), 'id', MUST_EXIST); // Programme Administrator
+        $advisers = get_role_users($role->id, $context, false, 'u.id'); // Exclude inherited roles
+        foreach ($advisers as $a) {
+            $user = get_complete_user_data('id', $a->id);
+            $adviser[$a->id] = $user->firstname . ' ' . $user->lastname;
+        }
+    }
+    $adviser[] = get_string('no_one', 'local_obu_forms'); // The 'I spoke to no-one' selection
+
+    return $adviser;
 }
 
 function local_obu_forms_get_supervisors($user_id) { // In this iterration, at least, a supervisor can be any member of staff!

@@ -460,6 +460,10 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 		$sc = get_complete_user_data('username', 'scat');
 	}
 	$sc_name = $sc->alternatename;
+	// Check if name needs to change for specific forms
+	if (in_array($form->formref, ['M201', 'M201L', 'M200', 'M3'])) {
+		$sc_name = 'Taught Student Information Management';
+	}
 
 	$authoriser_role = local_obu_forms_get_authorisers();
 

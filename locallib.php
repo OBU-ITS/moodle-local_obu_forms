@@ -447,6 +447,14 @@ function local_obu_forms_load_form_fields($record, &$fields) {
 	}
 }
 
+function local_obu_forms_get_display_name($user_id, $role_id, $sc_id, $is_special_form, $authoriser_role, $custom_sc_name) {
+	if ($user_id == $sc_id && $is_special_form) {
+		return 'you as ' . $custom_sc_name;
+	} else {
+		return 'you as ' . $authoriser_role[$role_id];
+	}
+}
+
 function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$button) {
 
 	$text = '';
@@ -461,7 +469,9 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 	}
 	$sc_name = $sc->alternatename;
 	// Check if name needs to change for specific forms
-	if (in_array($form->formref, ['M201', 'M201L', 'M200', 'M3'])) {
+	$special_form = in_array($form->formref, ['M201', 'M201L', 'M200', 'M3']);
+
+	if ($special_form) {
 		$sc_name = 'Taught Student Information Management';
 	}
 
@@ -489,7 +499,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 			date_timestamp_set($date, $data->auth_1_date);
 			$text .= date_format($date, $format) . ' ';
 			if ($data->auth_1_id == $user_id) {
-				$name = 'you as ' . $authoriser_role[$form->auth_1_role];
+				$name = local_obu_forms_get_display_name($data->auth_1_id, $form->auth_1_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 			} else if ($data->auth_1_id == $sc_id) {
 				$name = $sc_name;
 			} else {
@@ -497,7 +507,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 				$name = $authoriser->firstname . ' ' . $authoriser->lastname;
 			}
 			if ($data->authorisation_state == 1) {
-				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('rejected', 'local_obu_forms'), 'by' => 	$name));
+				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('rejected', 'local_obu_forms'), 'by' => $name));
 			} else {
 				$text .= get_string('actioned_by', 'local_obu_forms', array('action' => get_string('authorised', 'local_obu_forms'), 'by' => $name));
 			}
@@ -523,7 +533,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 				date_timestamp_set($date, $data->auth_2_date);
 				$text .= date_format($date, $format) . ' ';
 				if ($data->auth_2_id == $user_id) {
-					$name = 'you as ' . $authoriser_role[$form->auth_2_role];
+					$name = local_obu_forms_get_display_name($data->auth_2_id, $form->auth_2_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 				} else if ($data->auth_2_id == $sc_id) {
 					$name = $sc_name;
 				} else {
@@ -541,7 +551,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 					date_timestamp_set($date, $data->auth_2_date);
 					$text .= date_format($date, $format) . ' ';
 					if ($data->auth_2_id == $user_id) {
-						$name = 'you as ' . $authoriser_role[$form->auth_2_role];
+						$name = local_obu_forms_get_display_name($data->auth_2_id, $form->auth_2_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 					} else if ($data->auth_2_id == $sc_id) {
 						$name = $sc_name;
 					} else {
@@ -557,7 +567,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 					date_timestamp_set($date, $data->auth_3_date);
 					$text .= date_format($date, $format) . ' ';
 					if ($data->auth_3_id == $user_id) {
-						$name = 'you as ' . $authoriser_role[$form->auth_3_role];
+						$name = local_obu_forms_get_display_name($data->auth_3_id, $form->auth_3_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 					} else if ($data->auth_3_id == $sc_id) {
 						$name = $sc_name;
 					} else {
@@ -575,7 +585,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 						date_timestamp_set($date, $data->auth_3_date);
 						$text .= date_format($date, $format) . ' ';
 						if ($data->auth_3_id == $user_id) {
-							$name = 'you as ' . $authoriser_role[$form->auth_3_role];
+							$name = local_obu_forms_get_display_name($data->auth_3_id, $form->auth_3_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 						} else if ($data->auth_3_id == $sc_id) {
 							$name = $sc_name;
 						} else {
@@ -591,7 +601,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 						date_timestamp_set($date, $data->auth_4_date);
 						$text .= date_format($date, $format) . ' ';
 						if ($data->auth_4_id == $user_id) {
-							$name = 'you as ' . $authoriser_role[$form->auth_4_role];
+							$name = local_obu_forms_get_display_name($data->auth_4_id, $form->auth_4_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 						} else if ($data->auth_4_id == $sc_id) {
 							$name = $sc_name;
 						} else {
@@ -609,7 +619,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 							date_timestamp_set($date, $data->auth_4_date);
 							$text .= date_format($date, $format) . ' ';
 							if ($data->auth_4_id == $user_id) {
-								$name = 'you as ' . $authoriser_role[$form->auth_4_role];
+								$name = local_obu_forms_get_display_name($data->auth_4_id, $form->auth_4_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 							} else if ($data->auth_4_id == $sc_id) {
 								$name = $sc_name;
 							} else {
@@ -625,7 +635,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 							date_timestamp_set($date, $data->auth_5_date);
 							$text .= date_format($date, $format) . ' ';
 							if ($data->auth_5_id == $user_id) {
-								$name = 'you as ' . $authoriser_role[$form->auth_5_role];
+								$name = local_obu_forms_get_display_name($data->auth_5_id, $form->auth_5_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 							} else if ($data->auth_5_id == $sc_id) {
 								$name = $sc_name;
 							} else {
@@ -643,7 +653,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 								date_timestamp_set($date, $data->auth_5_date);
 								$text .= date_format($date, $format) . ' ';
 								if ($data->auth_5_id == $user_id) {
-									$name = 'you as ' . $authoriser_role[$form->auth_5_role];
+									$name = local_obu_forms_get_display_name($data->auth_5_id, $form->auth_5_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 								} else if ($data->auth_5_id == $sc_id) {
 									$name = $sc_name;
 								} else {
@@ -659,7 +669,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 								date_timestamp_set($date, $data->auth_6_date);
 								$text .= date_format($date, $format) . ' ';
 								if ($data->auth_6_id == $user_id) {
-									$name = 'you as ' . $authoriser_role[$form->auth_6_role];
+									$name = local_obu_forms_get_display_name($data->auth_6_id, $form->auth_6_role, $sc_id, $special_form, $authoriser_role, $sc_name);
 								} else if ($data->auth_6_id == $sc_id) {
 									$name = $sc_name;
 								} else {
@@ -717,7 +727,7 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 				$role_id = $form->auth_6_role;
 			}
 			if (($authoriser_id == $user_id) || (($authoriser_id == $sc_id) && local_obu_forms_is_manager($form))) {
-				$name = 'you as ' . $authoriser_role[$role_id];
+				$name = local_obu_forms_get_display_name($authoriser_id, $role_id, $sc_id, $special_form, $authoriser_role, $sc_name);
 				$button = 'authorise';
 			} else {
 				if ($authoriser_id == $sc_id) {
@@ -741,6 +751,9 @@ function local_obu_forms_get_form_status($user_id, $form, $data, &$text, &$butto
 function local_obu_forms_update_authoriser($form, $data, $authoriser_id) {
 
 	$authoriser_role = local_obu_forms_get_authorisers();
+
+	$special_form = in_array($form->formref, ['M201', 'M201L', 'M200', 'M3']);
+	$custom_name = 'Taught Student Information Management';
 
 	// Update the stored authorisation requests
 	local_obu_forms_read_form_auths($data->id, $auth);
@@ -766,6 +779,7 @@ function local_obu_forms_update_authoriser($form, $data, $authoriser_id) {
 		$sc_contact = get_complete_user_data('username', 'scat');
 		$sc_notifications = get_complete_user_data('username', 'scat_notifications');
 	}
+	$name_override = ($special_form ? $custom_name : $sc_contact->alternatename);
 
     // Add email headers to help prevent auto-responders
     $author->customheaders = array (
@@ -820,7 +834,7 @@ function local_obu_forms_update_authoriser($form, $data, $authoriser_id) {
 			$form_link = '<a href="' . $program . '">' . $form->formref . ' ' . get_string('form_title', 'local_obu_forms') . $student_number . '</a>';
 			$email_link = '<a href="mailto:' . $sc_contact->email . '?Subject=' . get_string('auths', 'local_obu_forms') . '" target="_top">' . $sc_contact->email . '</a>';
 			$html = get_string('request_authorisation', 'local_obu_forms',
-				array('form' => $form_link, 'role' => $authoriser_role[$role_id], 'name' => $sc_contact->alternatename, 'email' => $email_link));
+				array('form' => $form_link, 'role' => $authoriser_role[$role_id], 'name' => $name_override, 'email' => $email_link));
 			email_to_user($authoriser, $author, 'Request for Form ' . $form->formref . $student_number . ' Authorisation (' . $author->username . ')', html_to_text($html), $html);
 		}
 	}

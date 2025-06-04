@@ -219,4 +219,4 @@ $string['uploadcustomfieldspreview'] = 'Upload custom fields preview';
 $string['uploadcustomfieldsresult'] = 'Upload custom fields results';
 
 $string['invalidshortname'] = 'Invalid shortname';
-
+$string['taughtstudentinformationmanagement'] = 'Taught Student Information Management';

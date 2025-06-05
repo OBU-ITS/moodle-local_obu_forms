@@ -265,7 +265,8 @@ $parameters = [
 	'auth_level' => null,
 	'status_text' => null,
 	'notes' => null,
-	'button_text' => $button_text
+	'button_text' => $button_text,
+    'formref' => $form->formref
 ];
 
 $mform = new form_view(null, $parameters);

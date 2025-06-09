@@ -157,7 +157,8 @@ $parameters = [
 	'notes' => $record->notes,
 	'fields' => $fields,
 	'status_text' => $status_text,
-	'button_text' => $button_text
+	'button_text' => $button_text,
+    'formref' => $form->formref
 ];
 	
 $mform = new form_view(null, $parameters);

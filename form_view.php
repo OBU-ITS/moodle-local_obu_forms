@@ -299,7 +299,7 @@ class form_view extends moodleform {
 		}
 
         $notes_label = in_array($data->formref, TISM_FORMS)
-            ? get_string('taughtstudentinformationmanagement', 'local_obu_forms')
+            ? get_string('notes_tism', 'local_obu_forms')
             : get_string('notes', 'local_obu_forms');
 
 		if (local_obu_forms_is_manager()) {

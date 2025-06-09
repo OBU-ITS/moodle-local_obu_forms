@@ -68,6 +68,7 @@ $string['student_withdrawals'] = 'Student withdrawals';
 $string['myforms'] = 'My forms';
 
 $string['notes'] = 'Notes (Student Central)';
+$string['notes_tism'] = 'Notes (Taught Student Information Management)';
 $string['continue'] = 'Continue';
 $string['save'] = 'Save';
 $string['submit'] = 'Submit';

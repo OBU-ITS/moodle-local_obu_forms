@@ -69,7 +69,7 @@ if (isset($_REQUEST['ref'])) { // A request for a brand new form
 		die;
 	}
 
-	if (!local_obu_forms_is_manager($form) && ((!$form->student && !$staff) || !$form->visible || local_obu_forms_is_partnership_user($USER->id))) { // User hasn't the capability to view a non-student or hidden form
+	if (!local_obu_forms_is_manager($form) && ((!$form->student && !$staff) || !$form->visible || ($form->student && local_obu_forms_is_partnership_user($USER->id)))) { // User hasn't the capability to view a non-student or hidden form
 		$message = get_string('form_unavailable', 'local_obu_forms');
 	}
 	if (isset($_REQUEST['version'])) {

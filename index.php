@@ -36,7 +36,7 @@ if (!$manager && !local_obu_forms_is_staff($USER->username)) { // Students can o
 	} else {
 		$user = $DB->get_record('user', array('id' => $user_id));
 		if (!$user) {
-			print_error('invaliduserid');
+            throw new \moodle_exception('invaliduserid');
 		}
 		if (local_obu_forms_is_staff($user->username) && !$manager) { // Only managers can view forms for other staff members
 			$user = $USER;

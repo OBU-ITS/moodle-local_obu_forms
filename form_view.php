@@ -24,6 +24,7 @@
  */
 
 require_once("{$CFG->libdir}/formslib.php");
+require_once('./locallib.php');
 
 class form_view extends moodleform {
 	
@@ -70,6 +71,7 @@ class form_view extends moodleform {
 		$data->status_text = $this->_customdata['status_text'];
 		$data->notes = $this->_customdata['notes'];
 		$data->button_text = $this->_customdata['button_text'];
+        $data->formref = $this->_customdata['formref'];
 
 		if ($data->notes != '') {
 			$this->set_data(array('notes' => $data->notes));
@@ -296,8 +298,12 @@ class form_view extends moodleform {
 			$mform->addElement('html', '<p /><strong>' . $data->status_text . '</strong>'); // Output any status text
 		}
 
+        $notes_label = in_array($data->formref, TISM_FORMS)
+            ? get_string('notes_tism', 'local_obu_forms')
+            : get_string('notes', 'local_obu_forms');
+
 		if (local_obu_forms_is_manager()) {
-			$mform->addElement('textarea', 'notes', get_string('notes', 'local_obu_forms'), 'cols="100" rows="10"');
+			$mform->addElement('textarea', 'notes', $notes_label, 'cols="100" rows="10"');
 			$mform->setType('notes', PARAM_RAW);
 		}
 		

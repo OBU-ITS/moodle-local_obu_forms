@@ -68,6 +68,7 @@ $string['student_withdrawals'] = 'Student withdrawals';
 $string['myforms'] = 'My forms';
 
 $string['notes'] = 'Notes (Student Central)';
+$string['notes_tism'] = 'Notes (Taught Student Information Management)';
 $string['continue'] = 'Continue';
 $string['save'] = 'Save';
 $string['submit'] = 'Submit';
@@ -219,4 +220,4 @@ $string['uploadcustomfieldspreview'] = 'Upload custom fields preview';
 $string['uploadcustomfieldsresult'] = 'Upload custom fields results';
 
 $string['invalidshortname'] = 'Invalid shortname';
-
+$string['taughtstudentinformationmanagement'] = 'Taught Student Information Management';

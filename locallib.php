@@ -842,4 +842,20 @@ function local_obu_forms_update_authoriser($form, $data, $authoriser_id) {
 	}
 }
 
+/**
+ * Returns true if the user’s current campus is empty or in the partnership list.
+ *
+ * @param int $userid
+ * @return bool
+ */
+function local_obu_forms_is_partnership_user(int $userid): bool {
+	$courses = local_obu_forms_get_current_course_id_number(false, $userid);
+	$courseidnumber = $courses ? current($courses) : '';
+	$campuscode = $courseidnumber ? strtok($courseidnumber, '~') : '';
+
+	$partnershipcampuscodes = array("AW","SH","SW","AL","BR","BW","WT","OCE","SB","DM","GBB","GBE","GBL","GBM","GBW");
+
+	return empty($campuscode) || in_array($campuscode, $partnershipcampuscodes, true);
+}
+
 ?>

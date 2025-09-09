@@ -66,12 +66,7 @@ $pg_forms = $staff_forms || local_obu_forms_is_student($USER->id, 'PG'); // Can 
 $ump_forms = $staff_forms || local_obu_forms_is_student($USER->id, 'UMP'); // Can view UMP student forms
 
 //check if program and then retrieve campus from here, display forms based on campus
-$courses = local_obu_forms_get_current_course_id_number(false, $USER->id);
-$courseId = current($courses);
-$campusCode = strtok($courseId, "~");
-$partnershipCampusCodes = array("AW", "SH", "SW", "AL", "BR", "BW", "WT", "OCE", "SB", "DM", "GBB", "GBE", "GBL", "GBM", "GBW");
-
-if (empty($campusCode) || in_array($campusCode, $partnershipCampusCodes)){
+if (local_obu_forms_is_partnership_user($USER->id)) {
     $pg_forms = false;
     $ump_forms = false;
 }

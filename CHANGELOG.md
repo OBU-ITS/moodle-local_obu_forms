@@ -1,7 +1,20 @@
-# Changelog
+# Student Experience Team | OBU Forms ChangeLog
 
-## [v1.17.10] - 2025-06-09
+> Keep entries newest → oldest. Use 4-part versions (e.g., 2.1.4.2).  
+> Release types: Major Release | Minor Release | Revision | Hotfix
 
+---
+
+## 1.17.13.0 – Minor Change
+**Date:** 2025-09-11  
+**Highlights:**
+- Slight changes to changelog
+- Changed version number to new format
+- Adding more campus codes to be denied forms access
+
+## 1.17.10 - Minor Change
+**Date:** 2025-06-09  
+**Highlights:**
 ### Added
 - Introduced `TISM_FORMS` constant in `locallib.php` to centralize reference to taught student information management form codes: `M200`, `M201`, `M201L`, `M3`.
 - Added support for alternate language string `notes_tism` used on TISM forms with lang file

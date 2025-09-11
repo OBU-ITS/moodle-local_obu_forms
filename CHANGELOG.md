@@ -12,7 +12,7 @@
 - Changed version number to new format
 - Adding more campus codes to be denied forms access
 
-## 1.17.10 - Minor Change
+## v1.17.10 - Minor Change
 **Date:** 2025-06-09  
 **Highlights:**
 ### Added

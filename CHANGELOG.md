@@ -5,12 +5,13 @@
 
 ---
 
-## 1.17.13.0 – Minor Change
-**Date:** 2025-09-11  
-**Highlights:**
-- Slight changes to changelog
+## 1.18.1.0 – Minor Change
+  **Date:** 2025-09-11  
+  **Highlights:**
+- Add intro to changelog
 - Changed version number to new format
 - Adding more campus codes to be denied forms access
+- Refactor campus checking code into local lib
 
 ## v1.17.10 - Minor Change
 **Date:** 2025-06-09  

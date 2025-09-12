@@ -853,7 +853,7 @@ function local_obu_forms_is_partnership_user(int $userid): bool {
 	$courseidnumber = $courses ? current($courses) : '';
 	$campuscode = $courseidnumber ? strtok($courseidnumber, '~') : '';
 
-	$partnershipcampuscodes = array("AW","SH","SW","AL","BR","BW","WT","OCE","SB","DM","GBB","GBE","GBL","GBM","GBW");
+	$partnershipcampuscodes = array("AW","SH","SW","AL","BR","BW","WT","OCE","SB","DM","GBB","GBE","GBL","GBM","GBW","OH","TVW","FH","BB","OUH");
 
 	return empty($campuscode) || in_array($campuscode, $partnershipcampuscodes, true);
 }

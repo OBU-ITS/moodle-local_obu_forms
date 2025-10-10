@@ -36,6 +36,8 @@ class template_input extends moodleform {
 		$data->version = $this->_customdata['version'];
 		$data->versions = $this->_customdata['versions'];
 		$data->record = $this->_customdata['record'];
+
+        $isAdmin = $this->_customdata['isAdmin'];
 		
 		$already_published = 0;
 		if ($data->record != null) {
@@ -84,9 +86,19 @@ class template_input extends moodleform {
 		}
 		$mform->setType('new_version', PARAM_RAW);
 
-		$mform->addElement('editor', 'data', get_string('template', 'local_obu_forms'));
-		$mform->setType('data', PARAM_RAW);
-		$mform->disabledIf('data', 'published', 'checked');
+        if ($already_published && !$isAdmin) {
+            $mform->addElement('hidden', 'data[text]', $data->record->data);
+            $mform->setType('data[text]', PARAM_RAW);
+
+            $mform->addElement('hidden', 'data[format]', FORMAT_HTML);
+            $mform->setType('data[format]', PARAM_INT);
+
+            $mform->addElement('editor', 'data', get_string('template', 'local_obu_forms'));
+            $mform->disabledIf('data', 'already_published', 'eq', 1);
+
+        } else {
+            $mform->addElement('editor', 'data', get_string('template', 'local_obu_forms'));
+        }
 
 		if ($already_published) {
 			$mform->addElement('hidden', 'already_published', 1);

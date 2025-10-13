@@ -1,11 +1,16 @@
 # Student Experience Team | OBU Forms ChangeLog
 
 > Keep entries newest → oldest. Use 4-part versions (e.g., 2.1.4.2).  
-> Release types: Major Release | Minor Release | Revision | Hotfix
+> Release types: Major Release | Minor Release | Hotfix | Revision 
 
 ---
 
-## 1.18.1.0 – Minor Change
+## 1.18.2 – Hotfix
+**Date:** 2025-10-10  
+**Highlights:**
+- Fix issue with template form becoming empty when published due to editor being disabled.
+
+## 1.18.1.0 (actually 1.18.0 with 1 revision) – Minor Change
   **Date:** 2025-09-11  
   **Highlights:**
 - Add intro to changelog
@@ -13,7 +18,7 @@
 - Adding more campus codes to be denied forms access
 - Refactor campus checking code into local lib
 
-## v1.17.10 - Minor Change
+## 1.17.10 - Minor Change
 **Date:** 2025-06-09  
 **Highlights:**
 ### Added

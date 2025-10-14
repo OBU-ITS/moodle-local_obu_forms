@@ -97,12 +97,15 @@ if (isset($_REQUEST['formref'])) {
 	}
 }
 
+$isAdmin = is_siteadmin();
+
 $parameters = [
 	'formref' => $formref,
 	'formname' => $formname,
 	'version' => $version,
 	'versions' => $versions,
-	'record' => $record
+	'record' => $record,
+    'isAdmin' => $isAdmin
 ];
 
 $mform = new template_input(null, $parameters);
@@ -116,7 +119,7 @@ if ($mform->is_cancelled()) {
 } 
 else if ($mform_data = $mform->get_data()) {
 	if ($mform_data->submitbutton == get_string('save', 'local_obu_forms')) {
-		if (!$mform_data->already_published || is_siteadmin()) {
+		if (!$mform_data->already_published || $isAdmin) {
             local_obu_forms_write_form_template($USER->id, $mform_data);
 		}
 		redirect($url);

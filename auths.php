@@ -75,7 +75,7 @@ foreach ($auths as $auth) {
 		$form = local_obu_forms_read_form_settings($template->form_id);
 		
 		// Check that the form type is correct for this report
-		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L') || ($form->formref == 'M300')) {
+		if (($form->formref == 'M3') || ($form->formref == 'M200') || ($form->formref == 'M201') || ($form->formref == 'M201L') || ($form->formref == 'M300') || ($form->formref == "M100EX")) {
 			$tpt_form = true; // The responsibility of the Taught Programmes Team
 		} else {
 			$tpt_form = false;

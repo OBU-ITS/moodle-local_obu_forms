@@ -5,6 +5,11 @@
 
 ---
 
+## 1.19.0 – Minor Chane
+**Date:** 2025-11-13  
+**Highlights:**
+- Moving M100EX form to TPT authorisations section
+
 ## 1.18.2 – Hotfix
 **Date:** 2025-10-10  
 **Highlights:**

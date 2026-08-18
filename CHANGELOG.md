@@ -5,6 +5,11 @@
 
 ---
 
+## 1.20.0 – Bugfix
+**Date:** 2026-08-18  
+**Highlights:**
+- Fix issue with formslist page crashing for specific users after running SQL query.
+
 ## 1.19.0 – Minor Chane
 **Date:** 2025-11-13  
 **Highlights:**

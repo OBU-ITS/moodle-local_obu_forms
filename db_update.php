@@ -32,30 +32,29 @@ function local_obu_forms_get_forms_course() {
 
 // Check if the given user has the given role in the forms management course
 function local_obu_forms_has_forms_role($user_id = 0, $role_id_1 = 0, $role_id_2 = 0, $role_id_3 = 0) {
-	global $DB;
+    global $DB;
 
-	if (($user_id == 0) || ($role_id_1 == 0)) { // Both mandatory
-		return false;
-	}
+    if (($user_id == 0) || ($role_id_1 == 0)) {
+        return false;
+    }
 
-	$sql = 'SELECT ue.id'
-		. ' FROM {user_enrolments} ue'
-		. ' JOIN {enrol} e ON e.id = ue.enrolid'
-		. ' JOIN {context} ct ON ct.instanceid = e.courseid'
-		. ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
-		. ' JOIN {course} c ON c.id = e.courseid'
-		. ' WHERE ue.userid = ?'
-			. ' AND e.enrol = "manual"'
-			. ' AND ct.contextlevel = 50'
-			. ' AND ra.userid = ue.userid'
-			. ' AND (ra.roleid = ? OR ra.roleid = ? OR ra.roleid = ?)'
-			. ' AND c.idnumber = "SUBS_FORMS"';
-	$db_ret = $DB->get_records_sql($sql, array($user_id, $role_id_1, $role_id_2, $role_id_3));
-	if (empty($db_ret)) {
-		return false;
-	} else {
-		return true;
-	}
+    $sql = 'SELECT 1'
+        . ' FROM {user_enrolments} ue'
+        . ' JOIN {enrol} e ON e.id = ue.enrolid'
+        . ' JOIN {context} ct ON ct.instanceid = e.courseid'
+        . ' JOIN {role_assignments} ra ON ra.contextid = ct.id'
+        . ' JOIN {course} c ON c.id = e.courseid'
+        . ' WHERE ue.userid = ?'
+        . ' AND e.enrol = "manual"'
+        . ' AND ct.contextlevel = 50'
+        . ' AND ra.userid = ue.userid'
+        . ' AND (ra.roleid = ? OR ra.roleid = ? OR ra.roleid = ?)'
+        . ' AND c.idnumber = "SUBS_FORMS"';
+
+    return $DB->record_exists_sql(
+        $sql,
+        array($user_id, $role_id_1, $role_id_2, $role_id_3)
+    );
 }
 
 function local_obu_forms_write_form_settings($author, $form_data) {

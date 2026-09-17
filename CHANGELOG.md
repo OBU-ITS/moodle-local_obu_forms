@@ -4,6 +4,10 @@
 > Release types: Major Release | Minor Release | Hotfix | Revision 
 
 ---
+## 1.20.1 – Bugfix
+**Date:** 2026-09-14  
+**Highlights:**
+- Fix issue with formslist page crashing for specific users after attempting to retrieve navigation parent entity.
 
 ## 1.20.0 – Bugfix
 **Date:** 2026-08-18  

@@ -37,7 +37,16 @@ function local_obu_forms_extend_navigation($navigation) {
 		return;
 	}
 	 
-	$nodeHome = $navigation->children->get('1')->parent;
-	$node = $nodeHome->add(get_string('forms', 'local_obu_forms'), '/local/obu_forms/menu.php', navigation_node::TYPE_SYSTEM);
+	$nodeHome = $navigation->children->get('1');
+
+    if (!$nodeHome || !$nodeHome->parent) {
+        return;
+    }
+
+    $node = $nodeHome->parent->add(
+        get_string('forms', 'local_obu_forms'),
+        '/local/obu_forms/menu.php',
+        navigation_node::TYPE_SYSTEM
+    );
 	$node->showinflatnavigation = true;
 }
